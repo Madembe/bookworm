@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookWorm – Student Textbook Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f8f7f4;
+    --gray-100: #f0efec;
+    --gray-200: #e0deda;
+    --gray-300: #c8c5bf;
+    --gray-400: #9a9690;
+    --gray-500: #6b6660;
+    --accent: #0a0a0a;
+    --success: #2d6a4f;
+    --error: #c1121f;
+    --warning: #e76f51;
+    --card-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    --card-shadow-hover: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black);min-height:100vh;}
+  
+  /* SCREENS */
+  .screen{display:none;min-height:100vh;}
+  .screen.active{display:flex;flex-direction:column;}
+
+  /* NAV */
+  nav{background:var(--black);color:var(--white);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .nav-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;letter-spacing:-0.5px;cursor:pointer;}
+  .nav-logo span{color:var(--gray-300);}
+  .nav-actions{display:flex;gap:8px;align-items:center;}
+  .nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.2);color:var(--white);padding:8px 16px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all 0.2s;}
+  .nav-btn:hover{background:rgba(255,255,255,0.1);}
+  .nav-btn.primary{background:var(--white);color:var(--black);}
+  .nav-btn.primary:hover{background:var(--gray-200);}
+  .nav-icon-btn{background:transparent;border:none;color:var(--white);cursor:pointer;padding:8px;border-radius:6px;transition:all 0.2s;position:relative;}
+  .nav-icon-btn:hover{background:rgba(255,255,255,0.1);}
+  .badge{position:absolute;top:2px;right:2px;background:var(--warning);color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+  /* BUTTONS */
+  .btn{padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
+  .btn-primary{background:var(--black);color:var(--white);}
+  .btn-primary:hover{background:#333;transform:translateY(-1px);}
+  .btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black);}
+  .btn-secondary:hover{background:var(--black);color:var(--white);}
+  .btn-success{background:var(--success);color:var(--white);}
+  .btn-success:hover{background:#1e4d38;}
+  .btn-danger{background:var(--error);color:var(--white);}
+  .btn-sm{padding:8px 16px;font-size:13px;}
+  .btn-full{width:100%;}
+
+  /* FORMS */
+  .form-group{margin-bottom:20px;}
+  .form-group label{display:block;font-weight:600;font-size:13px;margin-bottom:6px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
+  .form-control{width:100%;padding:12px 16px;border:2px solid var(--gray-200);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;background:var(--white);color:var(--black);transition:border-color 0.2s;}
+  .form-control:focus{outline:none;border-color:var(--black);}
+  select.form-control{cursor:pointer;}
+  textarea.form-control{resize:vertical;min-height:100px;}
+
+  /* CARDS */
+  .book-card{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;transition:all 0.25s;cursor:pointer;}
+  .book-card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-3px);}
+  .book-card-img{width:100%;height:180px;object-fit:cover;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:48px;}
+  .book-card-img img{width:100%;height:100%;object-fit:cover;}
+  .book-card-body{padding:16px;}
+  .book-card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:4px;line-height:1.3;}
+  .book-card-module{font-size:12px;color:var(--gray-400);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+  .book-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .price{font-size:20px;font-weight:700;font-family:'Playfair Display',serif;}
+  .condition-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+  .condition-new{background:#d8f3dc;color:#2d6a4f;}
+  .condition-good{background:#fff3e0;color:#e76f51;}
+  .condition-used{background:var(--gray-100);color:var(--gray-500);}
+
+  /* GRID */
+  .books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;padding:24px;}
+
+  /* HERO */
+  .hero{background:var(--black);color:var(--white);padding:60px 24px;text-align:center;}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.1;margin-bottom:16px;}
+  .hero h1 em{font-style:italic;color:var(--gray-300);}
+  .hero p{font-size:16px;color:var(--gray-300);max-width:500px;margin:0 auto 32px;line-height:1.6;}
+  .trust-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:10px 20px;border-radius:100px;font-size:13px;color:var(--gray-300);margin-bottom:32px;}
+
+  /* SEARCH BAR */
+  .search-bar{display:flex;gap:0;max-width:600px;margin:0 auto;background:var(--white);border-radius:10px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.3);}
+  .search-bar input{flex:1;padding:16px 20px;border:none;font-family:'DM Sans',sans-serif;font-size:15px;background:transparent;color:var(--black);}
+  .search-bar input:focus{outline:none;}
+  .search-bar button{padding:16px 24px;background:var(--black);border:none;color:var(--white);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:background 0.2s;}
+  .search-bar button:hover{background:#333;}
+
+  /* FILTERS */
+  .filters{display:flex;gap:12px;padding:16px 24px;background:var(--white);border-bottom:1px solid var(--gray-200);flex-wrap:wrap;align-items:center;}
+  .filter-label{font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
+  .filter-select{padding:8px 14px;border:1.5px solid var(--gray-200);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;background:var(--white);color:var(--black);}
+  .filter-select:focus{outline:none;border-color:var(--black);}
+
+  /* SECTION HEADERS */
+  .section-header{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
+  .section-count{font-size:13px;color:var(--gray-400);}
+
+  /* AUTH SCREENS */
+  .auth-container{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--gray-100);}
+  .auth-card{background:var(--white);border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:var(--card-shadow);}
+  .auth-logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;text-align:center;margin-bottom:8px;}
+  .auth-subtitle{text-align:center;color:var(--gray-400);font-size:14px;margin-bottom:32px;}
+  .auth-switch{text-align:center;margin-top:20px;font-size:14px;color:var(--gray-500);}
+  .auth-switch a{color:var(--black);font-weight:600;cursor:pointer;text-decoration:underline;}
+
+  /* DETAIL PAGE */
+  .detail-container{flex:1;padding:24px;max-width:800px;margin:0 auto;width:100%;}
+  .detail-img{width:100%;max-height:350px;object-fit:cover;border-radius:12px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:24px;}
+  .detail-img img{width:100%;max-height:350px;object-fit:cover;border-radius:12px;}
+  .detail-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;margin-bottom:8px;}
+  .detail-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+  .meta-tag{padding:6px 14px;background:var(--gray-100);border-radius:20px;font-size:13px;font-weight:500;}
+  .detail-price{font-family:'Playfair Display',serif;font-size:40px;font-weight:900;margin-bottom:24px;}
+  .seller-card{background:var(--gray-100);border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .seller-avatar{width:48px;height:48px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;}
+  .seller-info h4{font-weight:600;font-size:15px;}
+  .seller-info p{font-size:13px;color:var(--gray-400);}
+
+  /* UPLOAD */
+  .upload-container{flex:1;padding:24px;max-width:600px;margin:0 auto;width:100%;}
+  .upload-container h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:24px;}
+  .image-upload-area{border:2px dashed var(--gray-300);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:20px;}
+  .image-upload-area:hover{border-color:var(--black);background:var(--gray-100);}
+  .image-upload-area .upload-icon{font-size:40px;margin-bottom:12px;}
+  .image-upload-area p{font-size:14px;color:var(--gray-400);}
+  .image-preview{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:12px;}
+
+  /* CHAT */
+  .chat-list{flex:1;overflow-y:auto;}
+  .chat-item{padding:16px 24px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.15s;}
+  .chat-item:hover{background:var(--gray-100);}
+  .chat-avatar{width:44px;height:44px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;}
+  .chat-info{flex:1;}
+  .chat-name{font-weight:600;font-size:15px;}
+  .chat-preview{font-size:13px;color:var(--gray-400);margin-top:2px;}
+  .chat-time{font-size:12px;color:var(--gray-400);}
+  
+  /* CHAT ROOM */
+  .chat-room{flex:1;display:flex;flex-direction:column;}
+  .chat-room-header{padding:16px 24px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:12px;}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px 24px;display:flex;flex-direction:column;gap:12px;}
+  .message{max-width:70%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.5;}
+  .message.sent{background:var(--black);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px;}
+  .message.received{background:var(--gray-100);color:var(--black);align-self:flex-start;border-bottom-left-radius:4px;}
+  .message-time{font-size:11px;opacity:0.6;margin-top:4px;}
+  .chat-input-area{padding:16px 24px;border-top:1px solid var(--gray-200);display:flex;gap:12px;align-items:center;}
+  .chat-input{flex:1;padding:12px 16px;border:2px solid var(--gray-200);border-radius:100px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);}
+  .chat-input:focus{outline:none;border-color:var(--black);}
+  .chat-send-btn{background:var(--black);color:var(--white);border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+  .chat-send-btn:hover{background:#333;}
+
+  /* PROFILE */
+  .profile-container{flex:1;padding:24px;max-width:600px;margin:0 auto;width:100%;}
+  .profile-header{text-align:center;padding:32px 0;border-bottom:1px solid var(--gray-200);margin-bottom:24px;}
+  .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 16px;}
+  .profile-name{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
+  .profile-uni{font-size:14px;color:var(--gray-400);margin-top:4px;}
+  .profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--gray-200);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;margin-bottom:24px;}
+  .stat-item{background:var(--white);padding:16px;text-align:center;}
+  .stat-number{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;}
+  .stat-label{font-size:12px;color:var(--gray-400);margin-top:4px;}
+
+  /* TRANSACTION / SECURE CODE */
+  .transaction-container{flex:1;padding:24px;max-width:500px;margin:0 auto;width:100%;}
+  .code-display{background:var(--black);color:var(--white);border-radius:16px;padding:32px;text-align:center;margin:24px 0;}
+  .code-number{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;letter-spacing:8px;margin:16px 0;}
+  .code-hint{font-size:13px;color:var(--gray-300);line-height:1.5;}
+  .steps-list{margin:24px 0;}
+  .step-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100);}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .step-text{font-size:14px;line-height:1.5;color:var(--gray-500);}
+  .step-text strong{color:var(--black);}
+
+  /* ADMIN */
+  .admin-container{flex:1;padding:24px;}
+  .admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:24px;}
+  .admin-stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:20px;}
+  .admin-stat-card h3{font-size:13px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .admin-stat-card .number{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;}
+  .admin-tabs{display:flex;gap:0;border-bottom:2px solid var(--gray-200);margin-bottom:20px;}
+  .admin-tab{padding:12px 20px;cursor:pointer;font-weight:600;font-size:14px;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+  .admin-tab.active{color:var(--black);border-bottom-color:var(--black);}
+  .admin-table{width:100%;border-collapse:collapse;}
+  .admin-table th{text-align:left;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-400);border-bottom:2px solid var(--gray-200);}
+  .admin-table td{padding:12px 16px;border-bottom:1px solid var(--gray-100);font-size:14px;}
+  .admin-table tr:hover td{background:var(--gray-100);}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--black);color:var(--white);padding:14px 24px;border-radius:100px;font-size:14px;font-weight:500;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s;opacity:0;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .toast.success{background:var(--success);}
+  .toast.error{background:var(--error);}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:24px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:var(--white);border-radius:16px;padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .modal h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:8px;}
+  .modal p{font-size:14px;color:var(--gray-500);margin-bottom:24px;line-height:1.6;}
+  .modal-actions{display:flex;gap:12px;justify-content:flex-end;}
+
+  /* EMPTY STATE */
+  .empty-state{text-align:center;padding:60px 24px;color:var(--gray-400);}
+  .empty-state .icon{font-size:48px;margin-bottom:16px;}
+  .empty-state h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--black);margin-bottom:8px;}
+  .empty-state p{font-size:14px;line-height:1.6;}
+
+  /* BOTTOM NAV */
+  .bottom-nav{background:var(--white);border-top:1px solid var(--gray-200);display:flex;padding:8px 0;position:sticky;bottom:0;}
+  .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;cursor:pointer;transition:all 0.2s;color:var(--gray-400);border:none;background:transparent;font-family:'DM Sans',sans-serif;}
+  .bottom-nav-item.active{color:var(--black);}
+  .bottom-nav-item .nav-icon{font-size:22px;}
+  .bottom-nav-item .nav-label{font-size:11px;font-weight:600;}
+
+  /* MISC */
+  .back-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 0;cursor:pointer;font-weight:600;font-size:14px;color:var(--gray-500);border:none;background:transparent;font-family:'DM Sans',sans-serif;margin-bottom:16px;}
+  .back-btn:hover{color:var(--black);}
+  .divider{height:1px;background:var(--gray-200);margin:20px 0;}
+  .tag{display:inline-block;padding:4px 10px;background:var(--gray-100);border-radius:4px;font-size:12px;font-weight:600;color:var(--gray-500);}
+  .page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;padding:20px 24px 0;}
+
+  /* LOGO */
+  .bw-logo-svg{display:inline-block;vertical-align:middle;}
+  .nav-logo-wrap{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .nav-logo-text{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--white);letter-spacing:-0.5px;}
+
+  /* SPLASH */
+  #screen-splash{background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}
+  #screen-splash.active{display:flex;}
+  .splash-logo{animation:splashPop 0.7s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0;}
+  .splash-tagline{color:var(--gray-300);font-size:16px;margin-top:12px;letter-spacing:1px;animation:fadeIn 1s 0.5s forwards;opacity:0;}
+  @keyframes splashPop{0%{transform:scale(0.6);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  @keyframes fadeIn{0%{opacity:0;transform:translateY(8px);}100%{opacity:1;transform:translateY(0);}}
+
+  @media(max-width:480px){
+    .books-grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:12px;}
+    .hero{padding:40px 16px;}
+    .filters{padding:12px 16px;}
+    .detail-container,.upload-container,.profile-container,.transaction-container{padding:16px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div class="screen active" id="screen-splash">
+  <div class="splash-logo">
+    <svg width="220" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(240,260)">
+        <polygon points="0,60 200,60 220,90 20,90" fill="#f8f7f4"/>
+        <polygon points="0,20 200,20 200,60 0,60" fill="#e0deda"/>
+        <polygon points="0,20 20,50 20,90 0,60" fill="#c8c5bf"/>
+        <polygon points="200,20 220,50 220,90 200,60" fill="#555"/>
+        <line x1="203" y1="25" x2="218" y2="55" stroke="#888" stroke-width="1.5"/>
+        <line x1="205" y1="30" x2="218" y2="58" stroke="#888" stroke-width="1.5"/>
+        <polygon points="0,0 140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0 200,20 0,20" fill="#f8f7f4"/>
+        <polyline points="140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0" fill="#0a0a0a" stroke="none"/>
+      </g>
+      <g transform="translate(320,180)">
+        <ellipse cx="20" cy="95" rx="18" ry="14" fill="#c8c5bf" stroke="#aaa" stroke-width="2"/>
+        <ellipse cx="20" cy="78" rx="19" ry="14" fill="#d0ccc4" stroke="#aaa" stroke-width="2"/>
+        <ellipse cx="18" cy="61" rx="20" ry="15" fill="#d8d4cc" stroke="#aaa" stroke-width="2"/>
+        <ellipse cx="15" cy="43" rx="21" ry="16" fill="#e0deda" stroke="#aaa" stroke-width="2"/>
+        <ellipse cx="10" cy="25" rx="20" ry="15" fill="#e8e4dc" stroke="#aaa" stroke-width="2"/>
+        <ellipse cx="5" cy="5" rx="26" ry="24" fill="#f0efec" stroke="#ccc" stroke-width="2.5"/>
+        <circle cx="-10" cy="4" r="11" fill="#0a0a0a" stroke="#f8f7f4" stroke-width="2"/>
+        <circle cx="18" cy="4" r="11" fill="#0a0a0a" stroke="#f8f7f4" stroke-width="2"/>
+        <line x1="1" y1="4" x2="7" y2="4" stroke="#f8f7f4" stroke-width="2.5"/>
+        <line x1="-21" y1="2" x2="-30" y2="-2" stroke="#f8f7f4" stroke-width="2"/>
+        <line x1="29" y1="2" x2="36" y2="-2" stroke="#f8f7f4" stroke-width="2"/>
+        <circle cx="-10" cy="4" r="5" fill="#f8f7f4"/>
+        <circle cx="18" cy="4" r="5" fill="#f8f7f4"/>
+        <circle cx="-8" cy="2" r="1.5" fill="#0a0a0a"/>
+        <circle cx="20" cy="2" r="1.5" fill="#0a0a0a"/>
+        <path d="M-4,16 Q5,22 14,16" fill="none" stroke="#f8f7f4" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <text x="340" y="410" text-anchor="middle" font-family="Georgia,serif" font-size="56" font-weight="700" fill="#f8f7f4" letter-spacing="-1">BookWorm</text>
+      <text x="340" y="452" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#9a9690" letter-spacing="2">Buy. Sell. Save.</text>
+    </svg>
+  </div>
+  <p class="splash-tagline">Loading your marketplace...</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <h3>💳 Confirm Payment</h3>
+    <p>You are about to pay <strong id="paymentAmount"></strong> for <strong id="paymentBook"></strong>. The money will be held safely until you confirm receipt of the book.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmPayment()">Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="codeModal">
+  <div class="modal">
+    <h3>🔐 Enter Release Code</h3>
+    <p>The buyer should give you a 6-digit code once they've received the book. Enter it below to release your payment.</p>
+    <div class="form-group">
+      <input class="form-control" id="codeInput" placeholder="Enter 6-digit code" maxlength="6" type="text" style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700;"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('codeModal')">Cancel</button>
+      <button class="btn btn-success btn-sm" onclick="verifyCode()">Release Payment</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>🗑️ Delete Listing</h3>
+    <p>Are you sure you want to delete this listing? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: LOGIN ===== -->
+<div class="screen active" id="screen-login">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div style="text-align:center;margin-bottom:20px;">
+        <svg width="120" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(240,260)">
+            <polygon points="0,60 200,60 220,90 20,90" fill="#0a0a0a"/>
+            <polygon points="0,20 200,20 200,60 0,60" fill="#1a1a1a"/>
+            <polygon points="0,20 20,50 20,90 0,60" fill="#333"/>
+            <polygon points="200,20 220,50 220,90 200,60" fill="#e8e4dc"/>
+            <line x1="203" y1="25" x2="218" y2="55" stroke="#ccc" stroke-width="1.5"/>
+            <line x1="205" y1="30" x2="218" y2="58" stroke="#ccc" stroke-width="1.5"/>
+            <polygon points="0,0 140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0 200,20 0,20" fill="#0a0a0a"/>
+            <polyline points="140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0" fill="#f8f7f4" stroke="none"/>
+          </g>
+          <g transform="translate(320,180)">
+            <ellipse cx="20" cy="95" rx="18" ry="14" fill="#d0ccc4" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="20" cy="78" rx="19" ry="14" fill="#d8d4cc" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="18" cy="61" rx="20" ry="15" fill="#dedad2" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="15" cy="43" rx="21" ry="16" fill="#e2deda" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="10" cy="25" rx="20" ry="15" fill="#e8e4dc" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="5" cy="5" rx="26" ry="24" fill="#ede9e1" stroke="#0a0a0a" stroke-width="2.5"/>
+            <circle cx="-10" cy="4" r="11" fill="white" stroke="#0a0a0a" stroke-width="2"/>
+            <circle cx="18" cy="4" r="11" fill="white" stroke="#0a0a0a" stroke-width="2"/>
+            <line x1="1" y1="4" x2="7" y2="4" stroke="#0a0a0a" stroke-width="2.5"/>
+            <line x1="-21" y1="2" x2="-30" y2="-2" stroke="#0a0a0a" stroke-width="2"/>
+            <line x1="29" y1="2" x2="36" y2="-2" stroke="#0a0a0a" stroke-width="2"/>
+            <circle cx="-10" cy="4" r="5" fill="#0a0a0a"/>
+            <circle cx="18" cy="4" r="5" fill="#0a0a0a"/>
+            <circle cx="-8" cy="2" r="1.5" fill="white"/>
+            <circle cx="20" cy="2" r="1.5" fill="white"/>
+            <path d="M-4,16 Q5,22 14,16" fill="none" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <text x="340" y="410" text-anchor="middle" font-family="Georgia,serif" font-size="56" font-weight="700" fill="#0a0a0a" letter-spacing="-1">BookWorm</text>
+          <text x="340" y="452" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#6b6660" letter-spacing="2">Buy. Sell. Save.</text>
+        </svg>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input class="form-control" id="loginEmail" type="email" placeholder="your@university.ac.za"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" id="loginPassword" type="password" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleLogin()">Sign In</button>
+      <div class="auth-switch">Don't have an account? <a onclick="showScreen('screen-register')">Sign Up</a></div>
+      <div class="auth-switch" style="margin-top:8px;"><a onclick="loginAsAdmin()" style="color:var(--gray-400);font-size:12px;">Admin Login →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: REGISTER ===== -->
+<div class="screen" id="screen-register">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div style="text-align:center;margin-bottom:20px;">
+        <svg width="100" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(240,260)">
+            <polygon points="0,60 200,60 220,90 20,90" fill="#0a0a0a"/>
+            <polygon points="0,20 200,20 200,60 0,60" fill="#1a1a1a"/>
+            <polygon points="0,20 20,50 20,90 0,60" fill="#333"/>
+            <polygon points="200,20 220,50 220,90 200,60" fill="#e8e4dc"/>
+            <line x1="203" y1="25" x2="218" y2="55" stroke="#ccc" stroke-width="1.5"/>
+            <line x1="205" y1="30" x2="218" y2="58" stroke="#ccc" stroke-width="1.5"/>
+            <polygon points="0,0 140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0 200,20 0,20" fill="#0a0a0a"/>
+            <polyline points="140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0" fill="#f8f7f4" stroke="none"/>
+          </g>
+          <g transform="translate(320,180)">
+            <ellipse cx="20" cy="95" rx="18" ry="14" fill="#d0ccc4" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="20" cy="78" rx="19" ry="14" fill="#d8d4cc" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="18" cy="61" rx="20" ry="15" fill="#dedad2" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="15" cy="43" rx="21" ry="16" fill="#e2deda" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="10" cy="25" rx="20" ry="15" fill="#e8e4dc" stroke="#0a0a0a" stroke-width="2"/>
+            <ellipse cx="5" cy="5" rx="26" ry="24" fill="#ede9e1" stroke="#0a0a0a" stroke-width="2.5"/>
+            <circle cx="-10" cy="4" r="11" fill="white" stroke="#0a0a0a" stroke-width="2"/>
+            <circle cx="18" cy="4" r="11" fill="white" stroke="#0a0a0a" stroke-width="2"/>
+            <line x1="1" y1="4" x2="7" y2="4" stroke="#0a0a0a" stroke-width="2.5"/>
+            <line x1="-21" y1="2" x2="-30" y2="-2" stroke="#0a0a0a" stroke-width="2"/>
+            <line x1="29" y1="2" x2="36" y2="-2" stroke="#0a0a0a" stroke-width="2"/>
+            <circle cx="-10" cy="4" r="5" fill="#0a0a0a"/>
+            <circle cx="18" cy="4" r="5" fill="#0a0a0a"/>
+            <circle cx="-8" cy="2" r="1.5" fill="white"/>
+            <circle cx="20" cy="2" r="1.5" fill="white"/>
+            <path d="M-4,16 Q5,22 14,16" fill="none" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <text x="340" y="410" text-anchor="middle" font-family="Georgia,serif" font-size="56" font-weight="700" fill="#0a0a0a" letter-spacing="-1">BookWorm</text>
+        </svg>
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input class="form-control" id="regName" type="text" placeholder="Thabo Nkosi"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input class="form-control" id="regEmail" type="email" placeholder="your@university.ac.za"/>
+      </div>
+      <div class="form-group">
+        <label>University</label>
+        <select class="form-control" id="regUniversity">
+          <option value="">Select University</option>
+          <option>University of Limpopo</option>
+          <option>University of Pretoria</option>
+          <option>University of the Witwatersrand</option>
+          <option>University of Cape Town</option>
+          <option>Stellenbosch University</option>
+          <option>University of Johannesburg</option>
+          <option>UNISA</option>
+          <option>Nelson Mandela University</option>
+          <option>North-West University</option>
+          <option>University of KwaZulu-Natal</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" id="regPassword" type="password" placeholder="••••••••"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleRegister()">Create Account</button>
+      <div class="auth-switch">Already have an account? <a onclick="showScreen('screen-login')">Sign In</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: HOME ===== -->
+<div class="screen" id="screen-home">
+  <nav>
+    <div class="nav-logo-wrap" onclick="showScreen('screen-home')">
+      <svg width="32" height="32" viewBox="150 150 380 300" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(240,260)">
+          <polygon points="0,60 200,60 220,90 20,90" fill="#f8f7f4"/>
+          <polygon points="0,20 200,20 200,60 0,60" fill="#d0ccc4"/>
+          <polygon points="0,20 20,50 20,90 0,60" fill="#aaa"/>
+          <polygon points="200,20 220,50 220,90 200,60" fill="#555"/>
+          <polygon points="0,0 140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0 200,20 0,20" fill="#f8f7f4"/>
+          <polyline points="140,0 148,10 155,4 163,14 170,5 178,13 185,3 192,12 200,0" fill="#0a0a0a" stroke="none"/>
+        </g>
+        <g transform="translate(320,180)">
+          <ellipse cx="15" cy="43" rx="21" ry="16" fill="#e0deda" stroke="#aaa" stroke-width="2"/>
+          <ellipse cx="10" cy="25" rx="20" ry="15" fill="#e8e4dc" stroke="#aaa" stroke-width="2"/>
+          <ellipse cx="5" cy="5" rx="26" ry="24" fill="#f0efec" stroke="#ccc" stroke-width="2"/>
+          <circle cx="-10" cy="4" r="11" fill="#0a0a0a" stroke="#f8f7f4" stroke-width="2"/>
+          <circle cx="18" cy="4" r="11" fill="#0a0a0a" stroke="#f8f7f4" stroke-width="2"/>
+          <line x1="1" y1="4" x2="7" y2="4" stroke="#f8f7f4" stroke-width="2.5"/>
+          <circle cx="-10" cy="4" r="4" fill="#f8f7f4"/>
+          <circle cx="18" cy="4" r="4" fill="#f8f7f4"/>
+          <circle cx="-8" cy="2" r="1.2" fill="#0a0a0a"/>
+          <circle cx="20" cy="2" r="1.2" fill="#0a0a0a"/>
+          <path d="M-4,16 Q5,22 14,16" fill="none" stroke="#f8f7f4" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <span class="nav-logo-text">BookWorm</span>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="showScreen('screen-chat')" title="Messages">
+        💬 <span class="badge" id="msgBadge" style="display:none">1</span>
+      </button>
+      <button class="nav-icon-btn" onclick="showScreen('screen-profile')" title="Profile">👤</button>
+      <button class="nav-btn" onclick="showScreen('screen-upload')">+ List Book</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="trust-badge">🔒 Payments protected until you receive your book</div>
+    <h1>Buy & sell textbooks <em>safely</em></h1>
+    <p>The student marketplace built on trust. Real students. Real books. Zero scams.</p>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by title, module, or course..." onkeyup="filterBooks()"/>
+      <button onclick="filterBooks()">Search</button>
+    </div>
+  </div>
+  <div class="filters">
+    <span class="filter-label">Filter:</span>
+    <select class="filter-select" id="filterUniversity" onchange="filterBooks()">
+      <option value="">All Universities</option>
+      <option>University of Limpopo</option>
+      <option>University of Pretoria</option>
+      <option>University of the Witwatersrand</option>
+      <option>University of Cape Town</option>
+      <option>Stellenbosch University</option>
+      <option>University of Johannesburg</option>
+      <option>UNISA</option>
+      <option>Other</option>
+    </select>
+    <select class="filter-select" id="filterCondition" onchange="filterBooks()">
+      <option value="">All Conditions</option>
+      <option>New</option>
+      <option>Good</option>
+      <option>Used</option>
+    </select>
+    <select class="filter-select" id="filterPrice" onchange="filterBooks()">
+      <option value="">Any Price</option>
+      <option value="0-100">Under R100</option>
+      <option value="100-300">R100 – R300</option>
+      <option value="300-500">R300 – R500</option>
+      <option value="500+">R500+</option>
+    </select>
+  </div>
+  <div class="section-header">
+    <div class="section-title">Available Books</div>
+    <div class="section-count" id="booksCount"></div>
+  </div>
+  <div class="books-grid" id="booksGrid"></div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item active" onclick="showScreen('screen-home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-upload')"><span class="nav-icon">📤</span><span class="nav-label">Sell</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-chat')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: BOOK DETAIL ===== -->
+<div class="screen" id="screen-detail">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="goBack()">← Back</button>
+    </div>
+  </nav>
+  <div class="detail-container">
+    <div class="detail-img" id="detailImg"></div>
+    <h1 class="detail-title" id="detailTitle"></h1>
+    <div class="detail-meta" id="detailMeta"></div>
+    <div class="detail-price" id="detailPrice"></div>
+    <div class="seller-card" id="detailSeller"></div>
+    <div id="detailActions"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: UPLOAD ===== -->
+<div class="screen" id="screen-upload">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="showScreen('screen-home')">← Back</button>
+    </div>
+  </nav>
+  <div class="upload-container">
+    <h2>List a Book 📚</h2>
+    <div class="image-upload-area" onclick="document.getElementById('bookImageInput').click()">
+      <div class="upload-icon">📷</div>
+      <p>Click to upload a photo of your book</p>
+      <img id="uploadPreview" class="image-preview" style="display:none"/>
+    </div>
+    <input type="file" id="bookImageInput" accept="image/*" style="display:none" onchange="previewImage(event)"/>
+    <div class="form-group">
+      <label>Book Title</label>
+      <input class="form-control" id="uploadTitle" placeholder="e.g. Introduction to Business Law"/>
+    </div>
+    <div class="form-group">
+      <label>Module Code</label>
+      <input class="form-control" id="uploadModule" placeholder="e.g. LAW101, ACC200"/>
+    </div>
+    <div class="form-group">
+      <label>University</label>
+      <select class="form-control" id="uploadUniversity">
+        <option value="">Select University</option>
+        <option>University of Limpopo</option>
+        <option>University of Pretoria</option>
+        <option>University of the Witwatersrand</option>
+        <option>University of Cape Town</option>
+        <option>Stellenbosch University</option>
+        <option>University of Johannesburg</option>
+        <option>UNISA</option>
+        <option>Nelson Mandela University</option>
+        <option>North-West University</option>
+        <option>University of KwaZulu-Natal</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Condition</label>
+      <select class="form-control" id="uploadCondition">
+        <option>New</option>
+        <option>Good</option>
+        <option>Used</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Price (ZAR)</label>
+      <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250"/>
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea class="form-control" id="uploadDescription" placeholder="Any extra details about the book..."></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="submitListing()">📤 List My Book</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: TRANSACTION ===== -->
+<div class="screen" id="screen-transaction">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="goBack()">← Back</button>
+    </div>
+  </nav>
+  <div class="transaction-container">
+    <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:8px;">🔐 Secure Transaction</h2>
+    <p style="color:var(--gray-400);font-size:14px;margin-bottom:16px;">Your payment is protected. Follow the steps below.</p>
+    <div id="transactionContent"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: CHAT LIST ===== -->
+<div class="screen" id="screen-chat">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+  </nav>
+  <div class="page-title">Messages 💬</div>
+  <div class="chat-list" id="chatList"></div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" onclick="showScreen('screen-home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-upload')"><span class="nav-icon">📤</span><span class="nav-label">Sell</span></button>
+    <button class="bottom-nav-item active" onclick="showScreen('screen-chat')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: CHAT ROOM ===== -->
+<div class="screen" id="screen-chatroom">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="showScreen('screen-chat')">← Back</button>
+    </div>
+  </nav>
+  <div class="chat-room">
+    <div class="chat-room-header">
+      <div class="chat-avatar" id="chatroomAvatar"></div>
+      <div>
+        <div class="chat-name" id="chatroomName"></div>
+        <div style="font-size:12px;color:var(--gray-400);" id="chatroomBook"></div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMessage()"/>
+      <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: PROFILE ===== -->
+<div class="screen" id="screen-profile">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn btn-danger" onclick="handleLogout()" style="background:transparent;border-color:rgba(255,255,255,0.2);color:white;">Logout</button>
+    </div>
+  </nav>
+  <div class="profile-container">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <div class="profile-name" id="profileName"></div>
+      <div class="profile-uni" id="profileUni"></div>
+    </div>
+    <div class="profile-stats">
+      <div class="stat-item"><div class="stat-number" id="statListings">0</div><div class="stat-label">Listings</div></div>
+      <div class="stat-item"><div class="stat-number" id="statSold">0</div><div class="stat-label">Sold</div></div>
+      <div class="stat-item"><div class="stat-number" id="statBought">0</div><div class="stat-label">Bought</div></div>
+    </div>
+    <div class="section-title" style="margin-bottom:16px;">My Listings</div>
+    <div id="myListings"></div>
+    <div class="divider"></div>
+    <div class="section-title" style="margin-bottom:16px;">My Purchases</div>
+    <div id="myPurchases"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" onclick="showScreen('screen-home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-upload')"><span class="nav-icon">📤</span><span class="nav-label">Sell</span></button>
+    <button class="bottom-nav-item" onclick="showScreen('screen-chat')"><span class="nav-icon">💬</span><span class="nav-label">Messages</span></button>
+    <button class="bottom-nav-item active" onclick="showScreen('screen-profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: ADMIN ===== -->
+<div class="screen" id="screen-admin">
+  <nav>
+    <div class="nav-logo">Book<span>Worm</span> <span style="font-size:12px;color:var(--gray-300);font-family:'DM Sans',sans-serif;font-weight:400;">Admin</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="admin-container">
+    <div class="section-title" style="margin-bottom:20px;">Admin Dashboard 🛡️</div>
+    <div class="admin-stats">
+      <div class="admin-stat-card"><h3>Total Users</h3><div class="number" id="adminUsers">0</div></div>
+      <div class="admin-stat-card"><h3>Total Listings</h3><div class="number" id="adminListings">0</div></div>
+      <div class="admin-stat-card"><h3>Transactions</h3><div class="number" id="adminTx">0</div></div>
+      <div class="admin-stat-card"><h3>Revenue (5%)</h3><div class="number" id="adminRevenue">R0</div></div>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchAdminTab('listings',this)">Listings</div>
+      <div class="admin-tab" onclick="switchAdminTab('users',this)">Users</div>
+      <div class="admin-tab" onclick="switchAdminTab('transactions',this)">Transactions</div>
+    </div>
+    <div id="adminContent"></div>
+  </div>
+</div>
+
+<!-- FIREBASE + APP SCRIPT -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",
+  authDomain: "bookworm-b9ba6.firebaseapp.com",
+  projectId: "bookworm-b9ba6",
+  storageBucket: "bookworm-b9ba6.firebasestorage.app",
+  messagingSenderId: "616027780575",
+  appId: "1:616027780575:web:c778c93c9779138e54c06a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// CLOUDINARY CONFIG
+const CLOUD_NAME = "drtdddsxp";
+const UPLOAD_PRESET = "bookworm_uploads";
+
+// STATE
+let currentUser = null;
+let currentUserData = null;
+let allBooks = [];
+let filteredBooks = [];
+let currentBook = null;
+let currentTransaction = null;
+let previousScreen = 'screen-home';
+let currentChatId = null;
+let deleteTargetId = null;
+let unsubscribeChat = null;
+let isAdmin = false;
+
+// SPLASH
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-login').classList.add('active');
+  }, 2200);
+});
+
+// ADMIN CREDENTIALS (simple for demo — in production, use Firebase custom claims)
+const ADMIN_EMAIL = "admin@bookworm.co.za";
+const ADMIN_PASSWORD = "admin123";
+
+// ===== AUTH =====
+window.handleLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showToast('Please fill in all fields', 'error');
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch(e) {
+    showToast('Invalid email or password', 'error');
+  }
+};
+
+window.loginAsAdmin = function() {
+  document.getElementById('loginEmail').value = ADMIN_EMAIL;
+  document.getElementById('loginPassword').value = ADMIN_PASSWORD;
+};
+
+window.handleRegister = async function() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const university = document.getElementById('regUniversity').value;
+  const password = document.getElementById('regPassword').value;
+  if (!name || !email || !university || !password) return showToast('Please fill in all fields', 'error');
+  if (password.length < 6) return showToast('Password must be at least 6 characters', 'error');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await addDoc(collection(db, 'users'), {
+      uid: cred.user.uid, name, email, university,
+      createdAt: serverTimestamp(), sold: 0, bought: 0
+    });
+    showToast('Account created! Welcome to BookWorm 📚', 'success');
+  } catch(e) {
+    showToast(e.message.includes('email-already-in-use') ? 'Email already registered' : 'Registration failed', 'error');
+  }
+};
+
+window.handleLogout = async function() {
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    isAdmin = user.email === ADMIN_EMAIL;
+    if (isAdmin) {
+      await loadAdminDashboard();
+      showScreen('screen-admin');
+    } else {
+      await loadUserData();
+      await loadBooks();
+      showScreen('screen-home');
+    }
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    isAdmin = false;
+    showScreen('screen-login');
+  }
+});
+
+async function loadUserData() {
+  const q = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
+  const snap = await getDocs(q);
+  if (!snap.empty) currentUserData = { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+// ===== BOOKS =====
+async function loadBooks() {
+  try {
+    const snap = await getDocs(query(collection(db, 'books'), orderBy('createdAt', 'desc')));
+    allBooks = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.status !== 'sold');
+    filteredBooks = [...allBooks];
+    renderBooks(filteredBooks);
+  } catch(e) { console.error(e); }
+}
+
+window.filterBooks = function() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const uni = document.getElementById('filterUniversity').value;
+  const cond = document.getElementById('filterCondition').value;
+  const price = document.getElementById('filterPrice').value;
+  filteredBooks = allBooks.filter(b => {
+    const matchSearch = !search || b.title?.toLowerCase().includes(search) || b.module?.toLowerCase().includes(search);
+    const matchUni = !uni || b.university === uni;
+    const matchCond = !cond || b.condition === cond;
+    let matchPrice = true;
+    if (price === '0-100') matchPrice = b.price < 100;
+    else if (price === '100-300') matchPrice = b.price >= 100 && b.price <= 300;
+    else if (price === '300-500') matchPrice = b.price >= 300 && b.price <= 500;
+    else if (price === '500+') matchPrice = b.price > 500;
+    return matchSearch && matchUni && matchCond && matchPrice;
+  });
+  renderBooks(filteredBooks);
+};
+
+function renderBooks(books) {
+  const grid = document.getElementById('booksGrid');
+  const count = document.getElementById('booksCount');
+  count.textContent = `${books.length} book${books.length !== 1 ? 's' : ''} found`;
+  if (books.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📚</div><h3>No books found</h3><p>Try adjusting your filters or be the first to list a book!</p></div>`;
+    return;
+  }
+  grid.innerHTML = books.map(b => `
+    <div class="book-card" onclick="showDetail('${b.id}')">
+      <div class="book-card-img">${b.imageUrl ? `<img src="${b.imageUrl}" alt="${b.title}" onerror="this.parentElement.innerHTML='📖'"/>` : '📖'}</div>
+      <div class="book-card-body">
+        <div class="book-card-module">${b.module || ''} • ${b.university?.split(' ')[0] || ''}</div>
+        <div class="book-card-title">${b.title}</div>
+        <div class="book-card-footer">
+          <div class="price">R${b.price}</div>
+          <div class="condition-badge condition-${b.condition?.toLowerCase()}">${b.condition}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== DETAIL =====
+window.showDetail = async function(id) {
+  const book = allBooks.find(b => b.id === id) || await getBookById(id);
+  if (!book) return;
+  currentBook = book;
+  previousScreen = 'screen-home';
+
+  document.getElementById('detailImg').innerHTML = book.imageUrl
+    ? `<img src="${book.imageUrl}" alt="${book.title}"/>`
+    : '📖';
+  document.getElementById('detailTitle').textContent = book.title;
+  document.getElementById('detailPrice').textContent = `R${book.price}`;
+  document.getElementById('detailMeta').innerHTML = `
+    <div class="meta-tag">📚 ${book.module || 'General'}</div>
+    <div class="meta-tag">🎓 ${book.university || 'Unknown'}</div>
+    <div class="condition-badge condition-${book.condition?.toLowerCase()}">${book.condition}</div>
+  `;
+  document.getElementById('detailSeller').innerHTML = `
+    <div class="seller-avatar">${book.sellerName?.[0]?.toUpperCase() || 'S'}</div>
+    <div class="seller-info">
+      <h4>${book.sellerName || 'Seller'}</h4>
+      <p>${book.sellerUniversity || ''}</p>
+    </div>
+  `;
+
+  const actions = document.getElementById('detailActions');
+  const isOwner = currentUser && book.sellerId === currentUser.uid;
+  if (isOwner) {
+    actions.innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <button class="btn btn-secondary btn-full" onclick="openCodeModal('${book.id}')">🔐 Enter Release Code</button>
+        <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${book.id}')">🗑️</button>
+      </div>
+      <p style="font-size:13px;color:var(--gray-400);text-align:center;">This is your listing. Share the secure code with the buyer after they pay.</p>
+    `;
+  } else {
+    actions.innerHTML = `
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-secondary" onclick="startChat('${book.id}','${book.sellerId}','${book.sellerName}','${book.title}')">💬 Message Seller</button>
+        <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now – R${book.price}</button>
+      </div>
+    `;
+  }
+  showScreen('screen-detail');
+};
+
+async function getBookById(id) {
+  try {
+    const snap = await getDoc(doc(db, 'books', id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  } catch(e) { return null; }
+}
+
+// ===== UPLOAD =====
+let uploadedImageUrl = '';
+window.previewImage = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('uploadPreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+};
+
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+  const data = await res.json();
+  return data.secure_url;
+}
+
+window.submitListing = async function() {
+  const title = document.getElementById('uploadTitle').value.trim();
+  const module = document.getElementById('uploadModule').value.trim();
+  const university = document.getElementById('uploadUniversity').value;
+  const condition = document.getElementById('uploadCondition').value;
+  const price = parseFloat(document.getElementById('uploadPrice').value);
+  const description = document.getElementById('uploadDescription').value.trim();
+  const fileInput = document.getElementById('bookImageInput');
+
+  if (!title || !university || !price) return showToast('Please fill in all required fields', 'error');
+  if (isNaN(price) || price <= 0) return showToast('Please enter a valid price', 'error');
+
+  showToast('Uploading your listing...');
+  try {
+    let imageUrl = '';
+    if (fileInput.files[0]) {
+      imageUrl = await uploadToCloudinary(fileInput.files[0]);
+    }
+    await addDoc(collection(db, 'books'), {
+      title, module, university, condition, price, description, imageUrl,
+      sellerId: currentUser.uid,
+      sellerName: currentUserData?.name || 'Anonymous',
+      sellerUniversity: currentUserData?.university || university,
+      status: 'available',
+      createdAt: serverTimestamp()
+    });
+    showToast('Book listed successfully! 🎉', 'success');
+    document.getElementById('uploadTitle').value = '';
+    document.getElementById('uploadModule').value = '';
+    document.getElementById('uploadPrice').value = '';
+    document.getElementById('uploadDescription').value = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+    fileInput.value = '';
+    await loadBooks();
+    showScreen('screen-home');
+  } catch(e) {
+    showToast('Failed to list book. Try again.', 'error');
+    console.error(e);
+  }
+};
+
+// ===== PAYMENT & SECURE CODE =====
+window.openPayment = function(bookId) {
+  const book = allBooks.find(b => b.id === bookId);
+  if (!book) return;
+  document.getElementById('paymentAmount').textContent = `R${book.price}`;
+  document.getElementById('paymentBook').textContent = book.title;
+  document.getElementById('paymentModal').classList.add('active');
+};
+
+window.confirmPayment = async function() {
+  closeModal('paymentModal');
+  if (!currentBook) return;
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  try {
+    const txRef = await addDoc(collection(db, 'transactions'), {
+      bookId: currentBook.id,
+      bookTitle: currentBook.title,
+      buyerId: currentUser.uid,
+      buyerName: currentUserData?.name || 'Buyer',
+      sellerId: currentBook.sellerId,
+      amount: currentBook.price,
+      code,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, 'books', currentBook.id), { status: 'pending' });
+    currentTransaction = { id: txRef.id, code, ...currentBook };
+    showTransactionScreen(code, currentBook);
+    showToast('Payment secured! 🔐 Your money is protected.', 'success');
+  } catch(e) {
+    showToast('Payment failed. Try again.', 'error');
+    console.error(e);
+  }
+};
+
+function showTransactionScreen(code, book) {
+  document.getElementById('transactionContent').innerHTML = `
+    <div style="background:var(--gray-100);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="font-weight:600;font-size:15px;">📚 ${book.title}</div>
+      <div style="font-size:13px;color:var(--gray-400);margin-top:4px;">R${book.price} • Secured in escrow</div>
+    </div>
+    <div class="code-display">
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-300);">Your Secure Release Code</div>
+      <div class="code-number">${code}</div>
+      <div class="code-hint">⚠️ Only share this code with the seller <strong>after</strong> you have received the book and confirmed it's correct.</div>
+    </div>
+    <div class="steps-list">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text">✅ <strong>Payment secured</strong> — your money is held safely</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text">📦 <strong>Arrange collection</strong> — message the seller to meet</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text">📚 <strong>Receive your book</strong> — check it matches the listing</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text">🔐 <strong>Share this code</strong> — give the 6-digit code to the seller</div></div>
+      <div class="step-item"><div class="step-num">5</div><div class="step-text">💸 <strong>Payment released</strong> — seller enters code and receives their money</div></div>
+    </div>
+    <button class="btn btn-secondary btn-full" onclick="startChat('${book.id}','${book.sellerId}','${book.sellerName}','${book.title}')">💬 Message Seller to Arrange Collection</button>
+  `;
+  previousScreen = 'screen-detail';
+  showScreen('screen-transaction');
+}
+
+window.openCodeModal = function() {
+  document.getElementById('codeInput').value = '';
+  document.getElementById('codeModal').classList.add('active');
+};
+
+window.verifyCode = async function() {
+  const entered = document.getElementById('codeInput').value.trim();
+  if (entered.length !== 6) return showToast('Please enter a 6-digit code', 'error');
+  try {
+    const q = query(collection(db, 'transactions'),
+      where('sellerId', '==', currentUser.uid),
+      where('status', '==', 'pending'),
+      where('bookId', '==', currentBook.id)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return showToast('No pending transaction found', 'error');
+    const tx = snap.docs[0];
+    if (tx.data().code === entered) {
+      await updateDoc(doc(db, 'transactions', tx.id), { status: 'completed', completedAt: serverTimestamp() });
+      await updateDoc(doc(db, 'books', currentBook.id), { status: 'sold' });
+      closeModal('codeModal');
+      showToast('🎉 Payment released! R' + tx.data().amount + ' sent to your account.', 'success');
+      await loadBooks();
+      showScreen('screen-home');
+    } else {
+      showToast('Incorrect code. Please try again.', 'error');
+    }
+  } catch(e) {
+    showToast('Verification failed. Try again.', 'error');
+    console.error(e);
+  }
+};
+
+// ===== DELETE =====
+window.openDeleteModal = function(id) {
+  deleteTargetId = id;
+  document.getElementById('deleteModal').classList.add('active');
+};
+
+window.confirmDelete = async function() {
+  if (!deleteTargetId) return;
+  try {
+    await deleteDoc(doc(db, 'books', deleteTargetId));
+    closeModal('deleteModal');
+    showToast('Listing deleted', 'success');
+    await loadBooks();
+    showScreen('screen-home');
+  } catch(e) {
+    showToast('Failed to delete listing', 'error');
+  }
+};
+
+// ===== CHAT =====
+window.startChat = async function(bookId, sellerId, sellerName, bookTitle) {
+  if (currentUser.uid === sellerId) return showToast("You can't chat with yourself!", 'error');
+  const chatId = [currentUser.uid, sellerId].sort().join('_') + '_' + bookId;
+  const chatRef = doc(db, 'chats', chatId);
+  const chatSnap = await getDoc(chatRef);
+  if (!chatSnap.exists()) {
+    const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(chatRef, {
+      participants: [currentUser.uid, sellerId],
+      participantNames: { [currentUser.uid]: currentUserData?.name || 'Buyer', [sellerId]: sellerName },
+      bookId, bookTitle, lastMessage: '', updatedAt: serverTimestamp()
+    });
+  }
+  openChatRoom(chatId, sellerName, bookTitle);
+};
+
+window.openChatRoom = function(chatId, otherName, bookTitle) {
+  currentChatId = chatId;
+  document.getElementById('chatroomAvatar').textContent = otherName?.[0]?.toUpperCase() || '?';
+  document.getElementById('chatroomName').textContent = otherName;
+  document.getElementById('chatroomBook').textContent = `Re: ${bookTitle}`;
+  if (unsubscribeChat) unsubscribeChat();
+  const msgsRef = collection(db, 'chats', chatId, 'messages');
+  unsubscribeChat = onSnapshot(query(msgsRef, orderBy('createdAt')), snap => {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = snap.docs.map(d => {
+      const m = d.data();
+      const isSent = m.senderId === currentUser.uid;
+      return `<div style="display:flex;flex-direction:column;align-items:${isSent?'flex-end':'flex-start'}">
+        <div class="message ${isSent?'sent':'received'}">${m.text}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'now'}</div>
+      </div>`;
+    }).join('');
+    container.scrollTop = container.scrollHeight;
+  });
+  showScreen('screen-chatroom');
+};
+
+window.sendMessage = async function() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || !currentChatId) return;
+  input.value = '';
+  try {
+    await addDoc(collection(db, 'chats', currentChatId, 'messages'), {
+      text, senderId: currentUser.uid,
+      senderName: currentUserData?.name || 'User',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, 'chats', currentChatId), { lastMessage: text, updatedAt: serverTimestamp() });
+  } catch(e) { console.error(e); }
+};
+
+async function loadChatList() {
+  const q = query(collection(db, 'chats'), where('participants', 'array-contains', currentUser.uid));
+  const snap = await getDocs(q);
+  const chatList = document.getElementById('chatList');
+  if (snap.empty) {
+    chatList.innerHTML = `<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Browse books and message a seller to get started!</p></div>`;
+    return;
+  }
+  chatList.innerHTML = snap.docs.map(d => {
+    const c = d.data();
+    const otherId = c.participants.find(p => p !== currentUser.uid);
+    const otherName = c.participantNames?.[otherId] || 'User';
+    return `<div class="chat-item" onclick="openChatRoom('${d.id}','${otherName}','${c.bookTitle}')">
+      <div class="chat-avatar">${otherName[0]?.toUpperCase()}</div>
+      <div class="chat-info">
+        <div class="chat-name">${otherName}</div>
+        <div class="chat-preview">Re: ${c.bookTitle}</div>
+        <div class="chat-preview">${c.lastMessage || 'Start the conversation...'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== PROFILE =====
+async function loadProfile() {
+  if (!currentUserData) return;
+  document.getElementById('profileAvatar').textContent = currentUserData.name?.[0]?.toUpperCase() || 'U';
+  document.getElementById('profileName').textContent = currentUserData.name;
+  document.getElementById('profileUni').textContent = currentUserData.university;
+
+  const myBooks = allBooks.filter(b => b.sellerId === currentUser.uid);
+  document.getElementById('statListings').textContent = myBooks.length;
+
+  const txSnap = await getDocs(query(collection(db, 'transactions'), where('sellerId', '==', currentUser.uid), where('status', '==', 'completed')));
+  document.getElementById('statSold').textContent = txSnap.size;
+
+  const boughtSnap = await getDocs(query(collection(db, 'transactions'), where('buyerId', '==', currentUser.uid)));
+  document.getElementById('statBought').textContent = boughtSnap.size;
+
+  document.getElementById('myListings').innerHTML = myBooks.length === 0
+    ? `<div class="empty-state" style="padding:20px"><p>You haven't listed any books yet.</p></div>`
+    : myBooks.map(b => `
+      <div class="book-card" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:12px;cursor:pointer;" onclick="showDetail('${b.id}')">
+        <div style="font-size:32px;">${b.imageUrl ? `<img src="${b.imageUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;"/>` : '📖'}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;">${b.title}</div>
+          <div style="font-size:13px;color:var(--gray-400);">R${b.price} • ${b.condition}</div>
+        </div>
+        <div class="tag">${b.status === 'sold' ? '✅ Sold' : b.status === 'pending' ? '⏳ Pending' : '🟢 Active'}</div>
+      </div>
+    `).join('');
+
+  document.getElementById('myPurchases').innerHTML = boughtSnap.empty
+    ? `<div class="empty-state" style="padding:20px"><p>You haven't bought any books yet.</p></div>`
+    : boughtSnap.docs.map(d => {
+      const t = d.data();
+      return `<div style="padding:12px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:12px;">
+        <div style="font-weight:600;">${t.bookTitle}</div>
+        <div style="font-size:13px;color:var(--gray-400);">R${t.amount} • ${t.status === 'completed' ? '✅ Completed' : '⏳ Awaiting delivery'}</div>
+      </div>`;
+    }).join('');
+}
+
+// ===== ADMIN =====
+async function loadAdminDashboard() {
+  const [usersSnap, booksSnap, txSnap] = await Promise.all([
+    getDocs(collection(db, 'users')),
+    getDocs(collection(db, 'books')),
+    getDocs(collection(db, 'transactions'))
+  ]);
+  document.getElementById('adminUsers').textContent = usersSnap.size;
+  document.getElementById('adminListings').textContent = booksSnap.size;
+  document.getElementById('adminTx').textContent = txSnap.size;
+  const totalRevenue = txSnap.docs.filter(d => d.data().status === 'completed').reduce((s, d) => s + (d.data().amount * 0.05), 0);
+  document.getElementById('adminRevenue').textContent = `R${totalRevenue.toFixed(0)}`;
+  window._adminData = {
+    users: usersSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    books: booksSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    transactions: txSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+  };
+  renderAdminListings();
+}
+
+window.switchAdminTab = function(tab, el) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'listings') renderAdminListings();
+  else if (tab === 'users') renderAdminUsers();
+  else if (tab === 'transactions') renderAdminTransactions();
+};
+
+function renderAdminListings() {
+  const books = window._adminData?.books || [];
+  document.getElementById('adminContent').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Title</th><th>Seller</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>${books.map(b => `
+        <tr>
+          <td>${b.title}</td>
+          <td>${b.sellerName || '-'}</td>
+          <td>R${b.price}</td>
+          <td><span class="tag">${b.status}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="adminDeleteBook('${b.id}')">Remove</button></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+}
+
+function renderAdminUsers() {
+  const users = window._adminData?.users || [];
+  document.getElementById('adminContent').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Name</th><th>Email</th><th>University</th></tr></thead>
+      <tbody>${users.map(u => `<tr><td>${u.name}</td><td>${u.email}</td><td>${u.university}</td></tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function renderAdminTransactions() {
+  const txs = window._adminData?.transactions || [];
+  document.getElementById('adminContent').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Book</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>${txs.map(t => `
+        <tr>
+          <td>${t.bookTitle}</td>
+          <td>${t.buyerName}</td>
+          <td>R${t.amount}</td>
+          <td><span class="tag">${t.status}</span></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+}
+
+window.adminDeleteBook = async function(id) {
+  if (!confirm('Remove this listing?')) return;
+  await deleteDoc(doc(db, 'books', id));
+  await loadAdminDashboard();
+  showToast('Listing removed', 'success');
+};
+
+// ===== SCREEN MANAGEMENT =====
+window.showScreen = function(screenId) {
+  if (screenId === 'screen-chat') loadChatList();
+  if (screenId === 'screen-profile') loadProfile();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  window.scrollTo(0, 0);
+};
+
+window.goBack = function() {
+  showScreen(previousScreen || 'screen-home');
+};
+
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('active');
+};
+
+// ===== TOAST =====
+window.showToast = function(msg, type = '') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  setTimeout(() => { toast.className = 'toast'; }, 3500);
+};
+
+</script>
+</body>
+</html>
