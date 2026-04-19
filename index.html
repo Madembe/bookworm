@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookWorm Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--black:#0a0a0a;--white:#f8f7f4;--gray-100:#f0efec;--gray-200:#e0deda;--gray-300:#c8c5bf;--gray-400:#9a9690;--gray-500:#6b6660;--success:#2d6a4f;--error:#c1121f;--warning:#e76f51;--info:#1a6fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-height:100vh;}
+.admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--black);}
+.login-card{background:var(--white);border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 4px 40px rgba(0,0,0,0.3);}
+.login-card img{display:block;margin:0 auto 20px;height:70px;}
+.login-card h2{font-size:20px;font-weight:900;text-align:center;margin-bottom:6px;}
+.login-card p{font-size:12px;color:var(--gray-400);text-align:center;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-weight:800;font-size:11px;margin-bottom:4px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
+.form-control{width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Nunito',sans-serif;font-size:14px;background:var(--white);transition:border-color 0.2s;}
+.form-control:focus{outline:none;border-color:var(--black);}
+.btn{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-primary{background:var(--black);color:var(--white);}
+.btn-primary:hover:not(:disabled){background:#333;}
+.btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black);}
+.btn-success{background:var(--success);color:var(--white);}
+.btn-danger{background:var(--error);color:var(--white);}
+.btn-warning{background:var(--warning);color:var(--white);}
+.btn-info{background:var(--info);color:var(--white);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.btn-full{width:100%;}
+.admin-layout{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--black);color:var(--white);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo img{height:40px;filter:invert(1);}
+.sidebar-logo div{font-size:11px;color:var(--gray-400);margin-top:4px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav{flex:1;padding:12px 0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);transition:all 0.2s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--white);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:var(--white);background:rgba(255,255,255,0.08);border-left-color:var(--white);}
+.nav-badge{background:var(--warning);color:white;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:900;margin-left:auto;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);}
+.sidebar-footer button{background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;width:100%;}
+.sidebar-footer button:hover{background:rgba(255,255,255,0.1);color:white;}
+.main-content{margin-left:240px;flex:1;padding:24px;min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;}
+.page-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-header-left h1{font-size:24px;font-weight:900;}
+.page-header-left p{font-size:13px;color:var(--gray-400);margin-top:4px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--white);border-radius:12px;padding:18px;border:1px solid var(--gray-200);}
+.stat-card .lbl{font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.stat-card .val{font-size:28px;font-weight:900;}
+.stat-card .sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
+.stat-card.green .val{color:var(--success);}
+.stat-card.orange .val{color:var(--warning);}
+.stat-card.red .val{color:var(--error);}
+.stat-card.blue .val{color:var(--info);}
+.table-card{background:var(--white);border-radius:12px;border:1px solid var(--gray-200);overflow:hidden;margin-bottom:20px;}
+.table-card-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.table-card-header h3{font-size:15px;font-weight:900;}
+.admin-table{width:100%;border-collapse:collapse;}
+.admin-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gray-200);background:var(--gray-100);white-space:nowrap;}
+.admin-table td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--gray-100);}
+.tag{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;display:inline-block;}
+.tag-available{background:#d8f3dc;color:#2d6a4f;}
+.tag-active{background:#d8f3dc;color:#2d6a4f;}
+.tag-pending{background:#fff3e0;color:#e76f51;}
+.tag-sold{background:#e8f4fd;color:#1a6fa8;}
+.tag-disputed{background:#fee2e2;color:#c1121f;}
+.tag-completed{background:#d8f3dc;color:#2d6a4f;}
+.tag-open{background:#fee2e2;color:#c1121f;}
+.tag-resolved{background:#d8f3dc;color:#2d6a4f;}
+.tag-featured{background:#fef3c7;color:#92400e;}
+.tag-cancelled{background:var(--gray-100);color:var(--gray-500);}
+.tag-failed{background:#fee2e2;color:#c1121f;}
+.tab-bar{display:flex;border-bottom:2px solid var(--gray-200);margin-bottom:20px;flex-wrap:wrap;}
+.tab-item{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:800;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;}
+.tab-item.active{color:var(--black);border-bottom-color:var(--black);}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px;}
+.settings-card{background:var(--white);border-radius:12px;padding:20px;border:1px solid var(--gray-200);}
+.settings-card h3{font-size:14px;font-weight:900;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-200);}
+.settings-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;}
+.settings-row label{font-size:13px;font-weight:700;}
+.settings-row input[type=number]{width:90px;padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;text-align:center;}
+.toggle{width:44px;height:24px;background:var(--gray-300);border-radius:12px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--success);}
+.toggle::after{content:"";position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle.on::after{left:23px;}
+.chat-panel{display:flex;height:520px;border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;background:var(--white);}
+.chat-sidebar-p{width:280px;border-right:1px solid var(--gray-200);overflow-y:auto;flex-shrink:0;}
+.chat-main-p{flex:1;display:flex;flex-direction:column;min-width:0;}
+.chat-msgs-p{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.cmsg{max-width:70%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word;}
+.cmsg.sent{background:var(--black);color:white;align-self:flex-end;}
+.cmsg.received{background:var(--gray-100);align-self:flex-start;}
+.chat-input-r{padding:12px;border-top:1px solid var(--gray-200);display:flex;gap:8px;}
+.chat-input-r input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;}
+.chat-input-r input:focus{outline:none;border-color:var(--black);}
+.cli{padding:13px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.15s;}
+.cli:hover{background:var(--gray-100);}
+.cavatar{width:38px;height:38px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;}
+.modal h3{font-size:18px;font-weight:900;margin-bottom:16px;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);line-height:1;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:white;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:800;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:300px;}
+.toast.show{opacity:1;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--error);}
+.toast.warning{background:var(--warning);}
+.empty-state{text-align:center;padding:40px;color:var(--gray-400);}
+.report-filters{display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;}
+.report-filters .form-group{margin-bottom:0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}.sidebar{width:200px;}.main-content{margin-left:200px;}}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- LOGIN -->
+<div id="adminLogin" class="admin-login">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+    <h2>Admin Portal</h2>
+    <p>BookWorm Management Console</p>
+    <div class="form-group"><label>Email</label><input class="form-control" id="loginEmail" type="email" placeholder="madembemaano@africakai.co.za"/></div>
+    <div class="form-group"><label>Password</label><input class="form-control" id="loginPassword" type="password" placeholder="Your password" onkeypress="if(event.key==='Enter')adminLogin()"/></div>
+    <button class="btn btn-primary btn-full" onclick="adminLogin()">Sign In</button>
+    <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--gray-400);">🔒 Restricted access — authorised personnel only</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp" style="display:none;">
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <img src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+        <div>Admin Console</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="showPage('dashboard',this)"><span>📊</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('listings',this)"><span>📚</span> Listings</div>
+        <div class="nav-item" onclick="showPage('users',this)"><span>👥</span> Users</div>
+        <div class="nav-item" onclick="showPage('transactions',this)"><span>💳</span> Transactions</div>
+        <div class="nav-item" onclick="showPage('deliveries',this)"><span>🚚</span> Deliveries</div>
+        <div class="nav-item" onclick="showPage('payouts',this)"><span>💰</span> Payouts</div>
+        <div class="nav-item" onclick="showPage('disputes',this)"><span>⚠️</span> Disputes <span class="nav-badge" id="disputeBadge" style="display:none;">0</span></div>
+        <div class="nav-item" onclick="showPage('support',this)"><span>🛟</span> Support</div>
+        <div class="nav-item" onclick="showPage('chats',this)"><span>💬</span> Chats</div>
+        <div class="nav-item" onclick="showPage('digital',this)"><span>📖</span> Digital Books</div>
+        <div class="nav-item" onclick="showPage('promotions',this)"><span>⭐</span> Promotions</div>
+        <div class="nav-item" onclick="showPage('wanted',this)"><span>🔍</span> Wanted</div>
+        <div class="nav-item" onclick="showPage('reports',this)"><span>📈</span> Reports</div>
+        <div class="nav-item" onclick="showPage('settings',this)"><span>⚙️</span> Settings</div>
+      </nav>
+      <div class="sidebar-footer">
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;" id="adminEmailDisplay"></div>
+        <button onclick="adminLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header"><div class="page-header-left"><h1>📊 Dashboard</h1><p id="dashDate"></p></div><button class="btn btn-secondary btn-sm" onclick="loadAll()">🔄 Refresh</button></div>
+        <div class="stats-grid" id="dashStats"></div>
+        <div class="two-col">
+          <div class="table-card"><div class="table-card-header"><h3>Recent Transactions</h3></div><div id="recentTx" style="padding:12px;"></div></div>
+          <div class="table-card"><div class="table-card-header"><h3>Recent Listings</h3></div><div id="recentListings" style="padding:12px;"></div></div>
+        </div>
+      </div>
+
+      <!-- LISTINGS -->
+      <div id="page-listings" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>📚 Listings</h1><p>All books on the platform.</p></div><input class="form-control" id="listingSearch" placeholder="Search listings..." style="width:200px;" oninput="renderListings()"/></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setLTab('all',this)">All</div>
+          <div class="tab-item" onclick="setLTab('available',this)">Available</div>
+          <div class="tab-item" onclick="setLTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setLTab('sold',this)">Sold</div>
+          <div class="tab-item" onclick="setLTab('stale',this)">🚩 Stale 90+ days</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3 id="listingTabTitle">All Listings</h3><span id="listingCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="listingsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="page-users" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>👥 Users</h1><p>All registered users.</p></div><input class="form-control" id="userSearch" placeholder="Search users..." style="width:200px;" oninput="renderUsers()"/></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Users</h3><span id="userCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="usersTable"></table></div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div id="page-transactions" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>💳 Transactions</h1><p>All payment transactions.</p></div></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setTTab('all',this)">All</div>
+          <div class="tab-item" onclick="setTTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setTTab('completed',this)">Completed</div>
+          <div class="tab-item" onclick="setTTab('disputed',this)">Disputed</div>
+          <div class="tab-item" onclick="setTTab('cancelled',this)">Cancelled</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Transactions</h3><span id="txCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="txTable"></table></div>
+        </div>
+      </div>
+
+      <!-- DELIVERIES -->
+      <div id="page-deliveries" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🚚 Deliveries</h1><p>Courier and meetup delivery overview.</p></div></div>
+        <div class="stats-grid" id="deliveryStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setDTab('all',this)">All</div>
+          <div class="tab-item" onclick="setDTab('courier',this)">📦 Courier</div>
+          <div class="tab-item" onclick="setDTab('meetup',this)">🤝 Meetup</div>
+          <div class="tab-item" onclick="setDTab('no-tracking',this)">⚠️ No Tracking Yet</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Deliveries</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="deliveryTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PAYOUTS -->
+      <div id="page-payouts" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>💰 Payouts</h1><p>Seller payout management.</p></div></div>
+        <div class="stats-grid" id="payoutStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setPTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setPTab('completed',this)">Completed</div>
+          <div class="tab-item" onclick="setPTab('failed',this)">Failed</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Payouts</h3><button class="btn btn-sm btn-success" onclick="exportPayouts()">⬇️ Export CSV</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="payoutsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- DISPUTES -->
+      <div id="page-disputes" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>⚠️ Disputes</h1><p>Resolve buyer and seller disputes.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Disputes</h3><span id="disputeCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="disputesTable"></table></div>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div id="page-support" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🛟 Support Chats</h1><p>Reply to student support requests.</p></div></div>
+        <div class="chat-panel">
+          <div class="chat-sidebar-p" id="supportList"><div class="empty-state"><p>Loading...</p></div></div>
+          <div class="chat-main-p" id="supportChat"><div class="empty-state"><div style="font-size:36px;margin-bottom:10px;">🛟</div><h3>Select a chat</h3><p>Choose a support conversation from the left.</p></div></div>
+        </div>
+      </div>
+
+      <!-- CHATS -->
+      <div id="page-chats" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>💬 All Chats</h1><p>Monitor conversations for safety and disputes.</p></div></div>
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#9a3412;font-weight:700;">⚖️ Chat monitoring is for safety and dispute resolution only, in compliance with POPIA. Users are informed that chats may be reviewed.</div>
+        <div class="chat-panel">
+          <div class="chat-sidebar-p" id="allChatList"><div class="empty-state"><p>Loading...</p></div></div>
+          <div class="chat-main-p" id="allChatView"><div class="empty-state"><div style="font-size:36px;margin-bottom:10px;">💬</div><h3>Select a chat to view</h3></div></div>
+        </div>
+      </div>
+
+      <!-- DIGITAL -->
+      <div id="page-digital" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>📖 Digital Books</h1><p>Manage digital book listings.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Digital Listings</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="digitalTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PROMOTIONS -->
+      <div id="page-promotions" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>⭐ Promotions</h1><p>Featured listings and promotion revenue.</p></div></div>
+        <div class="stats-grid" id="promoStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>All Promotions</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="promoTable"></table></div>
+        </div>
+      </div>
+
+      <!-- WANTED -->
+      <div id="page-wanted" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🔍 Wanted Listings</h1><p>Books students are looking for.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Wanted</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="wantedTable"></table></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>📈 Reports</h1><p>Custom revenue reports for any date range.</p></div></div>
+        <div class="report-filters">
+          <div class="form-group"><label>From Date</label><input type="date" class="form-control" id="reportFrom"/></div>
+          <div class="form-group"><label>To Date</label><input type="date" class="form-control" id="reportTo"/></div>
+          <button class="btn btn-primary" onclick="generateReport()">📊 Generate</button>
+          <button class="btn btn-secondary" onclick="exportReport()">⬇️ Export CSV</button>
+        </div>
+        <div class="stats-grid" id="reportStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Transaction Breakdown</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="reportTable"></table></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>⚙️ Settings</h1><p>Platform configuration and fees.</p></div></div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>💰 Commission & Fees</h3>
+            <div class="settings-row"><label>Commission Rate (%)</label><input type="number" id="setCommission" min="0" max="30" step="0.5" value="5"/></div>
+            <div class="settings-row"><label>Pargo Delivery Fee (R)</label><input type="number" id="setDeliveryFee" min="0" value="79"/></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveFeesSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>🚚 Delivery Options</h3>
+            <div class="settings-row"><label>Courier (Pargo)</label><div class="toggle on" id="togCourier" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Meetup</label><div class="toggle on" id="togMeetup" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Bookshop Pickup</label><div class="toggle" id="togBookshop" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveDeliverySettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>⭐ Promotion Pricing</h3>
+            <div class="settings-row"><label>7-Day Feature (R)</label><input type="number" id="setPromo7" min="0" value="29"/></div>
+            <div class="settings-row"><label>14-Day Feature (R)</label><input type="number" id="setPromo14" min="0" value="49"/></div>
+            <div class="settings-row"><label>30-Day Feature (R)</label><input type="number" id="setPromo30" min="0" value="79"/></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="savePromoSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>🔔 Notifications</h3>
+            <div class="settings-row"><label>Email on new listing</label><div class="toggle on" id="togEmailListing" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Email on new transaction</label><div class="toggle on" id="togEmailTx" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Email on new dispute</label><div class="toggle on" id="togEmailDispute" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveNotifSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>🏪 Bookshop Partners</h3>
+            <div id="bookshopPartners" style="margin-bottom:12px;font-size:13px;color:var(--gray-400);">No partners added yet.</div>
+            <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('partnerModal').classList.add('active')">+ Add Bookshop Partner</button>
+          </div>
+          <div class="settings-card">
+            <h3>⚠️ Danger Zone</h3>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;">These actions are irreversible.</p>
+            <button class="btn btn-danger btn-sm btn-full" onclick="if(confirm('Export all platform data?'))exportAllData()">📥 Export All Platform Data</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal"><button class="modal-close" onclick="closeModal('userModal')">✕</button><h3 id="userModalTitle">User Details</h3><div id="userModalContent"></div></div>
+</div>
+<div class="modal-overlay" id="txModal">
+  <div class="modal"><button class="modal-close" onclick="closeModal('txModal')">✕</button><h3>💳 Transaction Details</h3><div id="txModalContent"></div></div>
+</div>
+<div class="modal-overlay" id="partnerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('partnerModal')">✕</button>
+    <h3>🏪 Add Bookshop Partner</h3>
+    <div class="form-group"><label>Bookshop Name</label><input class="form-control" id="partnerName" placeholder="e.g. Exclus1ves Polokwane"/></div>
+    <div class="form-group"><label>Address</label><input class="form-control" id="partnerAddress" placeholder="Full street address"/></div>
+    <div class="form-group"><label>Contact Number</label><input class="form-control" id="partnerPhone" placeholder="e.g. 015 123 4567"/></div>
+    <div class="form-group"><label>Province</label>
+      <select class="form-control" id="partnerProvince">
+        <option>Limpopo</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Mpumalanga</option><option>North West</option><option>Free State</option><option>Northern Cape</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="savePartner()">Add Partner</button>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,setDoc,serverTimestamp,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FC={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a"};
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const ADMIN_EMAIL="madembemaano@africakai.co.za";
+
+let D={users:[],books:[],transactions:[],disputes:[],payouts:[],promotions:[],wanted:[]};
+let commissionRate=5,deliveryFee=79;
+let lTab="all",txTab="all",delTab="all",poTab="pending";
+let supChatId=null,unsubSup=null,unsubView=null;
+
+onAuthStateChanged(auth,async u=>{
+  if(u&&u.email===ADMIN_EMAIL){
+    document.getElementById("adminLogin").style.display="none";
+    document.getElementById("adminApp").style.display="block";
+    document.getElementById("adminEmailDisplay").textContent=u.email;
+    document.getElementById("dashDate").textContent=new Date().toLocaleDateString("en-ZA",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    await loadAll();
+    await loadSettings();
+  }else if(u){
+    await signOut(auth);
+    toast("Access denied. Admin only.","error");
+  }else{
+    document.getElementById("adminLogin").style.display="flex";
+    document.getElementById("adminApp").style.display="none";
+  }
+});
+
+window.adminLogin=async function(){
+  const e=document.getElementById("loginEmail").value.trim();
+  const p=document.getElementById("loginPassword").value;
+  if(!e||!p)return toast("Please fill in all fields","error");
+  try{await signInWithEmailAndPassword(auth,e,p);}
+  catch(e){toast("Invalid email or password","error");}
+};
+window.adminLogout=async function(){await signOut(auth);};
+
+window.loadAll=async function(){
+  try{
+    const[u,b,t,d,p,pr,w]=await Promise.all([
+      getDocs(collection(db,"users")),
+      getDocs(query(collection(db,"books"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"transactions"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"disputes"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"payouts"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"promotions"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"wanted"),orderBy("createdAt","desc")))
+    ]);
+    D.users=u.docs.map(d=>({id:d.id,...d.data()}));
+    D.books=b.docs.map(d=>({id:d.id,...d.data()}));
+    D.transactions=t.docs.map(d=>({id:d.id,...d.data()}));
+    D.disputes=d.docs.map(d=>({id:d.id,...d.data()}));
+    D.payouts=p.docs.map(d=>({id:d.id,...d.data()}));
+    D.promotions=pr.docs.map(d=>({id:d.id,...d.data()}));
+    D.wanted=w.docs.map(d=>({id:d.id,...d.data()}));
+    const ob=D.disputes.filter(x=>x.status==="open").length;
+    const badge=document.getElementById("disputeBadge");
+    if(ob>0){badge.textContent=ob;badge.style.display="inline";}else{badge.style.display="none";}
+    renderDashboard();
+    toast("Data refreshed","success");
+  }catch(e){console.error(e);toast("Failed to load data","error");}
+};
+
+function ts(t){return t?.toDate?t.toDate():new Date((t?.seconds||0)*1000);}
+function daysAgo(t){return Math.floor((new Date()-ts(t))/(864e5));}
+
+window.showPage=function(page,el){
+  document.querySelectorAll(".page").forEach(p=>{p.classList.remove("active");p.style.display="none";});
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const pg=document.getElementById(`page-${page}`);
+  pg.classList.add("active");pg.style.display="block";
+  el.classList.add("active");
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates};
+  fns[page]?.();
+};
+
+function renderDashboard(){
+  const txs=D.transactions,books=D.books,users=D.users;
+  const done=txs.filter(t=>t.status==="completed");
+  const pend=txs.filter(t=>t.status==="pending");
+  const disp=txs.filter(t=>t.status==="disputed");
+  const rev=done.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const dRev=done.reduce((s,t)=>s+(t.deliveryFee||0),0);
+  const pRev=D.promotions.reduce((s,p)=>s+(p.price||0),0);
+  const bVal=books.filter(b=>b.status==="available").reduce((s,b)=>s+(b.price||b.subPrice||0),0);
+  document.getElementById("dashStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Revenue</div><div class="val">R${(rev+dRev+pRev).toFixed(0)}</div><div class="sub">Comm + Delivery + Promos</div></div>
+    <div class="stat-card"><div class="lbl">Commission Earned</div><div class="val">R${rev.toFixed(0)}</div><div class="sub">${commissionRate}% rate</div></div>
+    <div class="stat-card blue"><div class="lbl">Active Listings</div><div class="val">${books.filter(b=>b.status==="available").length}</div><div class="sub">Value: R${bVal.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="lbl">Total Users</div><div class="val">${users.length}</div><div class="sub">Students & Bookshops</div></div>
+    <div class="stat-card orange"><div class="lbl">Pending Sales</div><div class="val">${pend.length}</div><div class="sub">Awaiting completion</div></div>
+    <div class="stat-card green"><div class="lbl">Completed Sales</div><div class="val">${done.length}</div><div class="sub">All time</div></div>
+    <div class="stat-card red"><div class="lbl">Open Disputes</div><div class="val">${disp.length}</div><div class="sub">Needs attention</div></div>
+    <div class="stat-card orange"><div class="lbl">Promo Revenue</div><div class="val">R${pRev.toFixed(0)}</div><div class="sub">Featured listings</div></div>`;
+  document.getElementById("recentTx").innerHTML=txs.slice(0,6).map(t=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+      <div><div style="font-weight:800;font-size:12px;">${t.bookTitle||""}</div><div style="font-size:11px;color:var(--gray-400);">${t.buyerName||""}</div></div>
+      <div style="text-align:right;"><div style="font-weight:900;">R${t.amount||0}</div><span class="tag tag-${t.status}">${t.status}</span></div>
+    </div>`).join("")||`<p style="color:var(--gray-400);font-size:13px;">No transactions yet.</p>`;
+  document.getElementById("recentListings").innerHTML=books.slice(0,6).map(b=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+      <div><div style="font-weight:800;font-size:12px;">${b.title||""}</div><div style="font-size:11px;color:var(--gray-400);">${b.sellerName||""}</div></div>
+      <div style="text-align:right;"><div style="font-weight:900;">R${b.price||b.subPrice||0}</div><span class="tag tag-${b.status}">${b.status}</span></div>
+    </div>`).join("")||`<p style="color:var(--gray-400);font-size:13px;">No listings yet.</p>`;
+}
+
+window.setLTab=function(tab,el){lTab=tab;document.querySelectorAll("#page-listings .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderListings();};
+function renderListings(){
+  const s=(document.getElementById("listingSearch")?.value||"").toLowerCase();
+  const now=new Date(),d90=new Date(now-90*864e5);
+  let books=D.books.filter(b=>{
+    if(s&&!b.title?.toLowerCase().includes(s)&&!b.sellerName?.toLowerCase().includes(s))return false;
+    if(lTab==="stale")return b.status==="available"&&ts(b.createdAt)<d90;
+    if(lTab!=="all")return b.status===lTab;
+    return true;
+  });
+  document.getElementById("listingCount").textContent=`${books.length} listings`;
+  document.getElementById("listingTabTitle").textContent=lTab==="stale"?"🚩 Stale Listings (90+ days)":"Listings";
+  document.getElementById("listingsTable").innerHTML=`
+    <thead><tr><th>Title</th><th>Type</th><th>Seller</th><th>Price</th><th>Status</th><th>Age</th><th>Actions</th></tr></thead>
+    <tbody>${books.map(b=>{const d=daysAgo(b.createdAt);return`<tr>
+      <td><div style="font-weight:800;">${b.title}</div><div style="font-size:11px;color:var(--gray-400);">${b.module||""} ${b.edition||""}</div></td>
+      <td>${b.bookType==="digital"?"📖 Digital":"📚 Physical"}</td>
+      <td style="font-size:12px;">${b.sellerName||"-"}</td>
+      <td style="font-weight:900;">R${b.price||b.subPrice||0}</td>
+      <td><span class="tag tag-${b.status}">${b.status}</span>${b.featured?` <span class="tag tag-featured">⭐</span>`:""}</td>
+      <td style="font-size:12px;">${d}d${d>=90?` <span style="color:var(--error);">🚩</span>`:""}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${lTab==="stale"?`<button class="btn btn-sm btn-warning" onclick="nudgeSeller('${b.id}','${b.sellerId}')">📩 Nudge</button>`:""}
+        <button class="btn btn-sm btn-danger" onclick="delBook('${b.id}')">Remove</button>
+      </td>
+    </tr>`;}).join("")}</tbody>`;
+}
+window.delBook=async function(id){
+  if(!confirm("Remove this listing?"))return;
+  await deleteDoc(doc(db,"books",id));
+  D.books=D.books.filter(b=>b.id!==id);
+  renderListings();renderDashboard();toast("Listing removed","success");
+};
+window.nudgeSeller=async function(bid,sid){
+  await addDoc(collection(db,"notifications"),{userId:sid,type:"stale_listing",bookId:bid,message:"Your listing has been on BookWorm for 90+ days. Consider adjusting your price or updating your photos to attract buyers.",createdAt:serverTimestamp(),read:false});
+  toast("Nudge sent to seller","success");
+};
+
+function renderUsers(){
+  const s=(document.getElementById("userSearch")?.value||"").toLowerCase();
+  const users=D.users.filter(u=>!s||u.name?.toLowerCase().includes(s)||u.email?.toLowerCase().includes(s));
+  document.getElementById("userCount").textContent=`${users.length} users`;
+  document.getElementById("usersTable").innerHTML=`
+    <thead><tr><th>Name</th><th>Type</th><th>Email</th><th>WhatsApp</th><th>Institution</th><th>Rating</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="font-weight:800;">${u.name||"-"}</td>
+      <td>${u.accountType==="bookshop"?"🏪 Bookshop":"🎓 Student"}</td>
+      <td style="font-size:12px;">${u.email||"-"}</td>
+      <td style="font-size:12px;">${u.whatsapp||"-"}</td>
+      <td style="font-size:12px;">${u.university||"-"}</td>
+      <td style="font-size:12px;">${u.rating?`${"★".repeat(Math.round(u.rating))} (${u.ratingCount||0})`:"-"}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-info" onclick="viewUser('${u.id}')">View</button>
+        <button class="btn btn-sm btn-danger" onclick="suspendUser('${u.id}','${(u.name||"User").replace(/'/g,"\\'")}')">Suspend</button>
+      </td>
+    </tr>`).join("")}</tbody>`;
+}
+window.viewUser=function(id){
+  const u=D.users.find(x=>x.id===id);if(!u)return;
+  document.getElementById("userModalTitle").textContent=u.name||"User";
+  document.getElementById("userModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Account Type:</strong> ${u.accountType}</div>
+      <div><strong>Email:</strong> ${u.email}</div>
+      <div><strong>WhatsApp:</strong> ${u.whatsapp||"-"}</div>
+      <div><strong>Institution:</strong> ${u.university||"-"}</div>
+      <div><strong>Rating:</strong> ${u.rating||0} ⭐ (${u.ratingCount||0} reviews)</div>
+      <div><strong>Joined:</strong> ${ts(u.createdAt).toLocaleDateString("en-ZA")}</div>
+      ${u.banking?`<div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-top:4px;">
+        <div style="font-weight:900;font-size:12px;margin-bottom:8px;">🏦 Banking Details</div>
+        <div><strong>Bank:</strong> ${u.banking.bankName||"-"}</div>
+        <div><strong>Account Holder:</strong> ${u.banking.accountHolder||"-"}</div>
+        <div><strong>Account Number:</strong> ****${String(u.banking.accountNumber||"").slice(-4)}</div>
+        <div><strong>Account Type:</strong> ${u.banking.accountTypeBank||"-"}</div>
+        <div><strong>Branch Code:</strong> ${u.banking.branchCode||"-"}</div>
+      </div>`:"<div><strong>Banking:</strong> Not provided</div>"}
+    </div>`;
+  document.getElementById("userModal").classList.add("active");
+};
+window.suspendUser=async function(id,name){
+  if(!confirm(`Suspend ${name}? They will not be able to log in.`))return;
+  await updateDoc(doc(db,"users",id),{suspended:true,suspendedAt:serverTimestamp()});
+  toast(`${name} suspended`,"warning");
+  await loadAll();renderUsers();
+};
+
+window.setTTab=function(tab,el){txTab=tab;document.querySelectorAll("#page-transactions .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderTransactions();};
+function renderTransactions(){
+  const txs=txTab==="all"?D.transactions:D.transactions.filter(t=>t.status===txTab);
+  document.getElementById("txCount").textContent=`${txs.length} transactions`;
+  document.getElementById("txTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Seller</th><th>Amount</th><th>Delivery</th><th>Tracking</th><th>Commission</th><th>Status</th><th></th></tr></thead>
+    <tbody>${txs.map(t=>`<tr>
+      <td style="font-weight:800;max-width:140px;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-size:12px;">${t.sellerName||"-"}</td>
+      <td style="font-weight:900;">R${t.amount||0}</td>
+      <td style="font-size:12px;">${t.deliveryMethod==="courier"?"📦 Courier":"🤝 Meetup"}</td>
+      <td style="font-size:12px;">${t.trackingNumber||`<span style="color:var(--warning);">-</span>`}</td>
+      <td style="font-size:12px;">R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+      <td><button class="btn btn-sm btn-info" onclick="viewTx('${t.id}')">View</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+window.viewTx=function(id){
+  const t=D.transactions.find(x=>x.id===id);if(!t)return;
+  document.getElementById("txModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:8px;">
+      <div><strong>Book:</strong> ${t.bookTitle}</div>
+      <div><strong>Buyer:</strong> ${t.buyerName} (${t.buyerEmail||"-"})</div>
+      <div><strong>Seller:</strong> ${t.sellerName}</div>
+      <div><strong>Book Amount:</strong> R${t.amount}</div>
+      <div><strong>Delivery Fee:</strong> R${t.deliveryFee||0}</div>
+      <div><strong>Total Paid:</strong> R${t.totalAmount||t.amount}</div>
+      <div><strong>Commission:</strong> R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</div>
+      <div><strong>Delivery Method:</strong> ${t.deliveryMethod==="courier"?"📦 Pargo Courier":"🤝 Meetup"}</div>
+      <div><strong>Tracking Number:</strong> ${t.trackingNumber||"Not yet added"}</div>
+      <div><strong>Status:</strong> <span class="tag tag-${t.status}">${t.status}</span></div>
+      ${t.meetupAddress?`<div><strong>Meetup Address:</strong> ${t.meetupAddress}</div>`:""}
+      ${t.pargoAddress?`<div><strong>Pargo Pickup Point:</strong> ${t.pargoAddress}</div>`:""}
+      <div><strong>Date:</strong> ${ts(t.createdAt).toLocaleDateString("en-ZA")}</div>
+      ${t.status==="pending"?`<div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-success btn-sm" onclick="adminCompleteTx('${t.id}')">✅ Mark Complete</button>
+        <button class="btn btn-danger btn-sm" onclick="adminCancelTx('${t.id}')">❌ Cancel & Refund</button>
+      </div>`:""}
+    </div>`;
+  document.getElementById("txModal").classList.add("active");
+};
+window.adminCompleteTx=async function(id){
+  await updateDoc(doc(db,"transactions",id),{status:"completed",completedAt:serverTimestamp(),adminOverride:true});
+  closeModal("txModal");await loadAll();renderTransactions();toast("Marked complete","success");
+};
+window.adminCancelTx=async function(id){
+  if(!confirm("Cancel this transaction?"))return;
+  await updateDoc(doc(db,"transactions",id),{status:"cancelled",cancelledAt:serverTimestamp()});
+  closeModal("txModal");await loadAll();renderTransactions();toast("Transaction cancelled","warning");
+};
+
+window.setDTab=function(tab,el){delTab=tab;document.querySelectorAll("#page-deliveries .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderDeliveries();};
+function renderDeliveries(){
+  let txs=D.transactions.filter(t=>t.status==="pending"||t.status==="completed");
+  if(delTab==="courier")txs=txs.filter(t=>t.deliveryMethod==="courier");
+  else if(delTab==="meetup")txs=txs.filter(t=>t.deliveryMethod==="meetup");
+  else if(delTab==="no-tracking")txs=txs.filter(t=>t.deliveryMethod==="courier"&&!t.trackingNumber&&t.status==="pending");
+  const cour=D.transactions.filter(t=>t.deliveryMethod==="courier");
+  const wt=cour.filter(t=>t.trackingNumber);
+  const nt=cour.filter(t=>!t.trackingNumber&&t.status==="pending");
+  document.getElementById("deliveryStats").innerHTML=`
+    <div class="stat-card"><div class="lbl">Total Courier</div><div class="val">${cour.length}</div></div>
+    <div class="stat-card green"><div class="lbl">Tracking Added</div><div class="val">${wt.length}</div></div>
+    <div class="stat-card orange"><div class="lbl">Awaiting Tracking</div><div class="val">${nt.length}</div></div>
+    <div class="stat-card blue"><div class="lbl">Meetup</div><div class="val">${D.transactions.filter(t=>t.deliveryMethod==="meetup").length}</div></div>`;
+  document.getElementById("deliveryTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Seller</th><th>Method</th><th>Pargo Point</th><th>Tracking</th><th>Status</th><th></th></tr></thead>
+    <tbody>${txs.map(t=>`<tr>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-size:12px;">${t.sellerName||"-"}</td>
+      <td>${t.deliveryMethod==="courier"?"📦 Courier":"🤝 Meetup"}</td>
+      <td style="font-size:12px;">${t.pargoAddress||"-"}</td>
+      <td style="font-size:12px;">${t.trackingNumber||`<span style="color:var(--warning);font-weight:800;">Not added</span>`}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+      <td>${!t.trackingNumber&&t.deliveryMethod==="courier"?`<button class="btn btn-sm btn-warning" onclick="addTracking('${t.id}')">Add Tracking</button>`:""}</td>
+    </tr>`).join("")}</tbody>`;
+}
+window.addTracking=async function(id){
+  const tr=prompt("Enter tracking number:");
+  if(!tr)return;
+  await updateDoc(doc(db,"transactions",id),{trackingNumber:tr,trackingAddedAt:serverTimestamp(),trackingAddedBy:"admin"});
+  await loadAll();renderDeliveries();toast("Tracking number added","success");
+};
+
+window.setPTab=function(tab,el){poTab=tab;document.querySelectorAll("#page-payouts .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderPayouts();};
+function renderPayouts(){
+  const po=D.payouts.filter(p=>p.status===poTab);
+  const tPend=D.payouts.filter(p=>p.status==="pending").reduce((s,p)=>s+(p.amount||0),0);
+  const tPaid=D.payouts.filter(p=>p.status==="completed").reduce((s,p)=>s+(p.amount||0),0);
+  document.getElementById("payoutStats").innerHTML=`
+    <div class="stat-card orange"><div class="lbl">Pending Payouts</div><div class="val">R${tPend.toFixed(0)}</div><div class="sub">${D.payouts.filter(p=>p.status==="pending").length} sellers waiting</div></div>
+    <div class="stat-card green"><div class="lbl">Total Paid Out</div><div class="val">R${tPaid.toFixed(0)}</div><div class="sub">${D.payouts.filter(p=>p.status==="completed").length} completed</div></div>`;
+  document.getElementById("payoutsTable").innerHTML=`
+    <thead><tr><th>Seller</th><th>Amount</th><th>Bank</th><th>Account Holder</th><th>Acc No.</th><th>Branch</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${po.length===0?`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-400);">No ${poTab} payouts.</td></tr>`:
+    po.map(p=>`<tr>
+      <td style="font-weight:800;">${p.sellerName||"-"}</td>
+      <td style="font-weight:900;color:var(--success);">R${p.amount?.toFixed(2)||0}</td>
+      <td style="font-size:12px;">${p.banking?.bankName||"-"}</td>
+      <td style="font-size:12px;">${p.banking?.accountHolder||"-"}</td>
+      <td style="font-size:12px;">****${String(p.banking?.accountNumber||"").slice(-4)}</td>
+      <td style="font-size:12px;">${p.banking?.branchCode||"-"}</td>
+      <td><span class="tag tag-${p.status==="pending"?"pending":p.status==="completed"?"completed":"failed"}">${p.status}</span></td>
+      <td style="display:flex;gap:6px;">
+        ${p.status==="pending"?`<button class="btn btn-sm btn-success" onclick="markPaid('${p.id}')">✅ Paid</button><button class="btn btn-sm btn-danger" onclick="markFailed('${p.id}')">❌ Failed</button>`:""}
+      </td>
+    </tr>`).join("")}</tbody>`;
+}
+window.markPaid=async function(id){await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp()});await loadAll();renderPayouts();toast("Payout marked as completed","success");};
+window.markFailed=async function(id){await updateDoc(doc(db,"payouts",id),{status:"failed",failedAt:serverTimestamp()});await loadAll();renderPayouts();toast("Marked as failed","warning");};
+window.exportPayouts=function(){
+  const rows=[["Seller","Amount","Bank","Account Holder","Account Number","Branch Code","Status"],...D.payouts.map(p=>[p.sellerName,p.amount,p.banking?.bankName,p.banking?.accountHolder,p.banking?.accountNumber,p.banking?.branchCode,p.status])];
+  dlCSV(rows,"bookworm_payouts.csv");
+};
+
+function renderDisputes(){
+  const disputes=D.disputes;
+  document.getElementById("disputeCount").textContent=`${disputes.filter(d=>d.status==="open").length} open`;
+  document.getElementById("disputesTable").innerHTML=`
+    <thead><tr><th>User</th><th>Book</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${disputes.length===0?`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">No disputes yet.</td></tr>`:
+    disputes.map(d=>{const tx=D.transactions.find(t=>t.id===d.txId);return`<tr>
+      <td style="font-weight:800;">${d.userName||"-"}</td>
+      <td style="font-size:12px;max-width:120px;">${tx?.bookTitle||"-"}</td>
+      <td style="font-size:12px;max-width:200px;">${d.description||"-"}</td>
+      <td><span class="tag tag-${d.status==="open"?"open":"resolved"}">${d.status}</span></td>
+      <td style="display:flex;gap:6px;">
+        ${d.status==="open"?`
+          <button class="btn btn-sm btn-success" onclick="resolveDispute('${d.id}','${d.txId}','seller')">Seller Wins</button>
+          <button class="btn btn-sm btn-info" onclick="resolveDispute('${d.id}','${d.txId}','buyer')">Buyer Wins</button>
+        `:`<span style="font-size:12px;color:var(--gray-400);">Resolved ✅</span>`}
+      </td>
+    </tr>`;}).join("")}</tbody>`;
+}
+window.resolveDispute=async function(did,tid,winner){
+  const outcome=winner==="seller"?"completed":"refunded";
+  await updateDoc(doc(db,"disputes",did),{status:"resolved",resolvedAt:serverTimestamp(),winner});
+  await updateDoc(doc(db,"transactions",tid),{status:outcome,resolvedAt:serverTimestamp()});
+  await loadAll();renderDisputes();renderDashboard();
+  toast(`Dispute resolved — ${winner} wins`,"success");
+};
+
+async function loadSupportChats(){
+  const snap=await getDocs(query(collection(db,"chats"),where("isSupport","==",true)));
+  const list=document.getElementById("supportList");
+  if(snap.empty){list.innerHTML=`<div class="empty-state"><p>No support chats yet.</p></div>`;return;}
+  list.innerHTML=snap.docs.map(d=>{
+    const c=d.data();const uid=c.participants?.find(p=>p!=="support");
+    const name=c.participantNames?.[uid]||"Student";
+    return`<div class="cli" onclick="openSupport('${d.id}','${name}')">
+      <div class="cavatar">🎓</div>
+      <div><div style="font-weight:800;font-size:13px;">${name}</div><div style="font-size:11px;color:var(--gray-400);">${c.lastMessage||"No messages yet"}</div></div>
+    </div>`;}).join("");
+}
+window.openSupport=function(chatId,name){
+  supChatId=chatId;if(unsubSup)unsubSup();
+  document.getElementById("supportChat").innerHTML=`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--gray-200);font-weight:900;font-size:14px;">${name}</div>
+    <div class="chat-msgs-p" id="supMsgs"></div>
+    <div class="chat-input-r">
+      <input id="supInput" placeholder="Reply to ${name}..." onkeypress="if(event.key==='Enter')sendSupport()"/>
+      <button class="btn btn-primary btn-sm" onclick="sendSupport()">Send</button>
+    </div>`;
+  unsubSup=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
+    const c=document.getElementById("supMsgs");if(!c)return;
+    c.innerHTML=snap.docs.map(d=>{const m=d.data();const sent=m.senderId==="support_reply";
+      return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"}">
+        <div class="cmsg ${sent?"sent":"received"}">${m.text}</div>
+        <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"now"}</div>
+      </div>`;}).join("");c.scrollTop=c.scrollHeight;
+  });
+};
+window.sendSupport=async function(){
+  const input=document.getElementById("supInput");
+  const text=input.value.trim();if(!text||!supChatId)return;
+  input.value="";
+  await addDoc(collection(db,"chats",supChatId,"messages"),{text,senderId:"support_reply",senderName:"BookWorm Support",createdAt:serverTimestamp()});
+  await updateDoc(doc(db,"chats",supChatId),{lastMessage:text,updatedAt:serverTimestamp()});
+};
+
+async function loadAllChats(){
+  const snap=await getDocs(query(collection(db,"chats"),orderBy("updatedAt","desc")));
+  const list=document.getElementById("allChatList");
+  const nonSupport=snap.docs.filter(d=>!d.data().isSupport);
+  if(nonSupport.length===0){list.innerHTML=`<div class="empty-state"><p>No chats yet.</p></div>`;return;}
+  list.innerHTML=nonSupport.map(d=>{
+    const c=d.data();const names=Object.values(c.participantNames||{}).join(" & ");
+    return`<div class="cli" onclick="viewChat('${d.id}','${names.replace(/'/g,"\\'")}')">
+      <div class="cavatar">💬</div>
+      <div><div style="font-weight:800;font-size:12px;">${names}</div><div style="font-size:11px;color:var(--gray-400);">${c.bookTitle||""} — ${c.lastMessage||""}</div></div>
+    </div>`;}).join("");
+}
+window.viewChat=function(chatId,names){
+  if(unsubView)unsubView();
+  document.getElementById("allChatView").innerHTML=`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--gray-200);font-weight:900;font-size:14px;">${names}</div>
+    <div class="chat-msgs-p" id="viewMsgs"></div>
+    <div style="padding:10px 16px;border-top:1px solid var(--gray-200);font-size:11px;color:var(--gray-400);font-weight:700;">👁️ View-only mode. Admin replies in Support chats only.</div>`;
+  unsubView=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
+    const c=document.getElementById("viewMsgs");if(!c)return;
+    c.innerHTML=snap.docs.map(d=>{const m=d.data();
+      return`<div style="display:flex;flex-direction:column;align-items:flex-start;margin-bottom:4px;">
+        <div style="font-size:10px;color:var(--gray-400);margin-bottom:2px;">${m.senderName||"User"}</div>
+        <div class="cmsg received">${m.text}</div>
+      </div>`;}).join("");c.scrollTop=c.scrollHeight;
+  });
+};
+
+function renderDigital(){
+  const books=D.books.filter(b=>b.bookType==="digital");
+  document.getElementById("digitalTable").innerHTML=`
+    <thead><tr><th>Title</th><th>Seller</th><th>Licence Ref</th><th>Price/yr</th><th>Status</th><th></th></tr></thead>
+    <tbody>${books.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No digital books yet.</td></tr>`:
+    books.map(b=>`<tr>
+      <td style="font-weight:800;">${b.title}</td>
+      <td style="font-size:12px;">${b.sellerName||"-"}</td>
+      <td style="font-size:12px;">${b.licenceRef||"-"}</td>
+      <td style="font-weight:900;">R${b.subPrice||0}/yr</td>
+      <td><span class="tag tag-${b.status}">${b.status}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="delBook('${b.id}')">Remove</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+
+function renderPromotions(){
+  const rev=D.promotions.reduce((s,p)=>s+(p.price||0),0);
+  const active=D.promotions.filter(p=>new Date((p.expiresAt?.seconds||0)*1000)>new Date());
+  document.getElementById("promoStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Promo Revenue</div><div class="val">R${rev}</div></div>
+    <div class="stat-card blue"><div class="lbl">Active Promotions</div><div class="val">${active.length}</div></div>
+    <div class="stat-card"><div class="lbl">Total Promotions</div><div class="val">${D.promotions.length}</div></div>`;
+  document.getElementById("promoTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Seller</th><th>Plan</th><th>Price Paid</th><th>Expires</th><th>Status</th></tr></thead>
+    <tbody>${D.promotions.map(p=>{
+      const exp=new Date((p.expiresAt?.seconds||0)*1000);const isA=exp>new Date();
+      const book=D.books.find(b=>b.id===p.bookId);
+      const seller=D.users.find(u=>u.uid===p.sellerId);
+      return`<tr>
+        <td style="font-weight:800;">${book?.title||"-"}</td>
+        <td style="font-size:12px;">${seller?.name||"-"}</td>
+        <td>${p.days} days</td>
+        <td style="font-weight:900;">R${p.price||0}</td>
+        <td style="font-size:12px;">${exp.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag ${isA?"tag-active":"tag-sold"}">${isA?"Active":"Expired"}</span></td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+function renderWanted(){
+  document.getElementById("wantedTable").innerHTML=`
+    <thead><tr><th>Book Title</th><th>Edition</th><th>Student</th><th>Institution</th><th>Budget</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${D.wanted.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No wanted listings yet.</td></tr>`:
+    D.wanted.map(w=>`<tr>
+      <td style="font-weight:800;">${w.title||"-"}</td>
+      <td style="font-size:12px;">${w.edition||"-"}</td>
+      <td style="font-size:12px;">${w.posterName||"-"}</td>
+      <td style="font-size:12px;">${w.university||"-"}</td>
+      <td>${w.budget?`R${w.budget}`:"-"}</td>
+      <td style="font-size:12px;max-width:150px;">${w.notes||"-"}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="delWanted('${w.id}')">Remove</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+window.delWanted=async function(id){await deleteDoc(doc(db,"wanted",id));D.wanted=D.wanted.filter(w=>w.id!==id);renderWanted();toast("Removed","success");};
+
+function setDefaultDates(){
+  const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);
+  document.getElementById("reportFrom").value=first.toISOString().split("T")[0];
+  document.getElementById("reportTo").value=now.toISOString().split("T")[0];
+}
+window.generateReport=function(){
+  const from=new Date(document.getElementById("reportFrom").value);
+  const to=new Date(document.getElementById("reportTo").value);to.setHours(23,59,59);
+  const txs=D.transactions.filter(t=>{const d=ts(t.createdAt);return d>=from&&d<=to;});
+  const done=txs.filter(t=>t.status==="completed");
+  const comm=done.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const dRev=done.reduce((s,t)=>s+(t.deliveryFee||0),0);
+  const promos=D.promotions.filter(p=>{const d=ts(p.createdAt);return d>=from&&d<=to;});
+  const pRev=promos.reduce((s,p)=>s+(p.price||0),0);
+  document.getElementById("reportStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Revenue</div><div class="val">R${(comm+dRev+pRev).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="lbl">Commission</div><div class="val">R${comm.toFixed(0)}</div></div>
+    <div class="stat-card blue"><div class="lbl">Delivery Revenue</div><div class="val">R${dRev.toFixed(0)}</div></div>
+    <div class="stat-card orange"><div class="lbl">Promo Revenue</div><div class="val">R${pRev.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="lbl">Total Transactions</div><div class="val">${txs.length}</div></div>
+    <div class="stat-card green"><div class="lbl">Completed</div><div class="val">${done.length}</div></div>`;
+  document.getElementById("reportTable").innerHTML=`
+    <thead><tr><th>Date</th><th>Book</th><th>Buyer</th><th>Book Amount</th><th>Delivery Fee</th><th>Commission</th><th>Status</th></tr></thead>
+    <tbody>${txs.map(t=>{const d=ts(t.createdAt);return`<tr>
+      <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-weight:900;">R${t.amount||0}</td>
+      <td style="font-size:12px;">R${t.deliveryFee||0}</td>
+      <td style="font-size:12px;">R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+    </tr>`;}).join("")}</tbody>`;
+  window._repData=txs;
+};
+window.exportReport=function(){
+  if(!window._repData)return toast("Please generate a report first","warning");
+  const rows=[["Date","Book","Buyer","Book Amount","Delivery Fee","Commission","Status"],...window._repData.map(t=>{const d=ts(t.createdAt);return[d.toLocaleDateString("en-ZA"),t.bookTitle,t.buyerName,t.amount,t.deliveryFee||0,((t.amount||0)*(commissionRate/100)).toFixed(2),t.status];})];
+  dlCSV(rows,"bookworm_report.csv");
+};
+
+async function loadSettings(){
+  try{
+    const s=await getDoc(doc(db,"settings","commission"));
+    if(s.exists()){commissionRate=s.data().rate||5;deliveryFee=s.data().deliveryFee||79;document.getElementById("setCommission").value=commissionRate;document.getElementById("setDeliveryFee").value=deliveryFee;}
+    const p=await getDoc(doc(db,"settings","promo"));
+    if(p.exists()){document.getElementById("setPromo7").value=p.data().plan7||29;document.getElementById("setPromo14").value=p.data().plan14||49;document.getElementById("setPromo30").value=p.data().plan30||79;}
+    const d=await getDoc(doc(db,"settings","delivery"));
+    if(d.exists()){if(d.data().courier===false)document.getElementById("togCourier").classList.remove("on");if(d.data().meetup===false)document.getElementById("togMeetup").classList.remove("on");if(d.data().bookshop===true)document.getElementById("togBookshop").classList.add("on");}
+    const partners=await getDocs(collection(db,"bookshopPartners"));
+    if(!partners.empty)document.getElementById("bookshopPartners").innerHTML=partners.docs.map(p=>{const d=p.data();return`<div style="padding:8px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px;font-size:12px;"><strong>${d.name}</strong><br/>${d.address}, ${d.province}<br/>${d.phone||""}</div>`;}).join("");
+  }catch(e){console.error(e);}
+}
+window.saveFeesSettings=async function(){
+  const r=parseFloat(document.getElementById("setCommission").value);
+  const f=parseFloat(document.getElementById("setDeliveryFee").value);
+  if(isNaN(r)||r<0||r>30)return toast("Commission must be 0–30%","error");
+  if(isNaN(f)||f<0)return toast("Invalid delivery fee","error");
+  await setDoc(doc(db,"settings","commission"),{rate:r,deliveryFee:f,updatedAt:serverTimestamp()});
+  commissionRate=r;deliveryFee=f;
+  toast(`Saved — Commission: ${r}% | Delivery: R${f}`,"success");
+};
+window.saveDeliverySettings=async function(){
+  await setDoc(doc(db,"settings","delivery"),{courier:document.getElementById("togCourier").classList.contains("on"),meetup:document.getElementById("togMeetup").classList.contains("on"),bookshop:document.getElementById("togBookshop").classList.contains("on"),updatedAt:serverTimestamp()});
+  toast("Delivery settings saved","success");
+};
+window.savePromoSettings=async function(){
+  await setDoc(doc(db,"settings","promo"),{plan7:parseFloat(document.getElementById("setPromo7").value)||29,plan14:parseFloat(document.getElementById("setPromo14").value)||49,plan30:parseFloat(document.getElementById("setPromo30").value)||79,updatedAt:serverTimestamp()});
+  toast("Promotion pricing saved","success");
+};
+window.saveNotifSettings=async function(){
+  await setDoc(doc(db,"settings","notifications"),{emailListing:document.getElementById("togEmailListing").classList.contains("on"),emailTx:document.getElementById("togEmailTx").classList.contains("on"),emailDispute:document.getElementById("togEmailDispute").classList.contains("on"),updatedAt:serverTimestamp()});
+  toast("Notification settings saved","success");
+};
+window.savePartner=async function(){
+  const n=document.getElementById("partnerName").value.trim();
+  const a=document.getElementById("partnerAddress").value.trim();
+  if(!n||!a)return toast("Please fill in name and address","error");
+  await addDoc(collection(db,"bookshopPartners"),{name:n,address:a,phone:document.getElementById("partnerPhone").value.trim(),province:document.getElementById("partnerProvince").value,createdAt:serverTimestamp()});
+  closeModal("partnerModal");toast("Bookshop partner added","success");loadSettings();
+};
+window.exportAllData=function(){
+  const rows=[["Type","Name","Email/Seller","Amount","Status"],...D.users.map(u=>["User",u.name,u.email,"-",u.accountType]),...D.books.map(b=>["Book",b.title,b.sellerName,b.price||b.subPrice,b.status]),...D.transactions.map(t=>["Transaction",t.bookTitle,t.buyerName,t.amount,t.status]),...D.payouts.map(p=>["Payout",p.sellerName,"-",p.amount,p.status])];
+  dlCSV(rows,"bookworm_full_export.csv");
+};
+
+function dlCSV(rows,fn){
+  const csv=rows.map(r=>r.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=fn;a.click();
+}
+window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
+window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
+</script>
+</body>
+</html>
