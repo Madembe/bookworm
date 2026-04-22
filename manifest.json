@@ -1,0 +1,22 @@
+{
+  "name": "BookWorm – Student Textbook Marketplace",
+  "short_name": "BookWorm",
+  "description": "South Africa's safest student textbook marketplace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
