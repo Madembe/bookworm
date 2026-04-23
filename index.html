@@ -859,6 +859,12 @@ function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");
 // AUTH STATE
 onAuthStateChanged(auth,async(user)=>{
   if(user){
+    if(!user.emailVerified){
+      await signOut(auth);
+      toast("Please verify your email before signing in. Check your inbox.","error");
+      switchScreen("screen-login");
+      return;
+    }
     currentUser=user;
     await loadUserData();
     await loadBooks();
