@@ -286,33 +286,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
         <label>WhatsApp Number</label>
         <input class="form-control" id="regWhatsapp" type="tel" placeholder="e.g. 0821234567"/>
       </div>
-      <!-- Banking details for sellers -->
-      <div class="form-group">
-        <label>Bank Name</label>
-        <select class="form-control" id="regBankName">
-          <option value="">Select your bank</option>
-          <option>Absa</option><option>African Bank</option><option>Capitec</option><option>Discovery Bank</option><option>FNB</option><option>Investec</option><option>Nedbank</option><option>Standard Bank</option><option>TymeBank</option><option>Old Mutual</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Account Holder Name</label>
-        <input class="form-control" id="regAccountHolder" placeholder="Full name as on bank account"/>
-      </div>
-      <div class="form-group">
-        <label>Account Number</label>
-        <input class="form-control" id="regAccountNumber" type="text" placeholder="Your account number"/>
-      </div>
-      <div class="form-group">
-        <label>Account Type</label>
-        <select class="form-control" id="regAccountTypeBank">
-          <option value="cheque">Cheque / Current</option>
-          <option value="savings">Savings</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Branch Code</label>
-        <input class="form-control" id="regBranchCode" placeholder="e.g. 632005"/>
-      </div>
       <div class="form-group">
         <label>Password</label>
         <input class="form-control" id="regPassword" type="password" placeholder="Min 6 characters"/>
@@ -933,14 +906,8 @@ window.handleRegister=async function(){
   const email=document.getElementById("regEmail").value.trim();
   const pass=document.getElementById("regPassword").value;
   const whatsapp=document.getElementById("regWhatsapp").value.trim();
-  const bankName=document.getElementById("regBankName").value;
-  const accountHolder=document.getElementById("regAccountHolder").value.trim();
-  const accountNumber=document.getElementById("regAccountNumber").value.trim();
-  const accountTypeBank=document.getElementById("regAccountTypeBank").value;
-  const branchCode=document.getElementById("regBranchCode").value.trim();
   if(!email||!pass)return resetBtn(btn,"Please fill in all fields");
   if(pass.length<6)return resetBtn(btn,"Password must be at least 6 characters");
-  if(!bankName||!accountHolder||!accountNumber||!branchCode)return resetBtn(btn,"Please fill in your banking details for payouts");
   let extra={};
   if(type==="student"){
     const name=document.getElementById("regName").value.trim();
@@ -961,7 +928,7 @@ window.handleRegister=async function(){
     await addDoc(collection(db,"users"),{
       uid:c.user.uid,email,accountType:type,...extra,
       whatsapp,
-      banking:{bankName,accountHolder,accountNumber,accountTypeBank,branchCode},
+      banking:null,
       sold:0,bought:0,rating:0,ratingCount:0,
       createdAt:serverTimestamp()
     });
@@ -1231,6 +1198,22 @@ async function checkSubscription(bookId){
   }catch(e){return false;}
 }
 
+// BANKING
+window.saveBankingDetails=async function(){
+  const bankName=document.getElementById("bankName").value;
+  const accountHolder=document.getElementById("bankAccountHolder").value.trim();
+  const accountNumber=document.getElementById("bankAccountNumber").value.trim();
+  const accountType=document.getElementById("bankAccountType").value;
+  const branchCode=document.getElementById("bankBranchCode").value.trim();
+  if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
+  try{
+    await updateDoc(doc(db,"users",currentUserData.id),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
+    currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
+    closeModal("bankingModal");
+    toast("Banking details saved! 💰 You're all set to receive payments.","success");
+  }catch(e){toast("Failed to save banking details","error");}
+};
+
 // BARCODE SCANNER
 const GOOGLE_BOOKS_API="https://www.googleapis.com/books/v1/volumes?q=isbn:";
 let scannerStream=null,scannerInterval=null;
@@ -1406,6 +1389,10 @@ window.submitListing=async function(){
     document.getElementById("priceRecBox").style.display="none";
     await loadBooks();
     switchScreen("screen-home");
+    // Prompt banking details if not set
+    if(!currentUserData?.banking){
+      setTimeout(()=>document.getElementById("bankingModal").classList.add("active"),800);
+    }
   }catch(e){
     toast("Failed to list book. Please try again.","error");
     console.error(e);
@@ -1903,6 +1890,43 @@ window.addEventListener("load",()=>{
   }
 });
 </script>
+<!-- Banking Details Modal -->
+<div class="modal-overlay" id="bankingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
+    <h3>💰 Add Banking Details</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
+    <div class="form-group">
+      <label>Bank Name</label>
+      <select class="form-control" id="bankName">
+        <option value="">Select your bank</option>
+        <option>Absa</option><option>African Bank</option><option>Capitec</option><option>Discovery Bank</option><option>FNB</option><option>Investec</option><option>Nedbank</option><option>Standard Bank</option><option>TymeBank</option><option>Old Mutual</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Account Holder Name</label>
+      <input class="form-control" id="bankAccountHolder" placeholder="Full name as on bank account"/>
+    </div>
+    <div class="form-group">
+      <label>Account Number</label>
+      <input class="form-control" id="bankAccountNumber" type="text" placeholder="Your account number"/>
+    </div>
+    <div class="form-group">
+      <label>Account Type</label>
+      <select class="form-control" id="bankAccountType">
+        <option value="cheque">Cheque / Current</option>
+        <option value="savings">Savings</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Branch Code</label>
+      <input class="form-control" id="bankBranchCode" placeholder="e.g. 632005"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()">💾 Save Banking Details</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="closeModal('bankingModal')">I'll do this later</button>
+  </div>
+</div>
+
 <!-- Sub Modal -->
 <div class="modal-overlay" id="subModal">
   <div class="modal">
