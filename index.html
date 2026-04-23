@@ -4,13 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BookWorm – Student Textbook Marketplace</title>
-<meta name="theme-color" content="#0a0a0a"/>
-<meta name="description" content="South Africa's safest student textbook marketplace. Buy and sell textbooks with secure escrow payments."/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-<meta name="apple-mobile-web-app-title" content="BookWorm"/>
-<link rel="manifest" href="/manifest.json"/>
-<link rel="apple-touch-icon" href="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -293,13 +286,38 @@ textarea.form-control{resize:vertical;min-height:80px;}
         <label>WhatsApp Number</label>
         <input class="form-control" id="regWhatsapp" type="tel" placeholder="e.g. 0821234567"/>
       </div>
+      <!-- Banking details for sellers -->
+      <div class="form-group">
+        <label>Bank Name</label>
+        <select class="form-control" id="regBankName">
+          <option value="">Select your bank</option>
+          <option>Absa</option><option>African Bank</option><option>Capitec</option><option>Discovery Bank</option><option>FNB</option><option>Investec</option><option>Nedbank</option><option>Standard Bank</option><option>TymeBank</option><option>Old Mutual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Account Holder Name</label>
+        <input class="form-control" id="regAccountHolder" placeholder="Full name as on bank account"/>
+      </div>
+      <div class="form-group">
+        <label>Account Number</label>
+        <input class="form-control" id="regAccountNumber" type="text" placeholder="Your account number"/>
+      </div>
+      <div class="form-group">
+        <label>Account Type</label>
+        <select class="form-control" id="regAccountTypeBank">
+          <option value="cheque">Cheque / Current</option>
+          <option value="savings">Savings</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Branch Code</label>
+        <input class="form-control" id="regBranchCode" placeholder="e.g. 632005"/>
+      </div>
       <div class="form-group">
         <label>Password</label>
         <input class="form-control" id="regPassword" type="password" placeholder="Min 6 characters"/>
       </div>
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;font-size:12px;color:#166534;margin-bottom:14px;line-height:1.6;">
-        🔒 <strong>Safe & Simple:</strong> No banking details needed to register. You'll add them later only when you list a book to sell.
-      </div>
+
       <button class="btn btn-primary btn-full" id="registerBtn" onclick="handleRegister()">Create Account</button>
       <div class="auth-switch">Already have an account? <a onclick="showScreen('screen-login')">Sign In</a></div>
     </div>
@@ -314,7 +332,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
-      <button class="nav-icon-btn" onclick="requireAuth('screen-notifications')" style="position:relative;">🔔<span class="badge" id="notifBadge" style="display:none;">0</span></button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
     </div>
@@ -358,7 +375,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
   <div class="bottom-nav">
     <div class="bottom-nav-item active" onclick="showScreen('screen-home')"><span>🏠</span><span>Home</span></div>
     <div class="bottom-nav-item" onclick="requireAuth('screen-upload')"><span>➕</span><span>List</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-cart')" style="position:relative;"><span>🛒</span><span id="cartCountBadge" style="position:absolute;top:4px;right:14px;background:var(--warning);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;display:none;align-items:center;justify-content:center;font-weight:900;">0</span><span>Cart</span></div>
     <div class="bottom-nav-item" onclick="requireAuth('screen-chat')"><span>💬</span><span>Chat</span></div>
     <div class="bottom-nav-item" onclick="requireAuth('screen-profile')"><span>👤</span><span>Profile</span></div>
   </div>
@@ -380,7 +396,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div id="detailRating"></div>
     <div id="detailDescription" style="font-size:13px;color:var(--gray-500);margin-bottom:16px;line-height:1.6;"></div>
     <div id="detailActions"></div>
-    <div id="sellerMoreBooks"></div>
   </div>
 </div>
 
@@ -391,136 +406,176 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div class="nav-logo-text">List a Book</div>
   </nav>
   <div class="upload-container">
+    <!-- STEP 1: Choose how to add book -->
+    <div id="uploadStep1">
+      <div style="text-align:center;padding:20px 0 10px;">
+        <div style="font-size:15px;font-weight:900;margin-bottom:6px;">How would you like to add your book?</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:20px;">Scan the barcode for instant auto-fill, or enter details manually.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <button class="btn btn-primary btn-full" onclick="startScanner()">📷 Scan Barcode (Auto-fill)</button>
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Details Manually</button>
+      </div>
+    </div>
+    <!-- STEP 2: Camera scanner -->
+    <div id="uploadStep2" style="display:none;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <div style="font-weight:900;font-size:14px;margin-bottom:4px;">📷 Point camera at the barcode</div>
+        <div style="font-size:12px;color:var(--gray-400);">Hold steady over the ISBN barcode on the back cover</div>
+      </div>
+      <div style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
+        <video id="scannerVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Manually Instead</button>
+        <button class="btn btn-danger btn-sm" onclick="stopScanner();document.getElementById('uploadStep2').style.display='none';document.getElementById('uploadStep1').style.display='block';">✕</button>
+      </div>
+    </div>
+    <!-- ISBN found box -->
+    <div id="isbnFoundBox" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:8px;">✅ Book found! Details auto-filled.</div>
+      <div id="isbnFoundDetails"></div>
+      <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">🔄 Clear & re-scan</button>
+    </div>
+    <!-- STEP 3: Main form -->
+    <div id="uploadStep3" style="display:none;">
     <div class="upload-type-toggle">
       <button class="upload-type-btn active" onclick="setBookType('physical',this)">📚 Physical Book</button>
       <button class="upload-type-btn" onclick="setBookType('digital',this)">📖 Digital Book</button>
     </div>
-
-    <!-- STEP 1: Scan or Manual -->
-    <div id="uploadStep1">
-      <div style="text-align:center;padding:24px 0 16px;">
-        <div style="font-size:40px;margin-bottom:10px;">📚</div>
-        <div style="font-weight:900;font-size:17px;margin-bottom:6px;">How would you like to add your book?</div>
-        <div style="font-size:13px;color:var(--gray-400);margin-bottom:20px;">Scan the barcode for instant details, or enter manually.</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <button class="btn btn-primary btn-full" onclick="startScanner()">📷 Scan Barcode (Recommended)</button>
-          <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Manually</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 2: Camera -->
-    <div id="uploadStep2" style="display:none;">
-      <div style="text-align:center;padding:12px 0;">
-        <div style="font-weight:900;font-size:15px;margin-bottom:8px;">📷 Point camera at barcode</div>
-        <video id="scannerVideo" autoplay playsinline style="width:100%;max-width:340px;border-radius:12px;background:#000;"></video>
-        <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
-          <button class="btn btn-secondary btn-sm" onclick="stopScanner();showManualEntry()">✏️ Enter Manually Instead</button>
-          <button class="btn btn-sm" style="background:var(--error);color:white;" onclick="stopScanner();document.getElementById('uploadStep1').style.display='block';document.getElementById('uploadStep2').style.display='none';">✕ Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 3: Form (manual or post-scan) -->
-    <div id="uploadStep3" style="display:none;">
-      <!-- ISBN found box -->
-      <div id="isbnFoundBox" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:14px;">
-        <div style="font-weight:900;font-size:12px;color:#166534;margin-bottom:8px;">✅ Book Found!</div>
-        <div id="isbnFoundDetails"></div>
-        <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">Clear & Re-enter</button>
-      </div>
-
-      <div id="physicalFields">
-        <div class="form-group">
-          <label>Book Photos — Front Cover Required ⭐</label>
-          <div class="photo-upload-grid">
-            <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon">📷</span><span class="slot-label">Front Cover ⭐</span><img id="prev0" style="display:none"/></div>
-            <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon">📷</span><span class="slot-label">Back Cover</span><img id="prev1" style="display:none"/></div>
-            <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon">📷</span><span class="slot-label">Inside Page</span><img id="prev2" style="display:none"/></div>
-          </div>
-          <input type="file" id="photoInput0" accept="image/*" style="display:none" onchange="previewPhoto(event,0)"/>
-          <input type="file" id="photoInput1" accept="image/*" style="display:none" onchange="previewPhoto(event,1)"/>
-          <input type="file" id="photoInput2" accept="image/*" style="display:none" onchange="previewPhoto(event,2)"/>
-        </div>
-        <div class="form-group">
-          <label>Condition</label>
-          <select class="form-control" id="uploadCondition" onchange="updatePriceRecommendation()">
-            <option>New</option><option>Good</option><option>Used</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Price (ZAR)</label>
-          <div class="price-rec-box" id="priceRecBox">💡 <span id="priceRecText"></span></div>
-          <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250" oninput="updateSellerEarnings()"/>
-        </div>
-        <div class="seller-earnings-box" id="sellerEarningsBox">
-          <div style="font-weight:900;font-size:12px;color:#1e40af;margin-bottom:8px;">💰 Your Earnings Breakdown</div>
-          <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
-          <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
-          <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
-          <div style="font-size:11px;color:#3b82f6;margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
-        </div>
-      </div>
-
-      <div id="digitalFields" style="display:none;">
-        <div class="licence-note">⚖️ <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
-        <div class="form-group">
-          <label>Licence / Rights Reference</label>
-          <input class="form-control" id="uploadLicenceRef" placeholder="ISBN or publisher licence ref"/>
-        </div>
-        <div class="pdf-upload-area" onclick="document.getElementById('pdfInput').click()">
-          <div style="font-size:32px;margin-bottom:8px;">📄</div>
-          <p style="font-size:13px;color:var(--gray-400);" id="pdfLabel">Click to upload PDF file</p>
-        </div>
-        <input type="file" id="pdfInput" accept="application/pdf" style="display:none" onchange="handlePDFSelect(event)"/>
-        <div class="form-group">
-          <label>Annual Access Price (ZAR)</label>
-          <input class="form-control" id="uploadSubPrice" type="number" placeholder="e.g. 150"/>
-        </div>
-      </div>
-
+    <div id="physicalFields">
       <div class="form-group">
-        <label>Book Title</label>
-        <input class="form-control" id="uploadTitle" placeholder="e.g. Introduction to Business Law" oninput="updatePriceRecommendation()"/>
+        <label>Book Photos — Front Cover Required ⭐</label>
+        <div class="photo-upload-grid">
+          <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon">📷</span><span class="slot-label">Front Cover ⭐</span><img id="prev0" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon">📷</span><span class="slot-label">Back Cover</span><img id="prev1" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon">📷</span><span class="slot-label">Inside Page</span><img id="prev2" style="display:none"/></div>
+        </div>
+        <input type="file" id="photoInput0" accept="image/*" style="display:none" onchange="previewPhoto(event,0)"/>
+        <input type="file" id="photoInput1" accept="image/*" style="display:none" onchange="previewPhoto(event,1)"/>
+        <input type="file" id="photoInput2" accept="image/*" style="display:none" onchange="previewPhoto(event,2)"/>
       </div>
       <div class="form-group">
-        <label>Author</label>
-        <input class="form-control" id="uploadAuthor" placeholder="e.g. John Smith"/>
-      </div>
-      <div class="form-group">
-        <label>ISBN (optional)</label>
-        <input class="form-control" id="uploadISBN" placeholder="Auto-filled from scan, or enter manually" readonly/>
-      </div>
-      <div class="form-group">
-        <label>Edition</label>
-        <input class="form-control" id="uploadEdition" placeholder="e.g. 3rd Edition, 2023"/>
-      </div>
-      <div class="form-group">
-        <label>Module Code</label>
-        <input class="form-control" id="uploadModule" placeholder="e.g. LAW101"/>
-      </div>
-      <div class="form-group">
-        <label>Campus / Area (for meetup)</label>
-        <input class="form-control" id="uploadCampus" placeholder="e.g. Main Campus, Hatfield"/>
-      </div>
-      <div class="form-group">
-        <label>Institution</label>
-        <select class="form-control" id="uploadUniversity" onchange="toggleOtherInstitution('uploadUniversity','uploadOtherUni')">
-          <option value="">Select Institution</option>
-          <option>Cape Peninsula University of Technology (CPUT)</option><option>Central University of Technology (CUT)</option><option>Durban University of Technology (DUT)</option><option>Mangosuthu University of Technology (MUT)</option><option>Nelson Mandela University (NMU)</option><option>North-West University (NWU)</option><option>Rhodes University (RU)</option><option>Sefako Makgatho Health Sciences University (SMU)</option><option>Sol Plaatje University (SPU)</option><option>Stellenbosch University (SU)</option><option>Tshwane University of Technology (TUT)</option><option>University of Cape Town (UCT)</option><option>University of Fort Hare (UFH)</option><option>University of Johannesburg (UJ)</option><option>University of KwaZulu-Natal (UKZN)</option><option>University of Limpopo (UL)</option><option>University of Mpumalanga (UMP)</option><option>University of Pretoria (UP)</option><option>University of South Africa (UNISA)</option><option>University of the Free State (UFS)</option><option>University of the Western Cape (UWC)</option><option>University of the Witwatersrand (Wits)</option><option>University of Venda (UNIVEN)</option><option>University of Zululand (UNIZULU)</option><option>Vaal University of Technology (VUT)</option><option>Walter Sisulu University (WSU)</option><option>Ekurhuleni East TVET College</option><option>Ekurhuleni West TVET College</option><option>Flavius Mareka TVET College</option><option>Gert Sibande TVET College</option><option>Ikhala TVET College</option><option>Ingwe TVET College</option><option>King Hintsa TVET College</option><option>Lephalale TVET College</option><option>Letaba TVET College</option><option>Lovedale TVET College</option><option>Majuba TVET College</option><option>Motheo TVET College</option><option>Nkangala TVET College</option><option>Northlink TVET College</option><option>Orbit TVET College</option><option>Port Elizabeth TVET College</option><option>South Cape TVET College</option><option>Taletso TVET College</option><option>Thekwini TVET College</option><option>Tshwane North TVET College</option><option>Tshwane South TVET College</option><option>Umgungundlovu TVET College</option><option>Umfolozi TVET College</option><option>Waterberg TVET College</option><option>West Coast TVET College</option>
-          <option value="Other (please specify)">Other (please specify)</option>
+        <label>Condition</label>
+        <select class="form-control" id="uploadCondition" onchange="updatePriceRecommendation()">
+          <option>New</option><option>Good</option><option>Used</option>
         </select>
       </div>
-      <div class="form-group" id="uploadOtherUni" style="display:none;">
-        <label>Institution Name</label>
-        <input class="form-control" id="uploadOtherUniName" placeholder="Enter your institution name"/>
-      </div>
       <div class="form-group">
-        <label>Description (optional)</label>
-        <textarea class="form-control" id="uploadDescription" placeholder="Any extra details about condition, highlights, missing pages, etc..."></textarea>
+        <label>Price (ZAR)</label>
+        <div class="price-rec-box" id="priceRecBox">💡 <span id="priceRecText"></span></div>
+        <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250" oninput="updateSellerEarnings()"/>
       </div>
-      <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()">📤 List My Book</button>
+      <div class="seller-earnings-box" id="sellerEarningsBox">
+        <div style="font-weight:900;font-size:12px;color:#1e40af;margin-bottom:8px;">💰 Your Earnings Breakdown</div>
+        <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
+        <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
+        <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
+        <div style="font-size:11px;color:#3b82f6;margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
+      </div>
     </div>
+    <div id="digitalFields" style="display:none;">
+      <div class="licence-note">⚖️ <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
+      <div class="form-group">
+        <label>Licence / Rights Reference</label>
+        <input class="form-control" id="uploadLicenceRef" placeholder="ISBN or publisher licence ref"/>
+      </div>
+      <div class="pdf-upload-area" onclick="document.getElementById('pdfInput').click()">
+        <div style="font-size:32px;margin-bottom:8px;">📄</div>
+        <p style="font-size:13px;color:var(--gray-400);" id="pdfLabel">Click to upload PDF file</p>
+      </div>
+      <input type="file" id="pdfInput" accept="application/pdf" style="display:none" onchange="handlePDFSelect(event)"/>
+      <div class="form-group">
+        <label>Annual Access Price (ZAR)</label>
+        <input class="form-control" id="uploadSubPrice" type="number" placeholder="e.g. 150"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Book Title</label>
+      <input class="form-control" id="uploadTitle" placeholder="e.g. Introduction to Business Law" oninput="updatePriceRecommendation()"/>
+    </div>
+    <div class="form-group">
+      <label>Edition</label>
+      <input class="form-control" id="uploadEdition" placeholder="e.g. 3rd Edition, 2023"/>
+    </div>
+    <div class="form-group">
+      <label>Module Code</label>
+      <input class="form-control" id="uploadModule" placeholder="e.g. LAW101"/>
+    </div>
+    <div class="form-group">
+      <label>Institution</label>
+      <select class="form-control" id="uploadUniversity" onchange="toggleOtherInstitution('uploadUniversity','uploadOtherUni')">
+        <option value="">Select Institution</option>
+        <optgroup label="Universities">
+          <option>Cape Peninsula University of Technology (CPUT)</option>
+          <option>Central University of Technology (CUT)</option>
+          <option>Durban University of Technology (DUT)</option>
+          <option>Mangosuthu University of Technology (MUT)</option>
+          <option>Nelson Mandela University (NMU)</option>
+          <option>North-West University (NWU)</option>
+          <option>Rhodes University (RU)</option>
+          <option>Sefako Makgatho Health Sciences University (SMU)</option>
+          <option>Sol Plaatje University (SPU)</option>
+          <option>Stellenbosch University (SU)</option>
+          <option>Tshwane University of Technology (TUT)</option>
+          <option>University of Cape Town (UCT)</option>
+          <option>University of Fort Hare (UFH)</option>
+          <option>University of Johannesburg (UJ)</option>
+          <option>University of KwaZulu-Natal (UKZN)</option>
+          <option>University of Limpopo (UL)</option>
+          <option>University of Mpumalanga (UMP)</option>
+          <option>University of Pretoria (UP)</option>
+          <option>University of South Africa (UNISA)</option>
+          <option>University of the Free State (UFS)</option>
+          <option>University of the Western Cape (UWC)</option>
+          <option>University of the Witwatersrand (Wits)</option>
+          <option>University of Venda (UNIVEN)</option>
+          <option>University of Zululand (UNIZULU)</option>
+          <option>Vaal University of Technology (VUT)</option>
+          <option>Walter Sisulu University (WSU)</option>
+        </optgroup>
+        <optgroup label="Private Colleges">
+          <option>Afda</option>
+          <option>Boston City Campus</option>
+          <option>Cornerstone Institute</option>
+          <option>CTI Education Group</option>
+          <option>Damelin</option>
+          <option>Eduvos</option>
+          <option>IIE MSA</option>
+          <option>IIE Rosebank College</option>
+          <option>IIE Varsity College</option>
+          <option>Limkokwing University</option>
+          <option>Milpark Education</option>
+          <option>Regent Business School</option>
+          <option>Richfield Graduate Institute</option>
+          <option>SACAP</option>
+          <option>Stadio</option>
+        </optgroup>
+        <option value="Other (please specify)">Other (please specify)</option>
+      </select>
+    </div>
+    <div class="form-group" id="uploadOtherUni" style="display:none;">
+      <label>Institution Name</label>
+      <input class="form-control" id="uploadOtherUniName" placeholder="Enter your institution name"/>
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea class="form-control" id="uploadDescription" placeholder="Any extra details about condition, highlights, missing pages, etc..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Author</label>
+      <input class="form-control" id="uploadAuthor" placeholder="e.g. John Smith"/>
+    </div>
+    <div class="form-group">
+      <label>ISBN (optional)</label>
+      <input class="form-control" id="uploadISBN" placeholder="e.g. 9781234567890"/>
+    </div>
+    <div class="form-group">
+      <label>Campus / Area (for hand delivery)</label>
+      <input class="form-control" id="uploadCampus" placeholder="e.g. Main Campus, Hatfield"/>
+    </div>
+    <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()">📤 List My Book</button>
+    </div><!-- end uploadStep3 -->
   </div>
 </div>
 
@@ -585,10 +640,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div id="pendingPayouts"><div class="empty-state" style="padding:10px"><p style="font-size:12px;">No pending payouts.</p></div></div>
   </div>
   <div class="section-block">
-    <h3>🏦 Banking Details</h3>
-    <div id="bankingStatus"></div>
-  </div>
-  <div class="section-block">
     <h3>📚 My Listings</h3>
     <div id="myListings"></div>
     <button class="btn btn-secondary btn-full btn-sm" onclick="requireAuth('screen-upload')">+ List Another Book</button>
@@ -601,68 +652,8 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <h3>⭐ My Reviews</h3>
     <div id="myReviews"><div class="empty-state" style="padding:10px"><p style="font-size:12px;">No reviews yet.</p></div></div>
   </div>
-  <div class="section-block">
-    <h3>💬 Rate BookWorm</h3>
-    <div style="background:var(--gray-100);border-radius:12px;padding:14px;">
-      <p style="font-size:13px;color:var(--gray-500);margin-bottom:12px;">How are we doing? Your feedback helps us improve for all students.</p>
-      <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;" id="appRatingStars">
-        <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
-        <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(2)">☆</span>
-        <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(3)">☆</span>
-        <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(4)">☆</span>
-        <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(5)">☆</span>
-      </div>
-      <textarea class="form-control" id="appFeedbackText" placeholder="Any suggestions or comments? (optional)" style="margin-bottom:10px;font-size:13px;"></textarea>
-      <button class="btn btn-primary btn-full btn-sm" onclick="submitAppFeedback()">Submit Feedback</button>
-    </div>
-  </div>
-  <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+  <div style="padding:16px;">
     <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact Support</button>
-    <button class="btn btn-secondary btn-full btn-sm" onclick="showScreen('screen-how')">📖 How BookWorm Works</button>
-  </div>
-</div>
-
-<!-- BANKING DETAILS SCREEN -->
-<div class="screen" id="screen-banking">
-  <nav>
-    <div class="nav-logo" onclick="showScreen('screen-home')">← Back</div>
-    <div class="nav-logo-text">💰 Banking Details</div>
-  </nav>
-  <div class="upload-container">
-    <div style="background:var(--black);color:white;border-radius:12px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:20px;margin-bottom:6px;">💸 Almost there!</div>
-      <div style="font-weight:900;font-size:15px;margin-bottom:6px;">Add your banking details</div>
-      <div style="font-size:13px;color:var(--gray-300);line-height:1.6;">Your book is listed! To receive payment when it sells, we need your bank account details. This is completely safe — details are only used for payouts.</div>
-    </div>
-    <div class="form-group">
-      <label>Bank Name</label>
-      <select class="form-control" id="bankName">
-        <option value="">Select your bank</option>
-        <option>Absa</option><option>African Bank</option><option>Capitec</option><option>Discovery Bank</option><option>FNB</option><option>Investec</option><option>Nedbank</option><option>Standard Bank</option><option>TymeBank</option><option>Old Mutual</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Account Holder Name</label>
-      <input class="form-control" id="bankAccountHolder" placeholder="Full name as on bank account"/>
-    </div>
-    <div class="form-group">
-      <label>Account Number</label>
-      <input class="form-control" id="bankAccountNumber" type="text" placeholder="Your account number"/>
-    </div>
-    <div class="form-group">
-      <label>Account Type</label>
-      <select class="form-control" id="bankAccountType">
-        <option value="cheque">Cheque / Current</option>
-        <option value="savings">Savings</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Branch Code</label>
-      <input class="form-control" id="bankBranchCode" placeholder="e.g. 632005 for Capitec"/>
-    </div>
-    <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">🔒 Your details are encrypted and stored securely. We never share them with buyers or third parties.</div>
-    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()">💰 Save & Start Earning</button>
-    <button class="btn btn-secondary btn-full" style="margin-top:10px;" onclick="showScreen('screen-home')">Do this later</button>
   </div>
 </div>
 
@@ -734,20 +725,14 @@ textarea.form-control{resize:vertical;min-height:80px;}
   <div class="modal">
     <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
     <h3>💳 Confirm Purchase</h3>
-    <div style="background:#fff7ed;border:2px solid #f97316;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;">
-      <span style="font-size:18px;flex-shrink:0;">🛡️</span>
-      <div>
-        <div style="font-weight:900;font-size:12px;color:#9a3412;margin-bottom:2px;">Always pay through BookWorm</div>
-        <div style="font-size:11px;color:#9a3412;line-height:1.5;">Never pay a seller directly via EFT, cash before collection, or any other method. BookWorm escrow protects your money. Payments outside the app are not covered.</div>
-      </div>
-    </div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
-      <div class="price-breakdown-row" id="pbDeliveryRow"><span>Pargo Delivery Fee</span><span id="pbDeliveryAmt">R79</span></div>
+      <div class="price-breakdown-row" id="pbDeliveryRow"><span>Pargo Delivery Fee</span><span>R79</span></div>
       <div class="price-breakdown-row total"><span>Total</span><span id="pbTotal"></span></div>
     </div>
-    <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Your payment is held securely in escrow. Funds are only released to the seller when you confirm receipt with your release code.</p>
+    <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Your payment is held securely in escrow. Funds are only released to the seller when you confirm receipt with a release code.</p>
+    <p style="font-size:12px;color:var(--gray-500);margin-bottom:16px;">You will be redirected to PayFast to complete payment securely.</p>
     <button class="btn btn-primary btn-full" id="paymentConfirmBtn" onclick="confirmPayment()">🔐 Proceed to PayFast</button>
   </div>
 </div>
@@ -858,209 +843,53 @@ textarea.form-control{resize:vertical;min-height:80px;}
 </div>
 
 <!-- Firebase -->
-
-<!-- CART SCREEN -->
-<div class="screen" id="screen-cart">
-  <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-logo-text">🛒 My Cart</div>
-  </nav>
-  <div style="flex:1;padding:16px;max-width:560px;margin:0 auto;width:100%;overflow-y:auto;">
-    <div id="cartItems"></div>
-    <div id="cartSummary"></div>
-  </div>
-</div>
-
-<!-- NOTIFICATIONS SCREEN -->
-<div class="screen" id="screen-notifications">
-  <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-logo-text">🔔 Notifications</div>
-  </nav>
-  <div style="flex:1;overflow-y:auto;" id="notificationsList">
-    <div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3></div>
-  </div>
-</div>
-
-<!-- HOW IT WORKS (onboarding) -->
-<div class="screen" id="screen-how">
-  <div style="flex:1;overflow-y:auto;background:var(--black);color:white;padding:32px 20px;">
-    <div style="text-align:center;margin-bottom:28px;">
-      <img src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" style="height:70px;margin-bottom:16px;" alt="BookWorm"/>
-      <h2 style="font-size:22px;font-weight:900;margin-bottom:6px;">How BookWorm Works</h2>
-      <p style="font-size:13px;color:rgba(255,255,255,0.5);">Read this once — it'll save you confusion later.</p>
-    </div>
-
-    <div style="max-width:420px;margin:0 auto;">
-
-      <div style="margin-bottom:10px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.4);">🛒 For Buyers</div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="width:32px;height:32px;background:white;color:black;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">1</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Browse & Choose a Book</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">Filter by university, module, condition and price. See seller ratings and campus location.</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="width:32px;height:32px;background:white;color:black;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">2</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Select Delivery Method</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;"><strong style="color:white;">Meetup</strong> — meet the seller at a safe campus/public spot. No delivery fee.<br/><strong style="color:white;">Campus Collection</strong> — collect directly from the seller on campus.<br/><strong style="color:white;">Pargo Courier (R79)</strong> — delivered to a Pargo point near you (Clicks, PnP etc.).</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="width:32px;height:32px;background:white;color:black;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">3</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Pay Securely via PayFast</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">Your money goes into <strong style="color:#86efac;">escrow</strong> — it's held safely and the seller cannot access it yet. You get a <strong style="color:white;">6-digit release code.</strong></div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="width:32px;height:32px;background:white;color:black;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">4</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Receive & Inspect Your Book</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">Check that the book matches the photos and description. Only share your release code <strong style="color:#fbbf24;">once you're satisfied.</strong></div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:20px;display:flex;gap:12px;">
-        <div style="width:32px;height:32px;background:white;color:black;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;">5</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Happy? Share Your Code</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">Give the seller your 6-digit code. They enter it in the app and funds are released to their bank. Done! ✅</div>
-        </div>
-      </div>
-
-      <div style="background:#c1121f20;border:1px solid #c1121f60;border-radius:10px;padding:12px;margin-bottom:20px;">
-        <div style="font-weight:900;font-size:12px;color:#f87171;margin-bottom:4px;">⚠️ Important — Protect Yourself</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">Never pay outside the app. If something's wrong — do NOT share the code. You have 48 hours to raise a dispute and get your money back.</div>
-      </div>
-
-      <div style="margin-bottom:10px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.4);">📚 For Sellers</div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="font-size:22px;flex-shrink:0;">📷</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">List in Minutes</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">Scan the barcode or enter details manually. Upload photos of the real condition. Set your price.</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;">
-        <div style="font-size:22px;flex-shrink:0;">💰</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Get Paid Automatically</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">When the buyer shares their code, enter it in the app. Funds are instantly released to your bank account (minus our small commission).</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:28px;display:flex;gap:12px;">
-        <div style="font-size:22px;flex-shrink:0;">📦</div>
-        <div>
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px;">Courier? Use Your Pargo Waybill</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.6;">A waybill is generated automatically. Package the book and drop it at any Pargo point (Clicks, PnP). No payment needed from you at the counter.</div>
-        </div>
-      </div>
-
-      <button class="btn btn-full" style="background:white;color:black;font-weight:900;font-size:15px;padding:14px;" onclick="completeOnboarding()">Got It — Let's Go! 🚀</button>
-      <div style="height:20px;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- PARGO MAP MODAL -->
-<div class="modal-overlay" id="pargoModal" style="align-items:stretch;">
-  <div style="background:white;width:100%;height:90vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden;">
-    <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-weight:900;font-size:15px;">📦 Select Pargo Pickup Point</div>
-      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);">✕</button>
-    </div>
-    <iframe id="pargoIframe" style="flex:1;border:none;" src="" title="Pargo Point Selector"></iframe>
-  </div>
-</div>
-
-<!-- WAYBILL CARD STYLE -->
-<style>
-.waybill-card{background:linear-gradient(135deg,#1a6fa8,#0d4f7a);color:white;border-radius:12px;padding:14px;margin-top:10px;text-align:center;}
-.waybill-number{font-size:22px;font-weight:900;letter-spacing:3px;margin:6px 0;}
-.notif-item{padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;cursor:pointer;position:relative;}
-.notif-item:hover{background:var(--gray-100);}
-.notif-item.read .notif-dot{opacity:0;}
-.cart-item-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;}
-.cart-item-img{width:50px;height:65px;background:var(--gray-100);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;}
-.cart-item-img img{width:100%;height:100%;object-fit:cover;}
-.seller-books-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px;}
-.pay-warning{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;font-size:12px;color:#9a3412;margin-bottom:12px;font-weight:700;}
-</style>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,sendEmailVerification,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import{getFunctions,httpsCallable}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,onSnapshot,setDoc,serverTimestamp,increment}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const FC={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
-const app=initializeApp(FC);
+const firebaseConfig={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
+const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
-const fns=getFunctions(app);
 
-const CLOUD="drtdddsxp",PRESET="bookworm_upload";
-const PF_MERCHANT_ID="34606233",PF_MERCHANT_KEY="xbwlwikgiyxwr";
-const PF_SANDBOX=true;
-const PARGO_MAP_TOKEN="jyEBFsFKALcedfzWlhgnrMbdAidRNGupJEBwxBgkUr6zODH0";
+// CONFIG
+const CLOUD="drtdddsxp";
+const PRESET="bookworm_upload";
+const ADMIN_EMAIL="admin@bookworm.co.za";
+const PF_MERCHANT_ID="34606233";
+const PF_MERCHANT_KEY="xbwlwikgiyxwr";
+const PF_SANDBOX=true; // Set to false for live
 const PARGO_DELIVERY_FEE=79;
-const GOOGLE_BOOKS_API="https://www.googleapis.com/books/v1/volumes?q=isbn:";
 
+// STATE
 let currentUser=null,currentUserData=null,allBooks=[],currentBook=null;
 let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null;
-let currentBookType="physical",currentPDFDoc=null,currentReaderPage=1;
-let commissionRate=3,deliveryFeeAmount=PARGO_DELIVERY_FEE;
-let selectedDelivery=null,currentTxId=null;
+let currentBookType="physical",currentPDFDoc=null,currentReaderPage=1,currentReaderBook=null;
+let commissionRate=5,deliveryFeeAmount=PARGO_DELIVERY_FEE,selectedDelivery=null,currentTxId=null;
 let photoFiles=[null,null,null],currentUploadType="physical";
-let selectedRating=0,reviewTxId=null,appRating=0;
+let selectedRating=0,reviewTxId=null,reviewSellerId=null;
 let promoteBookId=null,promoteDays=7,promotePrice=0;
 let isSubmittingListing=false;
-let cart=[];
-let selectedPargoPoint=null;
-let scannerStream=null,scannerInterval=null;
 
-// PWA
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
-
-// Splash
+// SPLASH
 setTimeout(()=>{if(!currentUser){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("screen-login").classList.add("active");}},2200);
 
 // PDF.js
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-// Anti-screenshot
-document.addEventListener("keyup",e=>{if(e.key==="PrintScreen"||e.keyCode===44){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}});
+// ANTI-SCREENSHOT
+document.addEventListener("keyup",e=>{if(e.key==="PrintScreen"||e.keyCode===44)showScreenshotWarn();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.getElementById("screen-reader").classList.contains("active"))showScreenshotWarn();});
+function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}
 
-// Pargo point listener
-window.addEventListener("message",e=>{
-  if(e.data&&e.data.pargoPointCode){
-    selectedPargoPoint=e.data;
-    closeModal("pargoModal");
-    const el=document.getElementById("selectedPargoPoint");
-    if(el){el.textContent=`📦 ${e.data.name} — ${e.data.address||""}`;el.style.display="block";}
-    toast(`Pickup point selected: ${e.data.name}`,"success");
-  }
-});
-
-// Auth state
-onAuthStateChanged(auth,async user=>{
+// AUTH STATE
+onAuthStateChanged(auth,async(user)=>{
   if(user){
     currentUser=user;
     await loadUserData();
     await loadBooks();
-    loadNotificationsBadge();
-    const firstTime=!localStorage.getItem("bw_onboarded");
-    if(firstTime)switchScreen("screen-how");
-    else switchScreen("screen-home");
+    switchScreen("screen-home");
   }else{
     currentUser=null;currentUserData=null;
     switchScreen("screen-login");
@@ -1068,107 +897,129 @@ onAuthStateChanged(auth,async user=>{
 });
 
 function switchScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id)?.classList.add("active");window.scrollTo(0,0);}
-window.showScreen=function(id){
-  if(id==="screen-chat")loadChatList();
-  if(id==="screen-profile")loadProfile();
-  if(id==="screen-notifications")loadNotifications();
-  if(id==="screen-cart")renderCart();
-  if(id==="screen-upload")resetUploadForm();
-  switchScreen(id);
-};
+window.showScreen=function(id){if(id==="screen-chat")loadChatList();if(id==="screen-profile")loadProfile();if(id==="screen-upload")resetUploadForm();switchScreen(id);};
 window.requireAuth=function(id){if(!currentUser){toast("Please sign in to continue","error");switchScreen("screen-login");return;}window.showScreen(id);};
 window.goBack=function(){window.showScreen(previousScreen||"screen-home");};
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toggleOtherInstitution=function(selId,groupId){const v=document.getElementById(selId)?.value;if(document.getElementById(groupId))document.getElementById(groupId).style.display=v==="Other (please specify)"?"block":"none";};
-window.toggleAccountFields=function(){const t=document.getElementById("regAccountType")?.value;document.getElementById("studentFields").style.display=t==="student"?"block":"none";document.getElementById("bookshopFields").style.display=t==="bookshop"?"block":"none";};
-window.completeOnboarding=function(){localStorage.setItem("bw_onboarded","1");if(currentUser)switchScreen("screen-home");else switchScreen("screen-login");};
-window.showForgotPassword=async function(){const email=prompt("Enter your email address to reset your password:");if(!email)return;try{await sendPasswordResetEmail(auth,email);toast("Password reset email sent!","success");}catch(e){toast("Could not send reset email. Check your email address.","error");}};
+window.toggleAccountFields=function(){const t=document.getElementById("regAccountType")?.value;if(document.getElementById("studentFields"))document.getElementById("studentFields").style.display=t==="student"?"block":"none";if(document.getElementById("bookshopFields"))document.getElementById("bookshopFields").style.display=t==="bookshop"?"block":"none";};
+window.showForgotPassword=async function(){
+  const email=prompt("Enter your email address to reset your password:");
+  if(!email)return;
+  try{await sendPasswordResetEmail(auth,email);toast("Password reset email sent! Check your inbox.","success");}
+  catch(e){toast("Could not send reset email. Check your email address.","error");}
+};
 
 // AUTH
 window.handleLogin=async function(){
   const email=document.getElementById("loginEmail").value.trim();
   const pass=document.getElementById("loginPassword").value;
   if(!email||!pass)return toast("Please fill in all fields","error");
-  try{await signInWithEmailAndPassword(auth,email,pass);}
-  catch(e){toast("Invalid email or password","error");}
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,pass);
+    if(!cred.user.emailVerified){
+      await signOut(auth);
+      toast("Please verify your email first. Check your inbox for the verification link.","error");
+      return;
+    }
+  }catch(e){toast("Invalid email or password","error");}
 };
-window.handleLogout=async function(){cart=[];updateCartUI();await signOut(auth);};
+window.handleLogout=async function(){await signOut(auth);};
 window.handleRegister=async function(){
   const btn=document.getElementById("registerBtn");
-  if(btn.disabled)return;btn.disabled=true;
+  if(btn.disabled)return;
+  btn.disabled=true;
   const type=document.getElementById("regAccountType").value;
   const email=document.getElementById("regEmail").value.trim();
   const pass=document.getElementById("regPassword").value;
-  if(!email||!pass){btn.disabled=false;return toast("Please fill in all fields","error");}
-  if(pass.length<6){btn.disabled=false;return toast("Password must be at least 6 characters","error");}
-  const whatsapp=document.getElementById("regWhatsapp")?.value.trim()||"";
+  const whatsapp=document.getElementById("regWhatsapp").value.trim();
+  const bankName=document.getElementById("regBankName").value;
+  const accountHolder=document.getElementById("regAccountHolder").value.trim();
+  const accountNumber=document.getElementById("regAccountNumber").value.trim();
+  const accountTypeBank=document.getElementById("regAccountTypeBank").value;
+  const branchCode=document.getElementById("regBranchCode").value.trim();
+  if(!email||!pass)return resetBtn(btn,"Please fill in all fields");
+  if(pass.length<6)return resetBtn(btn,"Password must be at least 6 characters");
+  if(!bankName||!accountHolder||!accountNumber||!branchCode)return resetBtn(btn,"Please fill in your banking details for payouts");
   let extra={};
   if(type==="student"){
     const name=document.getElementById("regName").value.trim();
     let uni=document.getElementById("regUniversity").value;
     if(uni==="Other (please specify)")uni=document.getElementById("regOtherUniName").value.trim();
-    if(!name||!uni){btn.disabled=false;return toast("Please fill in all fields","error");}
-    extra={name,university:uni,whatsapp};
+    if(!name||!uni)return resetBtn(btn,"Please fill in all fields");
+    extra={name,university:uni};
   }else{
     const bname=document.getElementById("regBusinessName").value.trim();
     const breg=document.getElementById("regBusinessReg").value.trim();
     const lic=document.getElementById("regLicenceNum").value.trim();
-    if(!bname||!breg||!lic){btn.disabled=false;return toast("Please fill in all business details","error");}
-    extra={name:bname,businessReg:breg,licenceNumber:lic,university:"N/A",verified:false,whatsapp};
+    if(!bname||!breg||!lic)return resetBtn(btn,"Please fill in all business details");
+    extra={name:bname,businessReg:breg,licenceNumber:lic,university:"N/A",verified:false};
   }
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
     await sendEmailVerification(c.user);
-    await addDoc(collection(db,"users"),{uid:c.user.uid,email,accountType:type,...extra,banking:null,sold:0,bought:0,rating:0,ratingCount:0,createdAt:serverTimestamp()});
-    toast("Welcome to BookWorm! 📚 Check your email to verify.","success");
+    await addDoc(collection(db,"users"),{
+      uid:c.user.uid,email,accountType:type,...extra,
+      whatsapp,
+      banking:{bankName,accountHolder,accountNumber,accountTypeBank,branchCode},
+      sold:0,bought:0,rating:0,ratingCount:0,
+      createdAt:serverTimestamp()
+    });
+    await signOut(auth);
+    toast("Account created! 📚 Please check your email to verify before signing in.","success");
+    switchScreen("screen-login");
     btn.disabled=false;
-  }catch(e){btn.disabled=false;toast(e.message.includes("email-already-in-use")?"Email already registered":"Registration failed","error");}
+  }catch(e){
+    btn.disabled=false;
+    toast(e.message.includes("email-already-in-use")?"Email already registered":"Registration failed","error");
+  }
 };
+function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
   const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
   const s=await getDocs(q);
   if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
-  try{const cd=await getDoc(doc(db,"settings","commission"));if(cd.exists()){commissionRate=cd.data().rate||3;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}}catch(e){}
-}
-
-// BANKING
-window.saveBankingDetails=async function(){
-  const bankName=document.getElementById("bankName").value;
-  const accountHolder=document.getElementById("bankAccountHolder").value.trim();
-  const accountNumber=document.getElementById("bankAccountNumber").value.trim();
-  const accountType=document.getElementById("bankAccountType").value;
-  const branchCode=document.getElementById("bankBranchCode").value.trim();
-  if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
   try{
-    await updateDoc(doc(db,"users",currentUserData.id),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
-    currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
-    toast("Banking details saved! 💰 You're ready to sell.","success");
-    showScreen("screen-home");
-  }catch(e){toast("Failed to save banking details","error");}
-};
+    const cd=await getDoc(doc(db,"settings","commission"));
+    if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
+  }catch(e){}
+}
 
 // BOOKS
 async function loadBooks(){
-  try{const s=await getDocs(query(collection(db,"books"),orderBy("createdAt","desc")));allBooks=s.docs.map(d=>({id:d.id,...d.data()}));filterBooks();}
-  catch(e){console.error(e);}
+  try{
+    const s=await getDocs(query(collection(db,"books"),orderBy("createdAt","desc")));
+    allBooks=s.docs.map(d=>({id:d.id,...d.data()}));
+    filterBooks();
+  }catch(e){console.error(e);}
 }
+
 window.switchHomeTab=function(type,el){
   currentBookType=type;
   document.querySelectorAll(".home-tab").forEach(t=>t.classList.remove("active"));el.classList.add("active");
   const filters=document.getElementById("homeFilters");
-  if(type==="wanted"){document.getElementById("homeTabTitle").textContent="Wanted Books";filters.style.display="none";renderWantedListings();}
-  else{document.getElementById("homeTabTitle").textContent=type==="digital"?"Digital Books":"Available Books";filters.style.display="flex";filterBooks();}
+  if(type==="wanted"){
+    document.getElementById("homeTabTitle").textContent="Wanted Books";
+    filters.style.display="none";
+    renderWantedListings();
+  }else{
+    document.getElementById("homeTabTitle").textContent=type==="digital"?"Digital Books":"Available Books";
+    filters.style.display="flex";
+    filterBooks();
+  }
 };
+
 window.filterBooks=function(){
   const search=document.getElementById("searchInput").value.toLowerCase();
   const uni=document.getElementById("filterUniversity").value;
   const cond=document.getElementById("filterCondition").value;
   const price=document.getElementById("filterPrice").value;
+  // Show only available + pending (pending stays visible)
   const filtered=allBooks.filter(b=>{
     if((b.bookType||"physical")!==currentBookType)return false;
     if(b.status==="sold")return false;
-    const ms=!search||b.title?.toLowerCase().includes(search)||b.module?.toLowerCase().includes(search)||b.edition?.toLowerCase().includes(search)||b.author?.toLowerCase().includes(search);
+    const ms=!search||b.title?.toLowerCase().includes(search)||b.module?.toLowerCase().includes(search)||b.edition?.toLowerCase().includes(search);
     const mu=!uni||b.university===uni;
     const mc=!cond||b.condition===cond||currentBookType==="digital";
     const p=b.price||b.subPrice||0;
@@ -1176,7 +1027,12 @@ window.filterBooks=function(){
     if(price==="0-100")mp=p<100;else if(price==="100-300")mp=p>=100&&p<=300;else if(price==="300-500")mp=p>=300&&p<=500;else if(price==="500+")mp=p>500;
     return ms&&mu&&mc&&mp;
   });
-  filtered.sort((a,b)=>{if(a.featured&&!b.featured)return -1;if(!a.featured&&b.featured)return 1;return 0;});
+  // Sort: featured first
+  filtered.sort((a,b)=>{
+    if(a.featured&&!b.featured)return -1;
+    if(!a.featured&&b.featured)return 1;
+    return 0;
+  });
   document.getElementById("booksCount").textContent=`${filtered.length} book${filtered.length!==1?"s":""} found`;
   const grid=document.getElementById("booksGrid");
   if(!filtered.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">📚</div><h3>No books found</h3><p>Try adjusting your filters!</p></div>`;return;}
@@ -1197,11 +1053,18 @@ window.filterBooks=function(){
 
 async function renderWantedListings(){
   const grid=document.getElementById("booksGrid");
+  grid.style.display="block";
   try{
     const snap=await getDocs(query(collection(db,"wanted"),orderBy("createdAt","desc")));
     if(snap.empty){grid.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><h3>No wanted listings yet</h3><p>Be the first to post what you're looking for!</p></div><div style="padding:0 16px;"><button class="btn btn-primary btn-full" onclick="requireAuth('screen-wanted')">+ Post Wanted Listing</button></div>`;return;}
     grid.innerHTML=`<div style="padding:0 16px 8px;"><button class="btn btn-primary btn-full btn-sm" onclick="requireAuth('screen-wanted')">+ Post What You Need</button></div>`+
-      snap.docs.map(d=>{const w=d.data();return`<div class="wanted-card" style="margin:0 16px 8px;"><h4>🔍 ${w.title}${w.edition?` — ${w.edition}`:""}</h4><p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>${w.budget?`<p style="color:var(--success);font-weight:800;margin-top:4px;">Budget: R${w.budget}</p>`:""}<p style="margin-top:4px;">${w.notes||""}</p><div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Posted by ${w.posterName||"Student"}</div></div>`;}).join("");
+      snap.docs.map(d=>{const w=d.data();return`<div class="wanted-card" style="margin:0 16px 8px;">
+        <h4>🔍 ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
+        <p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>
+        ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
+        <p style="margin-top:6px;">${w.notes||""}</p>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Posted by ${w.posterName||"Student"}</div>
+      </div>`;}).join("");
   }catch(e){grid.innerHTML=`<div class="empty-state"><p>Could not load wanted listings.</p></div>`;}
 }
 
@@ -1209,12 +1072,12 @@ async function renderWantedListings(){
 window.showDetail=async function(id){
   const book=allBooks.find(b=>b.id===id)||(await getBookById(id));
   if(!book)return;
-  currentBook=book;previousScreen="screen-home";selectedDelivery=null;selectedPargoPoint=null;
+  currentBook=book;previousScreen="screen-home";selectedDelivery=null;
   const photos=book.photos||[];
   document.getElementById("detailPhotos").innerHTML=`
     <div style="margin-bottom:12px;">
       <div class="detail-photo-main" id="mainPhoto">${photos[0]?`<img id="mainPhotoImg" src="${photos[0]}" alt="${book.title}"/>`:(book.bookType==="digital"?"📖":"📚")}</div>
-      ${photos.length>1?`<div style="display:flex;gap:8px;margin-top:8px;overflow-x:auto;">${photos.map((p,i)=>`<div class="detail-photo-thumb ${i===0?"active":""}" onclick="switchPhoto('${p}',this)"><img src="${p}" alt="p${i+1}"/></div>`).join("")}</div>`:""}
+      ${photos.length>1?`<div style="display:flex;gap:8px;margin-top:8px;">${photos.map((p,i)=>`<div class="detail-photo-thumb ${i===0?"active":""}" onclick="switchPhoto('${p}',this)"><img src="${p}" alt="p${i+1}"/></div>`).join("")}</div>`:""}
     </div>`;
   document.getElementById("detailTitle").textContent=book.title;
   const p=book.price||book.subPrice||0;
@@ -1222,205 +1085,222 @@ window.showDetail=async function(id){
   document.getElementById("detailMeta").innerHTML=`
     ${book.module?`<div class="meta-tag">📚 ${book.module}</div>`:""}
     ${book.edition?`<div class="meta-tag">📖 ${book.edition}</div>`:""}
-    ${book.author?`<div class="meta-tag">✍️ ${book.author}</div>`:""}
     <div class="meta-tag">🎓 ${book.university||"Unknown"}</div>
-    ${book.isbn?`<div class="meta-tag">🔢 ISBN: ${book.isbn}</div>`:""}
     ${book.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${book.condition?.toLowerCase()}">${book.condition}</span>`}
     ${book.featured?`<span class="badge-pill" style="background:#fef3c7;color:#92400e;">⭐ Featured</span>`:""}`;
   document.getElementById("detailDescription").textContent=book.description||"";
-  const sellerRating=book.sellerRating||0,sellerRatingCount=book.sellerRatingCount||0;
+  // Seller info + rating
+  const sellerRating=book.sellerRating||0;
+  const sellerRatingCount=book.sellerRatingCount||0;
   document.getElementById("detailSeller").innerHTML=`
     <div class="seller-avatar">${book.sellerName?.[0]?.toUpperCase()||"S"}</div>
-    <div>
-      <div style="font-weight:800;font-size:14px;">${book.sellerName||"Seller"}</div>
-      <div style="font-size:12px;color:var(--gray-400);">${book.sellerUniversity||""}</div>
-      ${book.campus?`<div style="font-size:12px;color:var(--info);font-weight:700;">📍 ${book.campus}</div>`:""}
-      ${sellerRatingCount>0?`<div style="color:#f59e0b;font-size:13px;">${"★".repeat(Math.round(sellerRating))}${"☆".repeat(5-Math.round(sellerRating))} <span style="font-size:11px;color:var(--gray-400);">(${sellerRatingCount})</span></div>`:`<div style="font-size:11px;color:var(--gray-400);">No reviews yet</div>`}
+    <div><div style="font-weight:800;font-size:14px;">${book.sellerName||"Seller"}</div>
+    <div style="font-size:12px;color:var(--gray-400);">${book.sellerUniversity||""}</div>
+    ${sellerRatingCount>0?`<div class="rating-stars">${"★".repeat(Math.round(sellerRating))}${"☆".repeat(5-Math.round(sellerRating))} <span style="font-size:11px;color:var(--gray-400);">(${sellerRatingCount} review${sellerRatingCount!==1?"s":""})</span></div>`:`<div style="font-size:11px;color:var(--gray-400);">No reviews yet</div>`}
     </div>`;
+  // Buyer price breakdown
   if(book.bookType==="physical"){
     const total=p+deliveryFeeAmount;
     document.getElementById("detailPriceBreakdown").innerHTML=`
       <div class="price-breakdown">
-        <div style="font-weight:900;font-size:12px;margin-bottom:6px;">💰 Price Breakdown</div>
+        <div style="font-weight:900;font-size:12px;margin-bottom:6px;">💰 Price Breakdown (Buyer)</div>
         <div class="price-breakdown-row"><span>Book Price</span><span>R${p}</span></div>
-        <div class="price-breakdown-row"><span>Pargo Delivery (if courier)</span><span>R${deliveryFeeAmount}</span></div>
-        <div class="price-breakdown-row total"><span>Max Total</span><span>R${total}</span></div>
-        <div style="font-size:11px;margin-top:6px;color:#166534;">Choose meetup to pay R${p} only — no delivery fee.</div>
+        <div class="price-breakdown-row"><span>Pargo Delivery Fee</span><span>R${deliveryFeeAmount}</span></div>
+        <div class="price-breakdown-row total"><span>Total You Pay</span><span>R${total}</span></div>
+        <div style="font-size:11px;margin-top:6px;color:#166534;">Or choose hand delivery — pay R${p} only.</div>
       </div>`;
-  }else{document.getElementById("detailPriceBreakdown").innerHTML="";}
-
+  }else{
+    document.getElementById("detailPriceBreakdown").innerHTML="";
+  }
   const acts=document.getElementById("detailActions");
   const isOwner=currentUser&&book.sellerId===currentUser.uid;
   if(isOwner){
     const pendingTx=await getPendingTx(book.id);
-    acts.innerHTML=book.bookType==="digital"?
-      `<p style="font-size:12px;color:var(--gray-400);text-align:center;margin-bottom:10px;">Your digital listing.</p>
-       <button class="btn btn-danger btn-sm btn-full" onclick="openDeleteModal('${book.id}')">🗑️ Remove Listing</button>
-       <div style="margin-top:8px;"><button class="btn btn-warning btn-sm btn-full" onclick="openPromoteModal('${book.id}')">⭐ Feature This Listing</button></div>`:
-      `${pendingTx?`<div class="seller-pending-box">
-        <div style="font-weight:900;font-size:13px;margin-bottom:4px;">📦 Book Sold — Awaiting Delivery</div>
-        <div style="font-size:12px;">Buyer: <strong>${pendingTx.buyerName}</strong></div>
-        <div style="font-size:12px;">Method: <strong>${pendingTx.deliveryMethod==="courier"?"📦 Courier":"🤝 Meetup"}</strong></div>
-        ${pendingTx.pargoWaybill?`<div class="waybill-card"><div style="font-size:12px;opacity:0.7;">Your Pargo Waybill</div><div class="waybill-number">${pendingTx.pargoWaybill}</div><div style="font-size:11px;opacity:0.7;">Show this at any Pargo drop point</div></div>`:""}
-        ${pendingTx.trackingNumber?`<div style="font-size:12px;margin-top:6px;">Tracking: <strong>${pendingTx.trackingNumber}</strong></div>`:""}
-      </div>`:""}
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
-        <button class="btn btn-secondary btn-full" onclick="openCodeModal()">🔐 Enter Release Code</button>
-        ${pendingTx&&pendingTx.deliveryMethod==="courier"?`<button class="btn btn-info btn-sm" onclick="openTrackingModal('${pendingTx.id}')">📦</button>`:""}
-      </div>
-      ${!pendingTx?`<button class="btn btn-danger btn-sm btn-full" onclick="openDeleteModal('${book.id}')">🗑️ Remove Listing</button>`:""}
-      <div style="margin-top:8px;"><button class="btn btn-warning btn-sm btn-full" onclick="openPromoteModal('${book.id}')">⭐ Feature This Listing</button></div>`;
+    if(book.bookType==="digital"){
+      acts.innerHTML=`<p style="font-size:12px;color:var(--gray-400);text-align:center;margin-bottom:10px;">Your digital listing.</p>
+        <button class="btn btn-danger btn-sm btn-full" onclick="openDeleteModal('${book.id}')">🗑️ Remove Listing</button>
+        <div style="margin-top:8px;"><button class="btn btn-warning btn-sm btn-full" onclick="openPromoteModal('${book.id}')">⭐ Feature This Listing</button></div>`;
+    }else{
+      acts.innerHTML=`
+        ${pendingTx?`<div class="seller-pending-box">
+          <div style="font-weight:900;font-size:13px;margin-bottom:4px;">📦 Book Sold — Awaiting Delivery</div>
+          <div style="font-size:12px;">Buyer: <strong>${pendingTx.buyerName}</strong></div>
+          <div style="font-size:12px;">Method: <strong>${pendingTx.deliveryMethod==="courier"?"📦 Courier":"🤝 Hand Delivery"}</strong></div>
+          ${pendingTx.deliveryMethod==="courier"&&pendingTx.trackingNumber?`<div style="font-size:12px;margin-top:6px;">Tracking: <strong>${pendingTx.trackingNumber}</strong></div>`:""}
+        </div>`:""}
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button class="btn btn-secondary btn-full" onclick="openCodeModal()">🔐 Enter Release Code</button>
+          ${pendingTx&&pendingTx.deliveryMethod==="courier"?`<button class="btn btn-info btn-sm" onclick="openTrackingModal('${pendingTx.id}')">📦</button>`:""}
+        </div>
+        ${!pendingTx?`<button class="btn btn-danger btn-sm btn-full" onclick="openDeleteModal('${book.id}')">🗑️ Remove Listing</button>`:""}
+        <div style="margin-top:8px;"><button class="btn btn-warning btn-sm btn-full" onclick="openPromoteModal('${book.id}')">⭐ Feature This Listing</button></div>
+        <p style="font-size:11px;color:var(--gray-400);text-align:center;margin-top:8px;">Share the release code with the buyer only after they confirm receipt.</p>`;
+    }
   }else if(book.bookType==="digital"){
     const hasSub=await checkSubscription(book.id);
     acts.innerHTML=hasSub?`<button class="btn btn-success btn-full" onclick="openReader('${book.id}')">📖 Read Now</button>`:
       `<button class="btn btn-primary btn-full" onclick="openSubModal('${book.id}')">📖 Subscribe – R${book.subPrice}/year</button>`;
   }else{
-    const isSold=book.status==="sold",isPending=book.status==="pending";
-    const isInCart=cart.some(c=>c.id===book.id);
+    const isSold=book.status==="sold";
+    const isPending=book.status==="pending";
     acts.innerHTML=`
-      <div class="pay-warning">⚠️ <strong>Pay through BookWorm only.</strong> Never pay outside the app.</div>
-      <div style="margin-bottom:16px;">
+      <div class="delivery-options">
         <div style="font-weight:800;font-size:13px;margin-bottom:8px;">Select Delivery Method:</div>
         <div class="delivery-option" onclick="selectDelivery('meetup',this)">
-          <h4>🤝 Meetup</h4>
-          <p>Meet the seller in a safe public place. No delivery fee.</p>
+          <h4>🤝 Hand Delivery — Free</h4>
+          <p>Meet in person at an agreed location. Pay R${book.price} only.</p>
           <div class="meetup-form" id="meetupForm">
-            <input class="form-control" id="meetupLocation" placeholder="Meetup place (e.g. Campus Library)" style="margin-bottom:6px;"/>
-            <input class="form-control" id="meetupAddress" placeholder="Address or landmark"/>
-            <button class="btn btn-sm btn-secondary btn-full" style="margin-top:8px;" onclick="captureMeetupLocation(event)">📍 Use My GPS Location</button>
+            <div class="form-group" style="margin-bottom:8px;">
+              <label>Hand Delivery Location</label>
+              <select class="form-control" id="meetupLocation">
+                <option value="">Select location type</option>
+                <option>University Campus (Main Entrance)</option>
+                <option>University Library</option>
+                <option>University Student Centre</option>
+                <option>Shopping Mall</option>
+                <option>Coffee Shop / Restaurant</option>
+                <option>Police Station</option>
+                <option>Other Public Place</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+              <label>Specific Address / Details</label>
+              <input class="form-control" id="meetupAddress" placeholder="e.g. Limpopo Mall, Polokwane"/>
+            </div>
+            <button class="btn btn-info btn-sm btn-full" onclick="captureMeetupLocation(event)">📍 Use My Current Location</button>
           </div>
         </div>
-        ${book.campus?`<div class="delivery-option" onclick="selectDelivery('campus',this)">
-          <h4>🎓 Campus Collection — FREE</h4>
-          <p>Collect from the seller on campus. No delivery fee.</p>
-          <div style="margin-top:6px;background:var(--white);border-radius:6px;padding:8px;font-size:12px;color:var(--info);font-weight:700;">📍 ${book.campus}</div>
-        </div>`:""}
         <div class="delivery-option" onclick="selectDelivery('courier',this)">
-          <h4>📦 Pargo Courier — R${deliveryFeeAmount}</h4>
-          <p>Book delivered to a Pargo point near you (Clicks, PnP, etc.)</p>
+          <h4>📦 Pargo Courier Delivery — R${deliveryFeeAmount}</h4>
+          <p>Delivered to your nearest Pargo pickup point. Total: R${book.price+deliveryFeeAmount}.</p>
           <div class="courier-form" id="courierForm">
-            <button class="btn btn-info btn-sm btn-full" onclick="openPargoMap(event)">🗺️ Select Pargo Pickup Point</button>
-            <div id="selectedPargoPoint" style="display:none;margin-top:8px;font-size:12px;font-weight:700;color:var(--info);"></div>
+            <p style="font-size:12px;color:var(--gray-400);">After payment, the seller will drop off at a Pargo point and you'll receive a tracking number.</p>
+            <div class="form-group" style="margin-bottom:0;margin-top:8px;">
+              <label>Your Nearest Pargo Pickup Point</label>
+              <input class="form-control" id="pargoAddress" placeholder="e.g. Clicks Polokwane Mall"/>
+            </div>
           </div>
         </div>
-        <div class="delivery-coming-soon"><h4>🏪 Collect at Bookshop — Coming Soon</h4><p>Collect from a partner bookshop near you.</p></div>
+        <div class="delivery-coming-soon">
+          <h4>🏪 Collect at Bookshop — Coming Soon</h4>
+          <p>Collect from a partner bookshop near you.</p>
+        </div>
       </div>
-      ${isSold||isPending?
-        `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-weight:800;color:#166534;">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:
-        `<div style="display:flex;gap:8px;">
-          <button class="btn btn-secondary" onclick="requireAuth('screen-chat');startChat('${book.id}','${book.sellerId}','${(book.sellerName||"Seller").replace(/'/g,"\\'")}','${book.title.replace(/'/g,"\\'")}')">💬 Chat</button>
-          ${isInCart?`<button class="btn btn-success btn-full" onclick="showScreen('screen-cart')">🛒 View Cart</button>`:`<button class="btn btn-warning" onclick="addToCart('${book.id}')">🛒 Add to Cart</button>`}
-          <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
-        </div>`
-      }`;
+      ${isSold||isPending?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-weight:800;color:#166534;">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="requireAuth('screen-chat');startChat('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message</button>
+        <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
+      </div>`}`;
   }
-  await loadSellerMoreBooks(book.sellerId,book.id);
   switchScreen("screen-detail");
 };
 
-async function loadSellerMoreBooks(sellerId,currentBookId){
-  const container=document.getElementById("sellerMoreBooks");
-  if(!container)return;
-  const sellerBooks=allBooks.filter(b=>b.sellerId===sellerId&&b.id!==currentBookId&&b.status==="available"&&b.bookType==="physical");
-  if(!sellerBooks.length){container.innerHTML="";return;}
-  container.innerHTML=`
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200);">
-      <div style="font-size:15px;font-weight:900;margin-bottom:6px;">📚 More books from this seller</div>
-      <div style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">💡 Add multiple books — pay delivery once!</div>
-      <div class="seller-books-mini">
-        ${sellerBooks.map(b=>`
-          <div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="showDetail('${b.id}')">
-            <div style="height:80px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;overflow:hidden;">
-              ${b.photos?.[0]?`<img src="${b.photos[0]}" style="width:100%;height:100%;object-fit:cover;" alt="${b.title}"/>`:`<span style="font-size:28px;">📚</span>`}
-            </div>
-            <div style="padding:8px;">
-              <div style="font-size:11px;font-weight:800;line-height:1.3;margin-bottom:4px;">${b.title}</div>
-              <div style="font-size:13px;font-weight:900;">R${b.price}</div>
-              ${cart.some(c=>c.id===b.id)?
-                `<button class="btn btn-success btn-sm btn-full" style="margin-top:4px;" onclick="event.stopPropagation();showScreen('screen-cart')">✅ In Cart</button>`:
-                `<button class="btn btn-warning btn-sm btn-full" style="margin-top:4px;" onclick="event.stopPropagation();addToCart('${b.id}')">+ Add to Cart</button>`
-              }
-            </div>
-          </div>`).join("")}
-      </div>
-    </div>`;
-}
-
-window.switchPhoto=function(url,el){const img=document.getElementById("mainPhotoImg");if(img)img.src=url;document.querySelectorAll(".detail-photo-thumb").forEach(t=>t.classList.remove("active"));el.classList.add("active");};
-window.selectDelivery=function(type,el){document.querySelectorAll(".delivery-option").forEach(o=>o.classList.remove("selected"));el.classList.add("selected");selectedDelivery=type;document.getElementById("meetupForm").style.display=type==="meetup"?"block":"none";const cf=document.getElementById("courierForm");if(cf)cf.style.display=type==="courier"?"block":"none";};
-window.captureMeetupLocation=function(e){e.stopPropagation();if(!navigator.geolocation)return toast("Geolocation not supported","error");navigator.geolocation.getCurrentPosition(pos=>{const{latitude:lat,longitude:lng}=pos.coords;window._meetupGPS={lat,lng};window._meetupMapsUrl=`https://maps.google.com/?q=${lat},${lng}`;toast("📍 Location captured!","success");},()=>toast("Could not get location. Please enter manually.","error"));};
-window.openPargoMap=function(e){e.stopPropagation();const iframe=document.getElementById("pargoIframe");iframe.src=`https://map.pargo.co.za/?token=${PARGO_MAP_TOKEN}`;document.getElementById("pargoModal").classList.add("active");};
-
+window.switchPhoto=function(url,el){
+  const img=document.getElementById("mainPhotoImg");if(img)img.src=url;
+  document.querySelectorAll(".detail-photo-thumb").forEach(t=>t.classList.remove("active"));el.classList.add("active");
+};
+window.selectDelivery=function(type,el){
+  document.querySelectorAll(".delivery-option").forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");selectedDelivery=type;
+  document.getElementById("meetupForm").style.display=type==="meetup"?"block":"none";
+  document.getElementById("courierForm").style.display=type==="courier"?"block":"none";
+};
+window.captureMeetupLocation=function(e){
+  e.stopPropagation();
+  if(!navigator.geolocation)return toast("Geolocation not supported","error");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    window._meetupGPS={lat,lng};
+    window._meetupMapsUrl=`https://maps.google.com/?q=${lat},${lng}`;
+    toast(`📍 Location captured!`,"success");
+  },()=>toast("Could not get location. Please enter manually.","error"));
+};
 async function getBookById(id){try{const s=await getDoc(doc(db,"books",id));return s.exists()?{id:s.id,...s.data()}:null;}catch(e){return null;}}
-async function getPendingTx(bookId){try{const q=query(collection(db,"transactions"),where("bookId","==",bookId),where("status","==","pending"),limit(1));const s=await getDocs(q);return s.empty?null:{id:s.docs[0].id,...s.docs[0].data()};}catch(e){return null;}}
-async function checkSubscription(bookId){if(!currentUser)return false;try{const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId),where("status","==","active"));const s=await getDocs(q);if(s.empty)return false;return s.docs[0].data().expiresAt?.toDate()>new Date();}catch(e){return false;}}
+async function getPendingTx(bookId){
+  try{
+    const q=query(collection(db,"transactions"),where("bookId","==",bookId),where("status","==","pending"),limit(1));
+    const s=await getDocs(q);return s.empty?null:{id:s.docs[0].id,...s.docs[0].data()};
+  }catch(e){return null;}
+}
+async function checkSubscription(bookId){
+  if(!currentUser)return false;
+  try{
+    const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId),where("status","==","active"));
+    const s=await getDocs(q);if(s.empty)return false;
+    return s.docs[0].data().expiresAt?.toDate()>new Date();
+  }catch(e){return false;}
+}
 
-// CART
-window.addToCart=function(bookId){
-  if(!currentUser)return toast("Please sign in first","error");
-  const book=allBooks.find(b=>b.id===bookId);if(!book)return;
-  if(cart.some(c=>c.id===bookId))return toast("Already in cart","warning");
-  if(cart.length>0&&cart[0].sellerId!==book.sellerId)return toast("Cart can only contain books from the same seller. Complete current cart first.","warning");
-  cart.push(book);updateCartUI();
-  toast(`📚 ${book.title} added to cart!`,"success");
-  if(currentBook)loadSellerMoreBooks(currentBook.sellerId,currentBook.id);
-};
-function updateCartUI(){
-  const count=cart.length;
-  const badge=document.getElementById("cartCountBadge");
-  if(badge){badge.textContent=count;badge.style.display=count>0?"flex":"none";}
-}
-function renderCart(){
-  const cartItems=document.getElementById("cartItems");
-  const cartSummary=document.getElementById("cartSummary");
-  if(cart.length===0){
-    cartItems.innerHTML=`<div class="empty-state"><div class="icon">🛒</div><h3>Your cart is empty</h3><p>Add books from the same seller to buy together and save on delivery!</p></div>`;
-    cartSummary.innerHTML="";return;
+// BARCODE SCANNER
+const GOOGLE_BOOKS_API="https://www.googleapis.com/books/v1/volumes?q=isbn:";
+let scannerStream=null,scannerInterval=null;
+window.startScanner=async function(){
+  document.getElementById("uploadStep1").style.display="none";
+  document.getElementById("uploadStep2").style.display="block";
+  try{
+    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    const video=document.getElementById("scannerVideo");
+    video.srcObject=scannerStream;
+    if("BarcodeDetector"in window){
+      const detector=new BarcodeDetector({formats:["ean_13","ean_8"]});
+      scannerInterval=setInterval(async()=>{
+        try{
+          const barcodes=await detector.detect(video);
+          if(barcodes.length>0){
+            clearInterval(scannerInterval);
+            stopScanner();
+            await lookupISBN(barcodes[0].rawValue);
+          }
+        }catch(e){}
+      },600);
+    }else{
+      // No BarcodeDetector — fall back to manual after 2s
+      setTimeout(()=>{
+        stopScanner();
+        toast("Barcode scanning not supported on this browser. Please enter ISBN manually.","warning");
+        showManualEntry();
+      },2000);
+    }
+  }catch(e){
+    stopScanner();
+    toast("Camera not available. Please enter details manually.","error");
+    showManualEntry();
   }
-  const subtotal=cart.reduce((s,b)=>s+(b.price||0),0);
-  cartItems.innerHTML=`
-    <div style="background:var(--gray-100);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--gray-500);">
-      📦 All books from <strong>${cart[0].sellerName}</strong> — one delivery fee!
-    </div>
-    ${cart.map(b=>`
-      <div class="cart-item-row">
-        <div class="cart-item-img">${b.photos?.[0]?`<img src="${b.photos[0]}" alt="${b.title}"/>`:"📚"}</div>
-        <div style="flex:1">
-          <div style="font-weight:800;font-size:13px;">${b.title}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${b.condition||""} ${b.edition?`• ${b.edition}`:""}</div>
-          <div style="font-weight:900;">R${b.price}</div>
-        </div>
-        <button onclick="removeFromCart('${b.id}')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--error);">🗑️</button>
-      </div>`).join("")}`;
-  cartSummary.innerHTML=`
-    <div style="border:1px solid var(--gray-200);border-radius:12px;padding:16px;margin-top:8px;">
-      <div style="font-weight:900;font-size:15px;margin-bottom:12px;">Order Summary</div>
-      <div class="price-breakdown-row"><span>${cart.length} book${cart.length!==1?"s":""}</span><span>R${subtotal}</span></div>
-      <div class="price-breakdown-row"><span>Pargo Delivery (if courier)</span><span>R${deliveryFeeAmount}</span></div>
-      <div class="price-breakdown-row total" style="font-weight:900;font-size:14px;border-top:1px solid var(--gray-200);padding-top:8px;margin-top:6px;"><span>Max Total</span><span>R${subtotal+deliveryFeeAmount}</span></div>
-      <p style="font-size:11px;color:var(--gray-400);margin-top:8px;">Select delivery method on checkout. Meetup = no delivery fee.</p>
-      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
-        <button class="btn btn-primary btn-full" onclick="checkoutCart()">💳 Checkout</button>
-        <button class="btn btn-secondary btn-full btn-sm" onclick="cart=[];updateCartUI();renderCart();toast('Cart cleared','success')">Clear Cart</button>
-      </div>
-    </div>`;
-}
-window.removeFromCart=function(id){cart=cart.filter(b=>b.id!==id);updateCartUI();renderCart();};
-window.checkoutCart=function(){
-  if(cart.length===0)return;
-  if(!selectedDelivery){toast("Please go to a book and select a delivery method first","warning");showDetail(cart[0].id);return;}
-  openCartPayment();
 };
-function openCartPayment(){
-  const subtotal=cart.reduce((s,b)=>s+(b.price||0),0);
-  const isCourier=selectedDelivery==="courier";
-  const total=isCourier?subtotal+deliveryFeeAmount:subtotal;
-  document.getElementById("paymentBook").innerHTML=cart.map(b=>`<div>📚 ${b.title} — R${b.price}</div>`).join("")+`<div style="font-size:11px;color:var(--gray-400);margin-top:4px;">${cart.length} book${cart.length!==1?"s":""} from ${cart[0].sellerName}</div>`;
-  document.getElementById("pbBookPrice").textContent=`R${subtotal}`;
-  document.getElementById("pbDeliveryRow").style.display=isCourier?"flex":"none";
-  document.getElementById("pbDeliveryAmt")?document.getElementById("pbDeliveryAmt").textContent=`R${deliveryFeeAmount}`:null;
-  document.getElementById("pbTotal").textContent=`R${total}`;
-  document.getElementById("paymentModal").classList.add("active");
+window.stopScanner=function(){
+  if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
+  if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
+};
+window.showManualEntry=function(){
+  stopScanner();
+  document.getElementById("uploadStep1").style.display="none";
+  document.getElementById("uploadStep2").style.display="none";
+  document.getElementById("uploadStep3").style.display="block";
+};
+window.clearScannedData=function(){
+  ["uploadTitle","uploadAuthor","uploadEdition","uploadISBN"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  document.getElementById("isbnFoundBox").style.display="none";
+};
+async function lookupISBN(isbn){
+  toast("Looking up book...","");
+  try{
+    const res=await fetch(`${GOOGLE_BOOKS_API}${isbn}`);
+    const data=await res.json();
+    if(!data.totalItems){toast("Book not found. Enter details manually.","warning");showManualEntry();return;}
+    const info=data.items[0].volumeInfo;
+    if(document.getElementById("uploadTitle"))document.getElementById("uploadTitle").value=info.title||"";
+    if(document.getElementById("uploadAuthor"))document.getElementById("uploadAuthor").value=(info.authors||[]).join(", ");
+    if(document.getElementById("uploadEdition"))document.getElementById("uploadEdition").value=info.subtitle||"";
+    if(document.getElementById("uploadISBN"))document.getElementById("uploadISBN").value=isbn;
+    document.getElementById("isbnFoundDetails").innerHTML=`
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        ${info.imageLinks?.thumbnail?`<img src="${info.imageLinks.thumbnail}" style="width:50px;border-radius:4px;"/>`:""}
+        <div><div style="font-weight:800;">${info.title}</div>${info.authors?`<div style="font-size:12px;">By ${info.authors.join(", ")}</div>`:""}${info.publishedDate?`<div style="font-size:11px;color:var(--gray-400);">${info.publishedDate}</div>`:""}</div>
+      </div>`;
+    document.getElementById("isbnFoundBox").style.display="block";
+    showManualEntry();
+    toast("✅ Book details auto-filled!","success");
+  }catch(e){toast("Could not look up book. Enter manually.","error");showManualEntry();}
 }
 
 // PRICE / EARNINGS
@@ -1450,84 +1330,34 @@ window.updateSellerEarnings=function(){
   document.getElementById("sellerEarningsBox").style.display="block";
 };
 
-// BARCODE SCANNER
-window.startScanner=async function(){
-  document.getElementById("uploadStep1").style.display="none";
-  document.getElementById("uploadStep2").style.display="block";
-  try{
-    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    const video=document.getElementById("scannerVideo");
-    video.srcObject=scannerStream;
-    if("BarcodeDetector"in window){
-      const detector=new BarcodeDetector({formats:["ean_13","ean_8","isbn"]});
-      scannerInterval=setInterval(async()=>{
-        try{const barcodes=await detector.detect(video);if(barcodes.length>0){const isbn=barcodes[0].rawValue;clearInterval(scannerInterval);stopScanner();await lookupISBN(isbn);}}catch(e){}
-      },500);
-    }else{
-      setTimeout(()=>{stopScanner();toast("Barcode scanner not supported. Please enter ISBN manually.","warning");showManualEntry();document.getElementById("uploadISBN").removeAttribute("readonly");document.getElementById("uploadISBN").placeholder="Enter ISBN manually to auto-fill";document.getElementById("uploadISBN").oninput=function(){if(this.value.length>=10)lookupISBN(this.value);};},2000);
-    }
-  }catch(e){stopScanner();toast("Camera not available. Please enter details manually.","error");showManualEntry();}
-};
-window.stopScanner=function(){if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}};
-async function lookupISBN(isbn){
-  toast("Looking up book details...","");
-  try{
-    const res=await fetch(`${GOOGLE_BOOKS_API}${isbn}`);
-    const data=await res.json();
-    if(data.totalItems===0){toast("Book not found. Please enter details manually.","warning");showManualEntry();return;}
-    const info=data.items[0].volumeInfo;
-    document.getElementById("uploadTitle").value=info.title||"";
-    document.getElementById("uploadAuthor").value=(info.authors||[]).join(", ");
-    document.getElementById("uploadEdition").value=info.subtitle||"";
-    document.getElementById("uploadISBN").value=isbn;
-    const foundBox=document.getElementById("isbnFoundBox");
-    document.getElementById("isbnFoundDetails").innerHTML=`
-      <div style="display:flex;gap:10px;align-items:flex-start;">
-        ${info.imageLinks?.thumbnail?`<img src="${info.imageLinks.thumbnail}" style="width:60px;border-radius:6px;" alt="Cover"/>`:""}
-        <div>
-          <div style="font-weight:800;">${info.title}</div>
-          ${info.authors?`<div style="font-size:12px;">By ${info.authors.join(", ")}</div>`:""}
-          ${info.publishedDate?`<div style="font-size:12px;">Published: ${info.publishedDate}</div>`:""}
-        </div>
-      </div>`;
-    foundBox.style.display="block";
-    updatePriceRecommendation();showManualEntry();toast("✅ Book details auto-filled!","success");
-  }catch(e){toast("Could not look up book. Please enter manually.","error");showManualEntry();}
-}
-window.showManualEntry=function(){stopScanner();document.getElementById("uploadStep1").style.display="none";document.getElementById("uploadStep2").style.display="none";document.getElementById("uploadStep3").style.display="block";};
-window.clearScannedData=function(){["uploadTitle","uploadAuthor","uploadEdition","uploadISBN"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});document.getElementById("isbnFoundBox").style.display="none";};
-
-function resetUploadForm(){
-  stopScanner();
-  document.getElementById("uploadStep1").style.display="block";
-  document.getElementById("uploadStep2").style.display="none";
-  document.getElementById("uploadStep3").style.display="none";
-  document.getElementById("isbnFoundBox").style.display="none";
-  photoFiles=[null,null,null];window.selectedPDFFile=null;
-  ["uploadTitle","uploadAuthor","uploadEdition","uploadModule","uploadPrice","uploadDescription","uploadSubPrice","uploadLicenceRef","uploadCampus","uploadISBN"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-  [0,1,2].forEach(i=>{const prev=document.getElementById("prev"+i);if(prev)prev.style.display="none";const slot=document.getElementById("slot"+i);if(slot){const icon=slot.querySelector(".slot-icon");const label=slot.querySelector(".slot-label");if(icon)icon.style.display="";if(label)label.style.display="";}});
-  const earnBox=document.getElementById("sellerEarningsBox");if(earnBox)earnBox.style.display="none";
-  const recBox=document.getElementById("priceRecBox");if(recBox)recBox.style.display="none";
-}
-
 // PHOTO UPLOAD
 window.triggerPhotoUpload=function(i){document.getElementById("photoInput"+i).click();};
 window.previewPhoto=function(e,i){
   const f=e.target.files[0];if(!f)return;
   photoFiles[i]=f;
   const r=new FileReader();
-  r.onload=ev=>{const prev=document.getElementById("prev"+i);prev.src=ev.target.result;prev.style.display="block";document.getElementById("slot"+i).querySelector(".slot-icon").style.display="none";document.getElementById("slot"+i).querySelector(".slot-label").style.display="none";};
-  r.readAsDataURL(f);
+  r.onload=ev=>{
+    const prev=document.getElementById("prev"+i);prev.src=ev.target.result;prev.style.display="block";
+    document.getElementById("slot"+i).querySelector(".slot-icon").style.display="none";
+    document.getElementById("slot"+i).querySelector(".slot-label").style.display="none";
+  };r.readAsDataURL(f);
 };
-window.handlePDFSelect=function(e){window.selectedPDFFile=e.target.files[0];if(window.selectedPDFFile)document.getElementById("pdfLabel").textContent=`✅ ${window.selectedPDFFile.name}`;};
+window.handlePDFSelect=function(e){
+  window.selectedPDFFile=e.target.files[0];
+  if(window.selectedPDFFile)document.getElementById("pdfLabel").textContent=`✅ ${window.selectedPDFFile.name}`;
+};
 async function uploadToCloudinary(file,type="image"){
   const fd=new FormData();fd.append("file",file);fd.append("upload_preset",PRESET);
-  if(type==="pdf")fd.append("resource_type","raw");
-  const r=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/${type==="pdf"?"raw":"image"}/upload`,{method:"POST",body:fd});
+  const url=type==="pdf"
+    ?`https://api.cloudinary.com/v1_1/${CLOUD}/raw/upload`
+    :`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`;
+  const r=await fetch(url,{method:"POST",body:fd});
   const data=await r.json();
-  if(!data.secure_url)throw new Error("Upload failed");
+  if(!data.secure_url)throw new Error(data.error?.message||"Upload failed");
   return data.secure_url;
 }
+
+// BOOK TYPE TOGGLE
 window.setBookType=function(type,el){
   currentUploadType=type;
   document.querySelectorAll(".upload-type-btn").forEach(b=>b.classList.remove("active"));el.classList.add("active");
@@ -1535,11 +1365,12 @@ window.setBookType=function(type,el){
   document.getElementById("digitalFields").style.display=type==="digital"?"block":"none";
 };
 
-// SUBMIT LISTING
+// SUBMIT LISTING — with duplicate prevention
 window.submitListing=async function(){
   if(isSubmittingListing)return;
   const btn=document.getElementById("listBtn");
-  btn.disabled=true;isSubmittingListing=true;btn.textContent="Uploading...";
+  btn.disabled=true;isSubmittingListing=true;
+  btn.textContent="Uploading...";
   const title=document.getElementById("uploadTitle").value.trim();
   let university=document.getElementById("uploadUniversity").value;
   if(university==="Other (please specify)")university=document.getElementById("uploadOtherUniName").value.trim();
@@ -1559,28 +1390,40 @@ window.submitListing=async function(){
     }else{
       const subPrice=parseFloat(document.getElementById("uploadSubPrice").value);
       const licenceRef=document.getElementById("uploadLicenceRef").value.trim();
-      if(!subPrice||!licenceRef||!window.selectedPDFFile){btn.disabled=false;isSubmittingListing=false;btn.textContent="📤 List My Book";return toast("Please fill all digital book fields","error");}
+      if(!subPrice||subPrice<=0){btn.disabled=false;isSubmittingListing=false;btn.textContent="📤 List My Book";return toast("Please enter a valid subscription price","error");}
+      if(!licenceRef){btn.disabled=false;isSubmittingListing=false;btn.textContent="📤 List My Book";return toast("Please enter your licence reference","error");}
+      if(!window.selectedPDFFile){btn.disabled=false;isSubmittingListing=false;btn.textContent="📤 List My Book";return toast("Please upload a PDF file","error");}
       const pdfUrl=await uploadToCloudinary(window.selectedPDFFile,"pdf");
       data={...data,subPrice,licenceRef,pdfUrl};
     }
     await addDoc(collection(db,"books"),data);
-    await addDoc(collection(db,"notifications"),{userId:"admin",type:"new_listing",title:"📚 New Listing",message:`${currentUserData?.name||"A seller"} listed: ${title}`,read:false,createdAt:serverTimestamp()});
-    toast("📚 Book listed successfully!","success");
-    isSubmittingListing=false;btn.disabled=false;btn.textContent="📤 List My Book";
+    toast("Book listed successfully! 🎉","success");
+    // Reset form
+    photoFiles=[null,null,null];window.selectedPDFFile=null;
+    ["uploadTitle","uploadEdition","uploadModule","uploadPrice","uploadDescription","uploadSubPrice","uploadLicenceRef"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    [0,1,2].forEach(i=>{const prev=document.getElementById("prev"+i);if(prev){prev.style.display="none";}const slot=document.getElementById("slot"+i);if(slot){const icon=slot.querySelector(".slot-icon");const label=slot.querySelector(".slot-label");if(icon)icon.style.display="";if(label)label.style.display="";}});
+    document.getElementById("sellerEarningsBox").style.display="none";
+    document.getElementById("priceRecBox").style.display="none";
     await loadBooks();
-    if(!currentUserData?.banking){switchScreen("screen-banking");}
-    else{switchScreen("screen-home");}
-  }catch(e){console.error(e);toast("Failed to list book. Please try again.","error");isSubmittingListing=false;btn.disabled=false;btn.textContent="📤 List My Book";}
+    switchScreen("screen-home");
+  }catch(e){
+    toast("Failed to list book. Please try again.","error");
+    console.error(e);
+  }finally{
+    btn.disabled=false;isSubmittingListing=false;btn.textContent="📤 List My Book";
+  }
 };
 
 // WANTED
 window.submitWanted=async function(){
   const title=document.getElementById("wantedTitle").value.trim();
+  const university=document.getElementById("wantedUniversity").value;
   if(!title)return toast("Please enter a book title","error");
   if(!currentUser)return toast("Please sign in first","error");
   try{
-    await addDoc(collection(db,"wanted"),{title,edition:document.getElementById("wantedEdition").value.trim(),module:document.getElementById("wantedModule").value.trim(),university:document.getElementById("wantedUniversity").value,budget:parseFloat(document.getElementById("wantedBudget").value)||0,notes:document.getElementById("wantedNotes").value.trim(),posterName:currentUserData?.name||"Student",posterId:currentUser.uid,createdAt:serverTimestamp()});
-    toast("Wanted listing posted!","success");switchScreen("screen-home");
+    await addDoc(collection(db,"wanted"),{title,edition:document.getElementById("wantedEdition").value.trim(),module:document.getElementById("wantedModule").value.trim(),university,budget:parseFloat(document.getElementById("wantedBudget").value)||0,notes:document.getElementById("wantedNotes").value.trim(),posterName:currentUserData?.name||"Student",posterId:currentUser.uid,createdAt:serverTimestamp()});
+    toast("Wanted listing posted! Sellers will contact you.","success");
+    switchScreen("screen-home");
   }catch(e){toast("Failed to post wanted listing","error");}
 };
 
@@ -1588,88 +1431,130 @@ window.submitWanted=async function(){
 window.openPayment=function(bookId){
   if(!currentUser)return toast("Please sign in to buy","error");
   if(!selectedDelivery)return toast("Please select a delivery method first","error");
-  if(selectedDelivery==="courier"&&!selectedPargoPoint)return toast("Please select a Pargo pickup point","warning");
   const b=allBooks.find(x=>x.id===bookId);if(!b)return;
-  cart=[b];openCartPayment();
+  const isCourier=selectedDelivery==="courier";
+  const total=isCourier?b.price+deliveryFeeAmount:b.price;
+  document.getElementById("pbBookPrice").textContent=`R${b.price}`;
+  document.getElementById("pbDeliveryRow").style.display=isCourier?"flex":"none";
+  document.getElementById("pbTotal").textContent=`R${total}`;
+  document.getElementById("paymentBook").textContent=b.title;
+  document.getElementById("paymentModal").classList.add("active");
 };
 window.confirmPayment=async function(){
   const btn=document.getElementById("paymentConfirmBtn");
-  if(btn.disabled)return;btn.disabled=true;
+  if(btn.disabled)return;
+  btn.disabled=true;
   closeModal("paymentModal");
-  if(cart.length===0)return;
+  if(!currentBook)return;
   const isCourier=selectedDelivery==="courier";
-  const subtotal=cart.reduce((s,b)=>s+(b.price||0),0);
-  const total=isCourier?subtotal+deliveryFeeAmount:subtotal;
-  const meetupData=selectedDelivery==="meetup"?{meetupLocation:document.getElementById("meetupLocation")?.value||"",meetupAddress:document.getElementById("meetupAddress")?.value||"",meetupGPS:window._meetupGPS||null,meetupMapsUrl:window._meetupMapsUrl||null}:selectedDelivery==="campus"?{campusCollection:true,campusLocation:cart[0]?.campus||""}:{pargoPointCode:selectedPargoPoint?.pargoPointCode||"",pargoPointName:selectedPargoPoint?.name||"",pargoPointAddress:selectedPargoPoint?.address||""};
+  const total=isCourier?currentBook.price+deliveryFeeAmount:currentBook.price;
+  // Generate a unique 6-digit code tied to this transaction
+  const code=Math.floor(100000+Math.random()*900000).toString();
+  const meetupData=selectedDelivery==="meetup"?{
+    meetupLocation:document.getElementById("meetupLocation")?.value||"",
+    meetupAddress:document.getElementById("meetupAddress")?.value||"",
+    meetupGPS:window._meetupGPS||null,
+    meetupMapsUrl:window._meetupMapsUrl||null
+  }:{pargoAddress:document.getElementById("pargoAddress")?.value||""};
   try{
-    const cartGroupId=cart.length>1?Date.now().toString():"";
-    const txIds=[];
-    for(const book of cart){
-      const code=Math.floor(100000+Math.random()*900000).toString();
-      const txRef=await addDoc(collection(db,"transactions"),{bookId:book.id,bookTitle:book.title,buyerId:currentUser.uid,buyerName:currentUserData?.name||"Buyer",buyerEmail:currentUser.email,sellerId:book.sellerId,sellerName:book.sellerName,amount:book.price,deliveryFee:isCourier?deliveryFeeAmount:0,totalAmount:isCourier?book.price+deliveryFeeAmount:book.price,commission:commissionRate,code,status:"pending",deliveryMethod:selectedDelivery,...meetupData,cartGroupId,createdAt:serverTimestamp(),disputeDeadline:new Date(Date.now()+48*60*60*1000)});
-      await updateDoc(doc(db,"books",book.id),{status:"pending"});
-      txIds.push({txId:txRef.id,code,book});
-    }
-    currentTxId=txIds[0].txId;
-    initiatePayFast(txIds,total);
+    const txRef=await addDoc(collection(db,"transactions"),{
+      bookId:currentBook.id,bookTitle:currentBook.title,
+      buyerId:currentUser.uid,buyerName:currentUserData?.name||"Buyer",buyerEmail:currentUser.email,
+      sellerId:currentBook.sellerId,sellerName:currentBook.sellerName,
+      amount:currentBook.price,deliveryFee:isCourier?deliveryFeeAmount:0,totalAmount:total,
+      commission:commissionRate,code,
+      status:"pending",deliveryMethod:selectedDelivery,
+      ...meetupData,
+      createdAt:serverTimestamp(),
+      disputeDeadline:new Date(Date.now()+48*60*60*1000)
+    });
+    currentTxId=txRef.id;
+    // Mark book as pending (NOT sold — stays visible to seller)
+    await updateDoc(doc(db,"books",currentBook.id),{status:"pending"});
+    // Redirect to PayFast
+    initiatePayFast(currentBook,txRef.id,code,total);
+  }catch(e){
+    toast("Payment initiation failed","error");
     btn.disabled=false;
-  }catch(e){toast("Payment initiation failed","error");btn.disabled=false;console.error(e);}
+    console.error(e);
+  }
 };
-
-function initiatePayFast(txIds,total){
-  const primary=txIds[0];
+function initiatePayFast(book,txId,code,total){
   const form=document.createElement("form");
   form.method="POST";
   form.action=PF_SANDBOX?"https://sandbox.payfast.co.za/eng/process":"https://www.payfast.co.za/eng/process";
-  const itemName=txIds.length>1?`BookWorm: ${txIds.length} Books from ${primary.book.sellerName}`:`BookWorm: ${primary.book.title}`;
-  const fields={merchant_id:PF_MERCHANT_ID,merchant_key:PF_MERCHANT_KEY,return_url:`${window.location.origin}${window.location.pathname}?tx=${primary.txId}`,cancel_url:`${window.location.origin}${window.location.pathname}?cancel=1`,notify_url:"https://us-central1-bookworm-b9ba6.cloudfunctions.net/payfastITN",name_first:currentUserData?.name?.split(" ")[0]||"Student",name_last:currentUserData?.name?.split(" ").slice(1).join(" ")||"Buyer",email_address:currentUser.email,m_payment_id:primary.txId,amount:total.toFixed(2),item_name:itemName,custom_str1:primary.txId,custom_str2:primary.code,custom_str3:primary.book.sellerId};
+  const fields={
+    merchant_id:PF_MERCHANT_ID,merchant_key:PF_MERCHANT_KEY,
+    return_url:`${window.location.origin}${window.location.pathname}?tx=${txId}`,
+    cancel_url:`${window.location.origin}${window.location.pathname}?cancel=1`,
+    notify_url:"https://bookworm-sandy-eta.vercel.app/api/payfast-itn",
+    name_first:currentUserData?.name?.split(" ")[0]||"Student",
+    name_last:currentUserData?.name?.split(" ").slice(1).join(" ")||"Buyer",
+    email_address:currentUser.email,
+    m_payment_id:txId,
+    amount:total.toFixed(2),
+    item_name:`BookWorm: ${book.title}`,
+    item_description:`Secure purchase`,
+    custom_str1:txId,custom_str2:code,custom_str3:book.sellerId
+  };
   Object.entries(fields).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);});
   document.body.appendChild(form);
-  if(!PF_SANDBOX)form.submit();
-  else{document.body.removeChild(form);showTransactionScreen(txIds,total);toast("Payment secured in escrow! 🔐","success");cart=[];updateCartUI();}
+  // For sandbox demo — show transaction screen instead of submitting
+  document.body.removeChild(form);
+  showTransactionScreen(code,book,txId);
+  toast("Payment secured in escrow! 🔐","success");
 }
 
-function showTransactionScreen(txIds,total){
+function showTransactionScreen(code,book,txId){
   const isCourier=selectedDelivery==="courier";
-  const isCampus=selectedDelivery==="campus";
   const deliverySection=isCourier?
-    `<div class="tracking-card" id="trackingSection"><h4>📦 Pargo Courier Delivery</h4><p style="font-size:12px;color:var(--gray-400);">Pickup Point: <strong>${selectedPargoPoint?.name||"Selected point"}</strong></p><p style="font-size:12px;color:var(--gray-400);">The seller will drop off shortly. Tracking number will appear here automatically.</p><div id="trackingDisplay"></div></div>`:
-    isCampus?
-    `<div class="tracking-card"><h4>🎓 Campus Collection</h4><p style="font-size:12px;color:var(--gray-400);">Contact the seller to arrange collection on campus. Use the chat button below.</p></div>`:
-    `<div class="tracking-card"><h4>🤝 Meetup Details</h4><p>${document.getElementById("meetupLocation")?.value||""}</p><p>${document.getElementById("meetupAddress")?.value||""}</p>${window._meetupMapsUrl?`<a href="${window._meetupMapsUrl}" target="_blank" style="color:var(--info);font-size:12px;font-weight:800;">📍 View on Google Maps</a>`:""}</div>`;
+    `<div class="tracking-card" id="trackingSection">
+      <h4>📦 Courier Delivery</h4>
+      <p style="font-size:12px;color:var(--gray-400);">The seller will drop off at a Pargo point shortly. Your tracking number will appear here.</p>
+      <div id="trackingDisplay"></div>
+    </div>`:
+    `<div class="tracking-card">
+      <h4>🤝 Hand Delivery Details</h4>
+      <p>${document.getElementById("meetupLocation")?.value||""}</p>
+      <p>${document.getElementById("meetupAddress")?.value||""}</p>
+      ${window._meetupMapsUrl?`<a href="${window._meetupMapsUrl}" target="_blank" style="color:var(--info);font-size:12px;font-weight:800;">📍 View on Google Maps</a>`:""}
+    </div>`;
   document.getElementById("transactionContent").innerHTML=`
     <h2 style="font-size:22px;font-weight:900;margin-bottom:6px;">🔐 Secure Transaction</h2>
     <p style="color:var(--gray-400);font-size:13px;margin-bottom:14px;">Your payment is protected. Release funds only when satisfied.</p>
-    ${txIds.map(({txId,code,book})=>`
-      <div style="background:var(--gray-100);border-radius:10px;padding:12px;margin-bottom:10px;">
-        <div style="font-weight:800;font-size:14px;">📚 ${book.title}</div>
-        <div style="font-size:12px;color:var(--gray-400);">R${book.price} • Secured in escrow</div>
-        <div class="code-display" style="margin:10px 0;padding:16px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-300);">Your Release Code</div>
-          <div class="code-number">${code}</div>
-          <div style="font-size:11px;color:var(--gray-300);">Share ONLY after receiving book in good condition.</div>
-        </div>
-      </div>`).join("")}
+    <div style="background:var(--gray-100);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:14px;">📚 ${book.title}</div>
+      <div style="font-size:12px;color:var(--gray-400);">R${book.price} • Secured in escrow</div>
+    </div>
+    <div class="code-display">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-300);">Your Release Code</div>
+      <div class="code-number">${code}</div>
+      <div style="font-size:12px;color:var(--gray-300);line-height:1.5;">⚠️ Only share this with the seller <strong>after</strong> you receive and inspect the book.</div>
+    </div>
     ${deliverySection}
     <div style="margin:14px 0;">
       <div class="step-item"><div class="step-num">1</div><div class="step-text">✅ <strong>Payment secured</strong> in escrow</div></div>
-      <div class="step-item"><div class="step-num">2</div><div class="step-text">📦 <strong>Await delivery</strong> or arrange meetup</div></div>
-      <div class="step-item"><div class="step-num">3</div><div class="step-text">📚 <strong>Inspect your book</strong> — make sure it matches photos</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text">📦 <strong>Await delivery</strong> or arrange hand delivery</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text">📚 <strong>Inspect your book</strong> — make sure it matches the photos</div></div>
       <div class="step-item"><div class="step-num">4</div><div class="step-text">🔐 <strong>Share the code</strong> with seller only when satisfied</div></div>
       <div class="step-item"><div class="step-num">5</div><div class="step-text">💸 <strong>Payment released</strong> to seller automatically</div></div>
     </div>
-    <div class="dispute-banner">⚠️ <strong>Not happy?</strong> Do NOT release the code. You have 48 hours to raise a dispute.</div>
+    <div class="dispute-banner">⚠️ <strong>Not happy?</strong> Do NOT release the code. You have 48 hours to raise a dispute after delivery.</div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-warning btn-sm" onclick="openDisputeModal('${txIds[0].txId}')">⚠️ Dispute</button>
-      <button class="btn btn-secondary btn-full btn-sm" onclick="startChat('${txIds[0].book.id}','${txIds[0].book.sellerId}','${(txIds[0].book.sellerName||"Seller").replace(/'/g,"\\'")}','${txIds[0].book.title.replace(/'/g,"\\'")}')">💬 Message Seller</button>
+      <button class="btn btn-warning btn-sm" onclick="openDisputeModal('${txId}')">⚠️ Dispute</button>
+      <button class="btn btn-secondary btn-full btn-sm" onclick="startChat('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message Seller</button>
     </div>`;
+  // Live tracking update
   if(isCourier){
-    onSnapshot(doc(db,"transactions",txIds[0].txId),snap=>{
+    onSnapshot(doc(db,"transactions",txId),snap=>{
       const tx=snap.data();
-      if(tx?.trackingNumber){const el=document.getElementById("trackingDisplay");if(el)el.innerHTML=`<div style="margin-top:8px;"><div style="font-size:12px;font-weight:800;margin-bottom:4px;">📦 Tracking Number:</div><div class="tracking-number-display">${tx.trackingNumber}</div></div>`;}
+      if(tx?.trackingNumber){
+        const el=document.getElementById("trackingDisplay");
+        if(el)el.innerHTML=`<div style="margin-top:8px;"><div style="font-size:12px;font-weight:800;margin-bottom:4px;">📦 Tracking Number:</div><div class="tracking-number-display">${tx.trackingNumber}</div><div style="font-size:11px;color:var(--gray-400);">Courier: ${tx.courierName||"Courier"}</div></div>`;
+      }
     });
   }
-  previousScreen="screen-home";switchScreen("screen-transaction");
+  previousScreen="screen-detail";switchScreen("screen-transaction");
 }
 
 // TRACKING
@@ -1678,8 +1563,11 @@ window.submitTracking=async function(){
   const courier=document.getElementById("courierName").value;
   const tracking=document.getElementById("trackingInput").value.trim();
   if(!tracking)return toast("Please enter a tracking number","error");
-  try{await updateDoc(doc(db,"transactions",currentTxId),{trackingNumber:tracking,courierName:courier,trackingAddedAt:serverTimestamp()});closeModal("trackingModal");toast("Tracking number saved! Buyer notified.","success");}
-  catch(e){toast("Failed to add tracking","error");}
+  try{
+    await updateDoc(doc(db,"transactions",currentTxId),{trackingNumber:tracking,courierName:courier,trackingAddedAt:serverTimestamp()});
+    closeModal("trackingModal");
+    toast("Tracking number saved! Buyer has been notified.","success");
+  }catch(e){toast("Failed to add tracking","error");}
 };
 
 // DISPUTE
@@ -1690,125 +1578,175 @@ window.submitDispute=async function(){
   try{
     await addDoc(collection(db,"disputes"),{txId:currentTxId,userId:currentUser.uid,userName:currentUserData?.name||"User",description:desc,status:"open",createdAt:serverTimestamp()});
     await updateDoc(doc(db,"transactions",currentTxId),{status:"disputed"});
-    closeModal("disputeModal");toast("Dispute submitted. Our team will review within 24 hours.","success");
+    closeModal("disputeModal");
+    toast("Dispute submitted. Our team will review within 24 hours.","success");
   }catch(e){toast("Failed to submit dispute","error");}
 };
 
-// CODE RELEASE
+// CODE RELEASE — locked to correct book + transaction
 window.openCodeModal=function(){document.getElementById("codeInput").value="";document.getElementById("codeModal").classList.add("active");};
 window.verifyCode=async function(){
   const entered=document.getElementById("codeInput").value.trim();
   if(entered.length!==6)return toast("Please enter a 6-digit code","error");
   if(!currentBook)return toast("No book selected","error");
   try{
-    const q=query(collection(db,"transactions"),where("sellerId","==",currentUser.uid),where("bookId","==",currentBook.id),where("status","==","pending"));
+    // Query locked to BOTH sellerId AND bookId — prevents code from working on wrong book
+    const q=query(
+      collection(db,"transactions"),
+      where("sellerId","==",currentUser.uid),
+      where("bookId","==",currentBook.id),
+      where("status","==","pending")
+    );
     const s=await getDocs(q);
     if(s.empty)return toast("No pending transaction found for this book","error");
     const tx=s.docs[0];
-    if(tx.data().code!==entered)return toast("Incorrect code. Please check with the buyer.","error");
-    const comm=Math.round((tx.data().amount||0)*(commissionRate/100)*100)/100;
-    const net=Math.round(((tx.data().amount||0)-comm)*100)/100;
+    const txData=tx.data();
+    if(txData.code!==entered)return toast("Incorrect code. Please check with the buyer.","error");
+    // Code matches — release funds
+    const comm=Math.round(txData.amount*(commissionRate/100)*100)/100;
+    const net=Math.round((txData.amount-comm)*100)/100;
     await updateDoc(doc(db,"transactions",tx.id),{status:"completed",completedAt:serverTimestamp(),sellerPayout:net,commissionAmount:comm});
     await updateDoc(doc(db,"books",currentBook.id),{status:"sold"});
+    // Trigger payout via Cloud Function (will be set up separately)
+    // For now, record payout intent
     await addDoc(collection(db,"payouts"),{txId:tx.id,sellerId:currentUser.uid,sellerName:currentUserData?.name||"Seller",amount:net,status:"pending",createdAt:serverTimestamp(),banking:currentUserData?.banking||{}});
-    closeModal("codeModal");toast(`🎉 Funds released! R${net} payout initiated.`,"success");
-    reviewTxId=tx.id;
-    setTimeout(()=>openReviewModal(tx.id,tx.data().buyerName),1500);
+    closeModal("codeModal");
+    toast(`🎉 Funds released! R${net} payout initiated.`,"success");
+    // Prompt buyer review
+    reviewTxId=tx.id;reviewSellerId=txData.buyerId;
+    setTimeout(()=>openReviewModal(tx.id,txData.buyerName),1500);
     await loadBooks();switchScreen("screen-home");
   }catch(e){toast("Verification failed","error");console.error(e);}
 };
 
 // REVIEWS
-let _reviewRating=0;
-window.openReviewModal=function(txId,otherName){reviewTxId=txId;_reviewRating=0;document.getElementById("reviewSellerName").textContent=`How was your transaction with ${otherName}?`;document.querySelectorAll("#starContainer span").forEach(s=>s.textContent="☆");document.getElementById("reviewComment").value="";document.getElementById("reviewModal").classList.add("active");};
-window.setRating=function(n){_reviewRating=n;document.querySelectorAll("#starContainer span").forEach((s,i)=>{s.textContent=i<n?"★":"☆";});};
+let _currentReviewRating=0;
+window.openReviewModal=function(txId,otherName){
+  reviewTxId=txId;
+  _currentReviewRating=0;
+  document.getElementById("reviewSellerName").textContent=`How was your transaction with ${otherName}?`;
+  document.querySelectorAll("#starContainer span").forEach(s=>s.textContent="☆");
+  document.getElementById("reviewComment").value="";
+  document.getElementById("reviewModal").classList.add("active");
+};
+window.setRating=function(n){
+  _currentReviewRating=n;
+  document.querySelectorAll("#starContainer span").forEach((s,i)=>{s.textContent=i<n?"★":"☆";});
+};
 window.submitReview=async function(){
-  if(!_reviewRating)return toast("Please select a rating","error");
+  if(!_currentReviewRating)return toast("Please select a rating","error");
+  if(!reviewTxId)return;
   try{
-    const tx=await getDoc(doc(db,"transactions",reviewTxId));if(!tx.exists())return;
+    const tx=await getDoc(doc(db,"transactions",reviewTxId));
+    if(!tx.exists())return;
     const txData=tx.data();
     const reviewedId=currentUser.uid===txData.buyerId?txData.sellerId:txData.buyerId;
-    await addDoc(collection(db,"reviews"),{txId:reviewTxId,reviewerId:currentUser.uid,reviewerName:currentUserData?.name||"User",reviewedId,rating:_reviewRating,comment:document.getElementById("reviewComment").value.trim(),createdAt:serverTimestamp()});
+    await addDoc(collection(db,"reviews"),{txId:reviewTxId,reviewerId:currentUser.uid,reviewerName:currentUserData?.name||"User",reviewedId,rating:_currentReviewRating,comment:document.getElementById("reviewComment").value.trim(),createdAt:serverTimestamp()});
+    // Update user average rating
     const userQ=query(collection(db,"users"),where("uid","==",reviewedId));
     const userSnap=await getDocs(userQ);
-    if(!userSnap.empty){const ud=userSnap.docs[0].data();const newCount=(ud.ratingCount||0)+1;const newRating=((ud.rating||0)*(ud.ratingCount||0)+_reviewRating)/newCount;await updateDoc(doc(db,"users",userSnap.docs[0].id),{rating:Math.round(newRating*10)/10,ratingCount:newCount});}
+    if(!userSnap.empty){
+      const ud=userSnap.docs[0].data();
+      const newCount=(ud.ratingCount||0)+1;
+      const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
+      await updateDoc(doc(db,"users",userSnap.docs[0].id),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
+    }
     closeModal("reviewModal");toast("Review submitted! Thank you.","success");
   }catch(e){toast("Failed to submit review","error");}
 };
 
 // DELETE
 window.openDeleteModal=function(id){deleteTargetId=id;document.getElementById("deleteModal").classList.add("active");};
-window.confirmDelete=async function(){if(!deleteTargetId)return;try{await deleteDoc(doc(db,"books",deleteTargetId));closeModal("deleteModal");toast("Listing removed","success");await loadBooks();switchScreen("screen-home");}catch(e){toast("Failed to delete","error");}};
+window.confirmDelete=async function(){
+  if(!deleteTargetId)return;
+  try{
+    await deleteDoc(doc(db,"books",deleteTargetId));
+    closeModal("deleteModal");toast("Listing removed","success");
+    await loadBooks();switchScreen("screen-home");
+  }catch(e){toast("Failed to delete","error");}
+};
 
 // PROMOTE
 window.openPromoteModal=async function(bookId){
   promoteBookId=bookId;
-  try{const s=await getDoc(doc(db,"settings","promo"));const plans=s.exists()?s.data():{plan7:29,plan14:49,plan30:79};
-    document.getElementById("promotePlans").innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-        <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${plans.plan7||29},this)"><div style="font-weight:900;">7 Days — R${plans.plan7||29}</div><div style="font-size:12px;color:var(--gray-400);">Top of search results for 1 week</div></div>
-        <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,${plans.plan14||49},this)"><div style="font-weight:900;">14 Days — R${plans.plan14||49}</div><div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility</div></div>
-        <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,${plans.plan30||79},this)"><div style="font-weight:900;">30 Days — R${plans.plan30||79}</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
-      </div>`;
-  }catch(e){document.getElementById("promotePlans").innerHTML=`<p style="color:var(--gray-400);">Could not load plans.</p>`;}
+  // Load promo pricing from settings
+  try{const s=await getDoc(doc(db,"settings","promo"));if(s.exists()){const d=s.data();document.getElementById("promotePlans").innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${d.plan7||29},this)"><div style="font-weight:900;">7 Days — R${d.plan7||29}</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,${d.plan14||49},this)"><div style="font-weight:900;">14 Days — R${d.plan14||49}</div><div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility</div></div>
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,${d.plan30||79},this)"><div style="font-weight:900;">30 Days — R${d.plan30||79}</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
+    </div>`;}
+  }catch(e){
+    document.getElementById("promotePlans").innerHTML=`<div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,29,this)"><div style="font-weight:900;">7 Days — R29</div></div><div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;margin-top:8px;" onclick="selectPlan(30,79,this)"><div style="font-weight:900;">30 Days — R79</div></div>`;
+  }
   document.getElementById("promoteModal").classList.add("active");
 };
-window.selectPlan=function(days,price,el){promoteDays=days;promotePrice=price;document.querySelectorAll("#promotePlans>div>div").forEach(d=>d.style.borderColor="var(--gray-200)");el.style.borderColor="var(--black)";};
+window.selectPlan=function(days,price,el){
+  promoteDays=days;promotePrice=price;
+  document.querySelectorAll("#promotePlans>div").forEach(d=>d.style.borderColor="var(--gray-200)");
+  el.style.borderColor="var(--black)";
+};
 window.confirmPromotion=async function(){
   if(!promoteDays||!promotePrice)return toast("Please select a plan","error");
   const expiresAt=new Date(Date.now()+promoteDays*24*60*60*1000);
-  try{await updateDoc(doc(db,"books",promoteBookId),{featured:true,featuredUntil:expiresAt,featuredDays:promoteDays,featuredPrice:promotePrice});await addDoc(collection(db,"promotions"),{bookId:promoteBookId,sellerId:currentUser.uid,days:promoteDays,price:promotePrice,expiresAt,createdAt:serverTimestamp(),status:"active"});closeModal("promoteModal");toast(`⭐ Listing featured for ${promoteDays} days!`,"success");await loadBooks();}
-  catch(e){toast("Failed to feature listing","error");}
+  try{
+    await updateDoc(doc(db,"books",promoteBookId),{featured:true,featuredUntil:expiresAt,featuredDays:promoteDays,featuredPrice:promotePrice});
+    await addDoc(collection(db,"promotions"),{bookId:promoteBookId,sellerId:currentUser.uid,days:promoteDays,price:promotePrice,expiresAt,createdAt:serverTimestamp(),status:"active"});
+    closeModal("promoteModal");
+    toast(`⭐ Your listing is now featured for ${promoteDays} days!`,"success");
+    await loadBooks();
+  }catch(e){toast("Failed to feature listing","error");}
 };
 
 // SUBSCRIPTIONS
-window.openSubModal=function(bookId){if(!currentUser)return toast("Please sign in","error");const b=allBooks.find(x=>x.id===bookId);if(!b)return;document.getElementById("subBookTitle").textContent=b.title;document.getElementById("subPrice").textContent=`R${b.subPrice}`;document.getElementById("subModal").classList.add("active");};
-window.confirmSubscription=async function(){closeModal("subModal");if(!currentBook)return;const expires=new Date();expires.setFullYear(expires.getFullYear()+1);try{await addDoc(collection(db,"subscriptions"),{userId:currentUser.uid,bookId:currentBook.id,bookTitle:currentBook.title,sellerId:currentBook.sellerId,amount:currentBook.subPrice,status:"active",createdAt:serverTimestamp(),expiresAt:expires});toast("Subscribed! 📖","success");showDetail(currentBook.id);}catch(e){toast("Subscription failed","error");}};
+window.openSubModal=function(bookId){
+  if(!currentUser)return toast("Please sign in to subscribe","error");
+  const b=allBooks.find(x=>x.id===bookId);if(!b)return;
+  document.getElementById("subBookTitle").textContent=b.title;
+  document.getElementById("subPrice").textContent=`R${b.subPrice}`;
+  document.getElementById("subModal").classList.add("active");
+};
+window.confirmSubscription=async function(){
+  closeModal("subModal");if(!currentBook)return;
+  const expires=new Date();expires.setFullYear(expires.getFullYear()+1);
+  try{
+    await addDoc(collection(db,"subscriptions"),{userId:currentUser.uid,bookId:currentBook.id,bookTitle:currentBook.title,sellerId:currentBook.sellerId,amount:currentBook.subPrice,status:"active",createdAt:serverTimestamp(),expiresAt:expires});
+    toast("Subscribed! 12 months of access starts now 📖","success");
+    showDetail(currentBook.id);
+  }catch(e){toast("Subscription failed","error");}
+};
 
 // PDF READER
 window.openReader=async function(bookId){
   const book=allBooks.find(b=>b.id===bookId)||(await getBookById(bookId));
   if(!book||!book.pdfUrl)return toast("PDF not available","error");
-  currentReaderPage=1;document.getElementById("readerTitle").textContent=book.title;
+  currentReaderBook=book;currentReaderPage=1;
+  document.getElementById("readerTitle").textContent=book.title;
   const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId));
   const s=await getDocs(q);
   if(!s.empty){const exp=s.docs[0].data().expiresAt?.toDate();document.getElementById("readerExpiry").textContent=exp?`Until ${exp.toLocaleDateString("en-ZA")}`:"Active";}
   previousScreen="screen-detail";switchScreen("screen-reader");
-  try{currentPDFDoc=await window.pdfjsLib.getDocument(book.pdfUrl).promise;window._totalPDFPages=currentPDFDoc.numPages;renderPDFPage(1);}
-  catch(e){toast("Failed to load PDF","error");}
-};
-async function renderPDFPage(pageNum){if(!currentPDFDoc)return;const page=await currentPDFDoc.getPage(pageNum);const canvas=document.getElementById("readerCanvas");const viewport=page.getViewport({scale:1.5});canvas.height=viewport.height;canvas.width=viewport.width;await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;document.getElementById("readerPageNum").textContent=`Page ${pageNum} of ${window._totalPDFPages}`;}
-window.readerPage=function(dir){if(!currentPDFDoc)return;const next=currentReaderPage+dir;if(next<1||next>window._totalPDFPages)return;currentReaderPage=next;renderPDFPage(next);};
-
-// NOTIFICATIONS
-async function loadNotificationsBadge(){
-  if(!currentUser)return;
-  try{const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),where("read","==",false));const snap=await getDocs(q);const badge=document.getElementById("notifBadge");if(badge){badge.textContent=snap.size;badge.style.display=snap.size>0?"flex":"none";}}catch(e){}
-}
-async function loadNotifications(){
-  if(!currentUser)return;
   try{
-    const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),orderBy("createdAt","desc"),limit(30));
-    const snap=await getDocs(q);
-    const list=document.getElementById("notificationsList");if(!list)return;
-    if(snap.empty){list.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3></div>`;return;}
-    list.innerHTML=snap.docs.map(d=>{
-      const n=d.data();
-      return`<div class="notif-item ${n.read?"read":""}" onclick="markNotifRead('${d.id}')">
-        <div class="notif-dot"></div>
-        <div>
-          <div style="font-weight:800;font-size:13px;">${n.title||"Notification"}</div>
-          <div style="font-size:12px;color:var(--gray-500);line-height:1.5;margin-top:2px;">${n.message||""}</div>
-          ${n.waybill?`<div class="waybill-card" style="margin-top:8px;"><div style="font-size:11px;opacity:0.7;">Pargo Waybill</div><div class="waybill-number">${n.waybill}</div></div>`:""}
-          <div style="font-size:10px;color:var(--gray-300);margin-top:4px;">${n.createdAt?.toDate?n.createdAt.toDate().toLocaleDateString("en-ZA"):""}</div>
-        </div>
-      </div>`;
-    }).join("");
-    snap.docs.filter(d=>!d.data().read).forEach(d=>updateDoc(doc(db,"notifications",d.id),{read:true}));
-    loadNotificationsBadge();
-  }catch(e){console.error(e);}
+    currentPDFDoc=await window.pdfjsLib.getDocument(book.pdfUrl).promise;
+    window._totalPDFPages=currentPDFDoc.numPages;
+    renderPDFPage(1);
+  }catch(e){toast("Failed to load PDF","error");}
+};
+async function renderPDFPage(pageNum){
+  if(!currentPDFDoc)return;
+  const page=await currentPDFDoc.getPage(pageNum);
+  const canvas=document.getElementById("readerCanvas");
+  const viewport=page.getViewport({scale:1.5});
+  canvas.height=viewport.height;canvas.width=viewport.width;
+  await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+  document.getElementById("readerPageNum").textContent=`Page ${pageNum} of ${window._totalPDFPages}`;
 }
-window.markNotifRead=async function(id){await updateDoc(doc(db,"notifications",id),{read:true});};
+window.readerPage=function(dir){
+  if(!currentPDFDoc)return;
+  const next=currentReaderPage+dir;
+  if(next<1||next>window._totalPDFPages)return;
+  currentReaderPage=next;renderPDFPage(next);
+};
 
 // CHAT
 window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
@@ -1830,20 +1768,26 @@ window.openSupportChat=async function(){
 };
 window.openChatRoom=function(chatId,otherName,bookTitle){
   currentChatId=chatId;
-  document.getElementById("chatroomAvatar").textContent=otherName==="BookWorm Support 🛟"?"🛟":otherName==="BookWorm Team 📢"?"📢":otherName?.[0]?.toUpperCase()||"?";
+  document.getElementById("chatroomAvatar").textContent=otherName==="BookWorm Support 🛟"?"🛟":otherName?.[0]?.toUpperCase()||"?";
   document.getElementById("chatroomName").textContent=otherName;
   document.getElementById("chatroomBook").textContent=bookTitle;
   if(unsubChat)unsubChat();
   unsubChat=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
     const c=document.getElementById("chatMessages");
-    c.innerHTML=snap.docs.map(d=>{const m=d.data();const sent=m.senderId===currentUser?.uid||m.senderId==="support_reply"||m.senderId==="admin";return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"}"><div class="message ${sent?"sent":"received"}">${m.text}</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"now"}</div></div>`;}).join("");c.scrollTop=c.scrollHeight;
+    c.innerHTML=snap.docs.map(d=>{const m=d.data();const sent=m.senderId===currentUser?.uid||m.senderId==="support_reply";
+      return `<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"}"><div class="message ${sent?"sent":"received"}">${m.text}</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"now"}</div></div>`;
+    }).join("");c.scrollTop=c.scrollHeight;
   });
   previousScreen="screen-chat";switchScreen("screen-chatroom");
 };
 window.sendMessage=async function(){
-  const input=document.getElementById("chatInput");const text=input.value.trim();if(!text||!currentChatId)return;input.value="";
-  try{await addDoc(collection(db,"chats",currentChatId,"messages"),{text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()});await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});}
-  catch(e){console.error(e);}
+  const input=document.getElementById("chatInput");
+  const text=input.value.trim();if(!text||!currentChatId)return;
+  input.value="";
+  try{
+    await addDoc(collection(db,"chats",currentChatId,"messages"),{text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()});
+    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
+  }catch(e){console.error(e);}
 };
 async function loadChatList(){
   if(!currentUser)return;
@@ -1851,7 +1795,14 @@ async function loadChatList(){
   const snap=await getDocs(q);
   const cl=document.getElementById("chatList");
   if(snap.empty){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
-  cl.innerHTML=snap.docs.map(d=>{const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);const name=c.isSupport?"BookWorm Support 🛟":c.isAdminChat?"BookWorm Team 📢":(c.participantNames?.[otherId]||"User");return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${c.bookTitle||""}')"><div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name==="BookWorm Team 📢"?"📢":name[0]?.toUpperCase()}</div><div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div></div>`;}).join("");
+  cl.innerHTML=snap.docs.map(d=>{
+    const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);
+    const name=c.isSupport?"BookWorm Support 🛟":(c.participantNames?.[otherId]||"User");
+    return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${c.bookTitle||""}')">
+      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name[0]?.toUpperCase()}</div>
+      <div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div>
+    </div>`;
+  }).join("");
 }
 
 // PROFILE
@@ -1867,48 +1818,90 @@ async function loadProfile(){
   document.getElementById("statSold").textContent=sold.size;
   const bought=await getDocs(query(collection(db,"transactions"),where("buyerId","==",currentUser.uid)));
   document.getElementById("statBought").textContent=bought.size;
-  const bankingEl=document.getElementById("bankingStatus");
-  if(currentUserData.banking){bankingEl.innerHTML=`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;font-size:12px;color:#166534;">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)} <button class="btn btn-sm btn-secondary" style="margin-top:6px;font-size:11px;" onclick="showScreen('screen-banking')">Update</button></div>`;}
-  else{bankingEl.innerHTML=`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;"><div style="font-size:12px;color:#9a3412;font-weight:800;margin-bottom:6px;">⚠️ No banking details yet</div><div style="font-size:12px;color:#9a3412;margin-bottom:10px;">Add your banking details so you can receive payment when your books sell.</div><button class="btn btn-primary btn-sm btn-full" onclick="showScreen('screen-banking')">➕ Add Banking Details</button></div>`; }
+  // Pending payouts
   const payouts=await getDocs(query(collection(db,"payouts"),where("sellerId","==",currentUser.uid),where("status","==","pending")));
-  document.getElementById("pendingPayouts").innerHTML=payouts.empty?`<div style="font-size:12px;color:var(--gray-400);">No pending payouts.</div>`:payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:#166534;">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:#166534;">To: ${p.banking?.bankName||""}</div></div>`;}).join("");
-  document.getElementById("myListings").innerHTML=myBooks.length===0?`<div style="font-size:12px;color:var(--gray-400);">No listings yet.</div>`:myBooks.map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="showDetail('${b.id}')"><div style="font-size:24px;">${b.bookType==="digital"?"📖":"📚"}</div><div style="flex:1"><div style="font-weight:800;font-size:13px;">${b.title}</div><div style="font-size:11px;color:var(--gray-400);">R${b.price||b.subPrice||0} ${b.edition?`• ${b.edition}`:""}</div></div><div class="tag">${b.status==="sold"?"✅ Sold":b.status==="pending"?"⏳ Pending":"🟢 Active"}</div></div>`).join("");
-  const[boughtTx,subs]=await Promise.all([getDocs(query(collection(db,"transactions"),where("buyerId","==",currentUser.uid))),getDocs(query(collection(db,"subscriptions"),where("userId","==",currentUser.uid)))]);
-  document.getElementById("myPurchases").innerHTML=(boughtTx.empty&&subs.empty)?`<div style="font-size:12px;color:var(--gray-400);">No purchases yet.</div>`:[...boughtTx.docs.map(d=>{const t=d.data();return`<div style="padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;">📚 ${t.bookTitle}</div><div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 ${t.trackingNumber?`Tracking: ${t.trackingNumber}`:"Awaiting tracking"}`:"🤝 Meetup"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>${t.status==="completed"?`<button class="btn btn-sm btn-secondary" style="margin-top:6px;" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button>`:""}</div>`;}),
-  ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})].join("");
+  document.getElementById("pendingPayouts").innerHTML=payouts.empty?`<div class="empty-state" style="padding:10px"><p style="font-size:12px;">No pending payouts.</p></div>`:
+    payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:#166534;">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:#166534;">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
+  // My listings
+  document.getElementById("myListings").innerHTML=myBooks.length===0?`<div class="empty-state" style="padding:10px"><p>No listings yet.</p></div>`:
+    myBooks.map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="showDetail('${b.id}')">
+      <div style="font-size:24px;">${b.bookType==="digital"?"📖":"📚"}</div>
+      <div style="flex:1"><div style="font-weight:800;font-size:13px;">${b.title}</div><div style="font-size:11px;color:var(--gray-400);">R${b.price||b.subPrice||0} ${b.edition?`• ${b.edition}`:""}</div></div>
+      <div class="tag">${b.status==="sold"?"✅ Sold":b.status==="pending"?"⏳ Pending":"🟢 Active"}</div>
+    </div>`).join("");
+  // Purchases
+  const [boughtTx,subs]=await Promise.all([
+    getDocs(query(collection(db,"transactions"),where("buyerId","==",currentUser.uid))),
+    getDocs(query(collection(db,"subscriptions"),where("userId","==",currentUser.uid)))
+  ]);
+  document.getElementById("myPurchases").innerHTML=(boughtTx.empty&&subs.empty)?`<div class="empty-state" style="padding:10px"><p>No purchases yet.</p></div>`:[
+    ...boughtTx.docs.map(d=>{const t=d.data();return`<div style="padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;">
+      <div style="font-weight:800;font-size:13px;">📚 ${t.bookTitle}</div>
+      <div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}` :"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
+      ${t.status==="completed"?`<button class="btn btn-sm btn-secondary" style="margin-top:6px;" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button>`:""}
+    </div>`;}),
+    ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
+  ].join("");
 }
 
-// URL PARAMS (PayFast return)
-window.addEventListener("load",()=>{
-  const params=new URLSearchParams(window.location.search);
-  if(params.get("tx")){
-    const txId=params.get("tx");
-    setTimeout(async()=>{
-      if(currentUser){const tx=await getDoc(doc(db,"transactions",txId));if(tx.exists()){const txData=tx.data();const book=await getBookById(txData.bookId);if(book){currentBook=book;selectedDelivery=txData.deliveryMethod;showTransactionScreen([{txId,code:txData.code,book}],txData.totalAmount||txData.amount);}}}
-    },2500);
-    window.history.replaceState({},"",window.location.pathname);
-  }
-  if(params.get("cancel")){window.history.replaceState({},"",window.location.pathname);toast("Payment cancelled","warning");}
-});
-
 // APP FEEDBACK
+let appRating=0;
 window.setAppRating=function(n){
   appRating=n;
   document.querySelectorAll("#appRatingStars span").forEach((s,i)=>{s.textContent=i<n?"★":"☆";});
 };
 window.submitAppFeedback=async function(){
   if(!appRating)return toast("Please select a star rating first","error");
-  const comment=document.getElementById("appFeedbackText").value.trim();
+  const comment=document.getElementById("appFeedbackText")?.value.trim()||"";
   try{
-    await addDoc(collection(db,"appFeedback"),{userId:currentUser.uid,userName:currentUserData?.name||"User",university:currentUserData?.university||"",rating:appRating,comment,createdAt:serverTimestamp()});
+    await addDoc(collection(db,"appFeedback"),{
+      userId:currentUser?.uid||"anonymous",
+      userName:currentUserData?.name||"User",
+      university:currentUserData?.university||"",
+      rating:appRating,comment,
+      createdAt:serverTimestamp()
+    });
     appRating=0;
     document.querySelectorAll("#appRatingStars span").forEach(s=>s.textContent="☆");
-    document.getElementById("appFeedbackText").value="";
+    if(document.getElementById("appFeedbackText"))document.getElementById("appFeedbackText").value="";
     toast("Thank you for your feedback! 🙏","success");
-  }catch(e){toast("Failed to submit feedback","error");}
+  }catch(e){console.error(e);toast("Failed to submit feedback","error");}
 };
 
+// RESET UPLOAD FORM
+function resetUploadForm(){
+  stopScanner();
+  document.getElementById("uploadStep1").style.display="block";
+  document.getElementById("uploadStep2").style.display="none";
+  document.getElementById("uploadStep3").style.display="none";
+  document.getElementById("isbnFoundBox").style.display="none";
+  photoFiles=[null,null,null];window.selectedPDFFile=null;
+  ["uploadTitle","uploadAuthor","uploadEdition","uploadModule","uploadPrice","uploadDescription","uploadSubPrice","uploadLicenceRef","uploadCampus","uploadISBN"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  [0,1,2].forEach(i=>{const prev=document.getElementById("prev"+i);if(prev)prev.style.display="none";const slot=document.getElementById("slot"+i);if(slot){const icon=slot.querySelector(".slot-icon");const label=slot.querySelector(".slot-label");if(icon)icon.style.display="";if(label)label.style.display="";}});
+  const earnBox=document.getElementById("sellerEarningsBox");if(earnBox)earnBox.style.display="none";
+  const recBox=document.getElementById("priceRecBox");if(recBox)recBox.style.display="none";
+}
+
 window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
+
+// Check URL params on load (PayFast return)
+window.addEventListener("load",()=>{
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("tx")){
+    const txId=params.get("tx");
+    setTimeout(async()=>{
+      if(currentUser){
+        const tx=await getDoc(doc(db,"transactions",txId));
+        if(tx.exists()){
+          const txData=tx.data();
+          const book=await getBookById(txData.bookId);
+          if(book){currentBook=book;selectedDelivery=txData.deliveryMethod;showTransactionScreen(txData.code,book,txId);}
+        }
+      }
+    },2500);
+    window.history.replaceState({},"",window.location.pathname);
+  }
+});
 </script>
 <!-- Sub Modal -->
 <div class="modal-overlay" id="subModal">
