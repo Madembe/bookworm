@@ -357,6 +357,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
+      <button class="nav-icon-btn" id="notifBell" onclick="toggleNotifPanel()" style="position:relative;">🔔<span class="badge" id="notifBadge" style="display:none">0</span></button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
     </div>
@@ -895,74 +896,67 @@ import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut
 import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,startAfter,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 /* ============================================================
-   FIRESTORE SECURITY RULES — deploy via Firebase Console or CLI
-   firestore.rules
+   FIRESTORE SECURITY RULES — copy to Firebase Console
+   Project Settings > Firestore Database > Rules
    ============================================================
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin(){ return request.auth.token.email == "madembemaano@africakai.co.za"; }
 
-    // Books: anyone can read; only authenticated sellers can create; only owner can update/delete
     match /books/{bookId} {
       allow read: if true;
-      allow create: if request.auth != null
-        && request.resource.data.sellerId == request.auth.uid;
-      allow update: if request.auth != null
-        && (resource.data.sellerId == request.auth.uid
-            || request.resource.data.status in ['pending','available','sold']);
-      allow delete: if request.auth != null
-        && resource.data.sellerId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.sellerId == request.auth.uid;
+      allow update: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
     }
 
-    // Users: only owner can read or write their own doc
+    // Users: doc ID = uid. Owner or admin only.
     match /users/{userId} {
-      allow read, write: if request.auth != null
-        && resource.data.uid == request.auth.uid;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-    // Transactions: buyer or seller can read; only buyer can create; no client-side completion
     match /transactions/{txId} {
-      allow read: if request.auth != null
-        && (resource.data.buyerId == request.auth.uid
-            || resource.data.sellerId == request.auth.uid);
-      allow create: if request.auth != null
-        && request.resource.data.buyerId == request.auth.uid;
-      allow update: if request.auth != null
-        && (resource.data.buyerId == request.auth.uid
-            || resource.data.sellerId == request.auth.uid)
-        && !('codeHash' in request.resource.data);
+      allow read: if request.auth != null && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid;
+      allow update: if request.auth != null && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin()) && !("codeHash" in request.resource.data);
     }
 
-    // Payouts: only seller can read their own; no client writes (Cloud Function only)
     match /payouts/{payoutId} {
-      allow read: if request.auth != null
-        && resource.data.sellerId == request.auth.uid;
-      allow write: if false;
+      allow read: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
+      allow write: if request.auth != null && isAdmin();
     }
 
-    // Chats: only participants can read/write
     match /chats/{chatId} {
-      allow read, write: if request.auth != null
-        && request.auth.uid in resource.data.participants;
+      allow read, write: if request.auth != null && (request.auth.uid in resource.data.participants || isAdmin());
       match /messages/{msgId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if request.auth != null && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants || isAdmin());
       }
     }
 
-    // Reviews, disputes, wanted, subscriptions: authenticated users only
+    match /notifications/{id} {
+      allow read, write: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
     match /reviews/{id}   { allow read: if true; allow write: if request.auth != null; }
-    match /disputes/{id}  { allow read, write: if request.auth != null; }
+    match /disputes/{id}  {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if request.auth != null;
+    }
     match /wanted/{id}    { allow read: if true; allow write: if request.auth != null; }
     match /subscriptions/{id} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
     match /promotions/{id} { allow read: if true; allow write: if request.auth != null; }
-    match /settings/{id}   { allow read: if true; allow write: if false; }
-    match /appFeedback/{id}{ allow write: if request.auth != null; allow read: if false; }
+    match /settings/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /appFeedback/{id}{ allow write: if request.auth != null; allow read: if request.auth != null && isAdmin(); }
   }
 }
-============================================================ */apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
+============================================================ */
+const firebaseConfig={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
@@ -1016,9 +1010,11 @@ onAuthStateChanged(auth,async(user)=>{
     currentUser=user;
     await loadUserData();
     await loadBooks();
+    subscribeNotifications();
     switchScreen("screen-home");
   }else{
     currentUser=null;currentUserData=null;
+    if(unsubNotifs){unsubNotifs();unsubNotifs=null;}
     switchScreen("screen-login");
   }
 });
@@ -1088,7 +1084,8 @@ window.handleRegister=async function(){
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
     await sendEmailVerification(c.user);
-    await addDoc(collection(db,"users"),{
+    // Use uid as document ID so Firestore rules can match /users/{uid} directly
+    await setDoc(doc(db,"users",c.user.uid),{
       uid:c.user.uid,email,accountType:type,...extra,
       whatsapp,
       banking:null,
@@ -1108,9 +1105,18 @@ window.handleRegister=async function(){
 function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
-  const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-  const s=await getDocs(q);
-  if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
+  try{
+    // Read user doc by uid as document ID (fast, rule-friendly)
+    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
+    if(userDoc.exists()){
+      currentUserData={id:userDoc.id,...userDoc.data()};
+    }else{
+      // Fallback: old accounts stored with random addDoc ID
+      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
+      const s=await getDocs(q);
+      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
+    }
+  }catch(e){console.error("loadUserData failed:",e);}
   try{
     const cd=await getDoc(doc(db,"settings","commission"));
     if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
@@ -1691,6 +1697,16 @@ window.confirmPayment=async function(){
     currentTxId=txRef.id;
     await withRetry(()=>updateDoc(doc(db,"books",currentBook.id),{status:"pending"}));
     initiatePayFast(currentBook,txRef.id,code,total);
+    // Notify seller a buyer has paid and is waiting
+    addDoc(collection(db,"notifications"),{
+      userId:currentBook.sellerId,
+      type:"sale",
+      title:"📚 Someone bought your book!",
+      message:`${currentUserData?.name||"A buyer"} has paid for "${currentBook.title}". Arrange delivery and get the release code.`,
+      txId:txRef.id,bookId:currentBook.id,
+      read:false,
+      createdAt:serverTimestamp()
+    }).catch(()=>{});
   }catch(e){
     toast("Payment initiation failed","error");
     btn.disabled=false;
@@ -1878,15 +1894,16 @@ window.submitReview=async function(){
     const txData=tx.data();
     const reviewedId=currentUser.uid===txData.buyerId?txData.sellerId:txData.buyerId;
     await addDoc(collection(db,"reviews"),{txId:reviewTxId,reviewerId:currentUser.uid,reviewerName:currentUserData?.name||"User",reviewedId,rating:_currentReviewRating,comment:document.getElementById("reviewComment").value.trim(),createdAt:serverTimestamp()});
-    // Update user average rating
-    const userQ=query(collection(db,"users"),where("uid","==",reviewedId));
-    const userSnap=await getDocs(userQ);
-    if(!userSnap.empty){
-      const ud=userSnap.docs[0].data();
-      const newCount=(ud.ratingCount||0)+1;
-      const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
-      await updateDoc(doc(db,"users",userSnap.docs[0].id),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
-    }
+    // Update user average rating — read by uid as doc ID
+    try{
+      const reviewedDoc=await getDoc(doc(db,"users",reviewedId));
+      if(reviewedDoc.exists()){
+        const ud=reviewedDoc.data();
+        const newCount=(ud.ratingCount||0)+1;
+        const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
+        await updateDoc(doc(db,"users",reviewedId),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
+      }
+    }catch(e){console.warn("Could not update reviewer rating:",e);}
     closeModal("reviewModal");toast("Review submitted! Thank you.","success");
   }catch(e){toast("Failed to submit review","error");}
 };
@@ -2050,11 +2067,12 @@ async function loadChatList(){
 
 // PROFILE
 async function loadProfile(){
-  // Always reload fresh user data when opening profile to avoid stale state
+  // Always reload fresh user data — read by uid doc ID (matches Firestore rules)
   if(currentUser){
-    const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-    const s=await getDocs(q);
-    if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
+    try{
+      const userDoc=await getDoc(doc(db,"users",currentUser.uid));
+      if(userDoc.exists())currentUserData={id:userDoc.id,...userDoc.data()};
+    }catch(e){console.error("loadProfile user fetch failed:",e);}
   }
   if(!currentUserData)return;
   const name=currentUserData.name||"";
@@ -2129,6 +2147,58 @@ window.cancelTransaction=async function(txId,bookId){
     await loadBooks();
     loadProfile();
   }catch(e){toast("Failed to cancel purchase","error");console.error(e);}
+};
+
+// NOTIFICATIONS
+let unsubNotifs=null;
+function subscribeNotifications(){
+  if(!currentUser||unsubNotifs)return;
+  const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),orderBy("createdAt","desc"),limit(20));
+  unsubNotifs=onSnapshot(q,snap=>{
+    const unread=snap.docs.filter(d=>!d.data().read).length;
+    const badge=document.getElementById("notifBadge");
+    if(badge){badge.textContent=unread>9?"9+":unread;badge.style.display=unread>0?"flex":"none";}
+    const list=document.getElementById("notifList");
+    if(!list)return;
+    if(snap.empty){list.innerHTML='<p style="font-size:12px;color:var(--gray-400);text-align:center;padding:16px 0;">No notifications yet</p>';return;}
+    list.innerHTML=snap.docs.map(d=>{
+      const n=d.data();
+      const t=n.createdAt?.toDate?.();
+      const when=t?t.toLocaleDateString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+      return`<div onclick="handleNotifClick('${d.id}','${n.type||""}','${n.txId||""}','${n.bookId||""}')" style="padding:10px;border-radius:8px;margin-bottom:6px;cursor:pointer;background:${n.read?"transparent":"#fef9c3"};border:1px solid ${n.read?"var(--gray-200)":"#fde047"}">
+        <div style="font-weight:800;font-size:13px;">${n.title||"Notification"}</div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">${n.message||""}</div>
+        ${when?`<div style="font-size:10px;color:var(--gray-400);margin-top:4px;">${when}</div>`:""}
+      </div>`;
+    }).join("");
+  });
+}
+window.toggleNotifPanel=function(){
+  if(!currentUser)return requireAuth("screen-home");
+  const p=document.getElementById("notifPanel");
+  p.style.display=p.style.display==="none"?"block":"none";
+};
+// Close panel when clicking outside
+document.addEventListener("click",e=>{
+  const panel=document.getElementById("notifPanel");
+  const bell=document.getElementById("notifBell");
+  if(panel&&bell&&!panel.contains(e.target)&&!bell.contains(e.target)){panel.style.display="none";}
+});
+window.handleNotifClick=async function(notifId,type,txId,bookId){
+  // Mark as read
+  try{await updateDoc(doc(db,"notifications",notifId),{read:true});}catch(e){}
+  document.getElementById("notifPanel").style.display="none";
+  // Navigate to relevant screen
+  if(txId&&type==="sale"){
+    if(bookId){const b=allBooks.find(x=>x.id===bookId);if(b){currentBook=b;switchScreen("screen-detail");return;}}
+  }
+  requireAuth("screen-profile");
+};
+window.markAllNotifsRead=async function(){
+  if(!currentUser)return;
+  const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),where("read","==",false));
+  const snap=await getDocs(q);
+  await Promise.all(snap.docs.map(d=>updateDoc(doc(db,"notifications",d.id),{read:true})));
 };
 
 // CHANGE PASSWORD
@@ -2271,6 +2341,15 @@ window.addEventListener("load",()=>{
     <button class="btn btn-primary btn-full" onclick="confirmSubscription()">Subscribe Now</button>
   </div>
 </div>
+<!-- Notification Panel -->
+<div id="notifPanel" style="display:none;position:fixed;top:56px;right:12px;width:300px;max-height:400px;overflow-y:auto;background:var(--white);border:1px solid var(--gray-200);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);z-index:500;padding:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <span style="font-weight:900;font-size:14px;">Notifications</span>
+    <button onclick="markAllNotifsRead()" style="font-size:11px;background:none;border:none;cursor:pointer;color:var(--gray-400);font-family:'Nunito',sans-serif;">Mark all read</button>
+  </div>
+  <div id="notifList"><p style="font-size:12px;color:var(--gray-400);text-align:center;padding:16px 0;">No notifications yet</p></div>
+</div>
+
 <!-- Change Password Modal -->
 <div class="modal-overlay" id="changePasswordModal">
   <div class="modal">
