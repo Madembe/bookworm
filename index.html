@@ -254,7 +254,51 @@ textarea.form-control{resize:vertical;min-height:80px;}
           <label>Institution</label>
           <select class="form-control" id="regUniversity" onchange="toggleOtherInstitution('regUniversity','regOtherUni')">
             <option value="">Select Institution</option>
-            <option>Cape Peninsula University of Technology (CPUT)</option><option>Central University of Technology (CUT)</option><option>Durban University of Technology (DUT)</option><option>Mangosuthu University of Technology (MUT)</option><option>Nelson Mandela University (NMU)</option><option>North-West University (NWU)</option><option>Rhodes University (RU)</option><option>Sefako Makgatho Health Sciences University (SMU)</option><option>Sol Plaatje University (SPU)</option><option>Stellenbosch University (SU)</option><option>Tshwane University of Technology (TUT)</option><option>University of Cape Town (UCT)</option><option>University of Fort Hare (UFH)</option><option>University of Johannesburg (UJ)</option><option>University of KwaZulu-Natal (UKZN)</option><option>University of Limpopo (UL)</option><option>University of Mpumalanga (UMP)</option><option>University of Pretoria (UP)</option><option>University of South Africa (UNISA)</option><option>University of the Free State (UFS)</option><option>University of the Western Cape (UWC)</option><option>University of the Witwatersrand (Wits)</option><option>University of Venda (UNIVEN)</option><option>University of Zululand (UNIZULU)</option><option>Vaal University of Technology (VUT)</option><option>Walter Sisulu University (WSU)</option><option>Afda</option><option>Boston City Campus</option><option>Cornerstone Institute</option><option>CTI Education Group</option><option>Damelin</option><option>Eduvos</option><option>IIE MSA</option><option>IIE Rosebank College</option><option>IIE Varsity College</option><option>Limkokwing University</option><option>Milpark Education</option><option>Regent Business School</option><option>Richfield Graduate Institute</option><option>SACAP</option><option>Stadio</option><option>Ekurhuleni East TVET College</option><option>Ekurhuleni West TVET College</option><option>Flavius Mareka TVET College</option><option>Gert Sibande TVET College</option><option>Ikhala TVET College</option><option>Ingwe TVET College</option><option>King Hintsa TVET College</option><option>King Sabata Dalindyebo TVET College</option><option>Lephalale TVET College</option><option>Letaba TVET College</option><option>Lovedale TVET College</option><option>Majuba TVET College</option><option>Mnambithi TVET College</option><option>Mopani South East TVET College</option><option>Motheo TVET College</option><option>Nkangala TVET College</option><option>Northern Cape Rural TVET College</option><option>Northern Cape Urban TVET College</option><option>Northlink TVET College</option><option>Orbit TVET College</option><option>Port Elizabeth TVET College</option><option>South Cape TVET College</option><option>Taletso TVET College</option><option>Thekwini TVET College</option><option>Tshwane North TVET College</option><option>Tshwane South TVET College</option><option>Umgungundlovu TVET College</option><option>Umfolozi TVET College</option><option>Waterberg TVET College</option><option>West Coast TVET College</option>
+            <optgroup label="Universities">
+              <option>Cape Peninsula University of Technology (CPUT)</option>
+              <option>Central University of Technology (CUT)</option>
+              <option>Durban University of Technology (DUT)</option>
+              <option>Mangosuthu University of Technology (MUT)</option>
+              <option>Nelson Mandela University (NMU)</option>
+              <option>North-West University (NWU)</option>
+              <option>Rhodes University (RU)</option>
+              <option>Sefako Makgatho Health Sciences University (SMU)</option>
+              <option>Sol Plaatje University (SPU)</option>
+              <option>Stellenbosch University (SU)</option>
+              <option>Tshwane University of Technology (TUT)</option>
+              <option>University of Cape Town (UCT)</option>
+              <option>University of Fort Hare (UFH)</option>
+              <option>University of Johannesburg (UJ)</option>
+              <option>University of KwaZulu-Natal (UKZN)</option>
+              <option>University of Limpopo (UL)</option>
+              <option>University of Mpumalanga (UMP)</option>
+              <option>University of Pretoria (UP)</option>
+              <option>University of South Africa (UNISA)</option>
+              <option>University of the Free State (UFS)</option>
+              <option>University of the Western Cape (UWC)</option>
+              <option>University of the Witwatersrand (Wits)</option>
+              <option>University of Venda (UNIVEN)</option>
+              <option>University of Zululand (UNIZULU)</option>
+              <option>Vaal University of Technology (VUT)</option>
+              <option>Walter Sisulu University (WSU)</option>
+            </optgroup>
+            <optgroup label="Private Colleges">
+              <option>Afda</option>
+              <option>Boston City Campus</option>
+              <option>Cornerstone Institute</option>
+              <option>CTI Education Group</option>
+              <option>Damelin</option>
+              <option>Eduvos</option>
+              <option>IIE MSA</option>
+              <option>IIE Rosebank College</option>
+              <option>IIE Varsity College</option>
+              <option>Limkokwing University</option>
+              <option>Milpark Education</option>
+              <option>Regent Business School</option>
+              <option>Richfield Graduate Institute</option>
+              <option>SACAP</option>
+              <option>Stadio</option>
+            </optgroup>
             <option value="Other (please specify)">Other (please specify)</option>
           </select>
         </div>
@@ -834,7 +878,7 @@ const db=getFirestore(app);
 
 // CONFIG
 const CLOUD="drtdddsxp";
-const PRESET="bookworm_upload";
+const PRESET="bookworm_uploads";
 const ADMIN_EMAIL="admin@bookworm.co.za";
 const PF_MERCHANT_ID="34606233";
 const PF_MERCHANT_KEY="xbwlwikgiyxwr";
@@ -851,14 +895,14 @@ let selectedRating=0,reviewTxId=null,reviewSellerId=null;
 let promoteBookId=null,promoteDays=7,promotePrice=0;
 let isSubmittingListing=false;
 
-// SPLASH — only redirects if auth hasn't resolved yet
+// SPLASH — only fires if auth hasn't resolved
 let authResolved=false;
 setTimeout(()=>{
   if(!authResolved){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("screen-login").classList.add("active");
   }
-},2500);
+},2800);
 
 // PDF.js
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -869,35 +913,31 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.g
 function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}
 
 // AUTH STATE
-// justRegistered stays true from when signOut is called during registration
-// until the onAuthStateChanged else block runs — this prevents the false error toast
 let justRegistered=false;
 onAuthStateChanged(auth,async(user)=>{
   authResolved=true;
   if(user){
-    // Block unverified users
     if(!user.emailVerified){
+      // Signed in but not verified — sign them out silently
+      // If this is immediately after registration, justRegistered handles messaging
+      const wasRegistering=justRegistered;
+      justRegistered=false;
       await signOut(auth);
-      // Don't show any toast here — registration flow handles its own messaging
-      if(!justRegistered){
+      if(!wasRegistering){
         toast("Please verify your email before signing in. Check your inbox.","error");
       }
-      switchScreen("screen-login");
       return;
     }
+    justRegistered=false;
     currentUser=user;
     await loadUserData();
     await loadBooks();
     switchScreen("screen-home");
   }else{
-    // This fires after signOut — including after registration signOut
-    // justRegistered flag prevents showing error toast in that case
-    justRegistered=false;
     currentUser=null;
     currentUserData=null;
-    // Only switch to login if we're not already showing it
-    const loginScreen=document.getElementById("screen-login");
-    if(!loginScreen.classList.contains("active")){
+    // Only redirect to login if not already there
+    if(!document.getElementById("screen-login").classList.contains("active")){
       switchScreen("screen-login");
     }
   }
@@ -954,49 +994,43 @@ window.handleRegister=async function(){
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
     await sendEmailVerification(c.user);
-    // Use setDoc with uid as the document ID so Firestore rules (userId == uid) work
     await setDoc(doc(db,"users",c.user.uid),{
       uid:c.user.uid,email,accountType:type,...extra,
-      whatsapp,
-      banking:null,
+      whatsapp,banking:null,
       sold:0,bought:0,rating:0,ratingCount:0,
       createdAt:serverTimestamp()
     });
-    // Set flag BEFORE signOut so onAuthStateChanged else block knows not to show error
     justRegistered=true;
     await signOut(auth);
-    // At this point onAuthStateChanged has fired and justRegistered is now false again
-    // The success toast and screen switch happen here, after everything is settled
-    toast("Account created! 📚 Please check your email to verify before signing in.","success");
+    toast("Account created! 📚 Please check your email and verify before signing in.","success");
     switchScreen("screen-login");
     btn.disabled=false;
   }catch(e){
     btn.disabled=false;
-    if(justRegistered){
-      // signOut during registration triggered a catch — ignore it
-      justRegistered=false;
-      return;
+    if(e.code==="auth/email-already-in-use"){
+      toast("This email is already registered. Try signing in.","error");
+    }else{
+      console.error("Registration error:",e);
+      toast("Registration failed: "+e.message,"error");
     }
-    toast(e.message.includes("email-already-in-use")?"Email already registered":"Registration failed. Please try again.","error");
   }
 };
 function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
   try{
-    // Doc ID is now the uid (set during registration with setDoc)
     const userDoc=await getDoc(doc(db,"users",currentUser.uid));
     if(userDoc.exists()){
       currentUserData={id:userDoc.id,...userDoc.data()};
     }else{
-      // Fallback for older accounts created with addDoc (random ID)
+      // Fallback for accounts created before this fix
       const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
       const s=await getDocs(q);
       if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
     }
     const cd=await getDoc(doc(db,"settings","commission"));
     if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
-  }catch(e){console.error("loadUserData error:",e);}
+  }catch(e){console.error("loadUserData:",e);}
 }
 
 // BOOKS
@@ -1283,12 +1317,12 @@ window.saveBankingDetails=async function(){
   const accountType=document.getElementById("bankAccountType").value;
   const branchCode=document.getElementById("bankBranchCode").value.trim();
   if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
-  const docId=currentUserData?.id||currentUser.uid;
   try{
+    const docId=currentUserData?.id||currentUser.uid;
     await updateDoc(doc(db,"users",docId),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
-    currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
+    if(currentUserData)currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
     closeModal("bankingModal");
-    toast("Banking details saved! 💰 You're all set to receive payments.","success");
+    toast("Banking details saved! 💰","success");
     const profileScreen=document.getElementById("screen-profile");
     if(profileScreen&&profileScreen.classList.contains("active"))loadProfile();
   }catch(e){console.error(e);toast("Failed to save banking details","error");}
@@ -2027,7 +2061,7 @@ window.addEventListener("load",()=>{
   <div class="modal">
     <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
     <h3>💰 Add Banking Details</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Add your banking details so we know where to send your money when your books sell.</p>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
     <div class="form-group">
       <label>Bank Name</label>
       <select class="form-control" id="bankName">
