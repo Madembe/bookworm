@@ -196,14 +196,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .bottom-nav-item span:first-child{font-size:20px;}
 /* Promo */
 .promo-banner{background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:center;gap:10px;}
-@keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
-.skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;}
-.skeleton-card{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;}
-.skeleton-img{width:100%;height:155px;}
-.skeleton-body{padding:12px;display:flex;flex-direction:column;gap:8px;}
-.skeleton-line{height:12px;width:80%;}
-.skeleton-line.short{width:50%;}
-.skeleton-line.price{width:35%;height:16px;}
 .promo-banner h4{font-size:14px;font-weight:900;}
 .promo-banner p{font-size:11px;opacity:0.9;}
 </style>
@@ -262,51 +254,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
           <label>Institution</label>
           <select class="form-control" id="regUniversity" onchange="toggleOtherInstitution('regUniversity','regOtherUni')">
             <option value="">Select Institution</option>
-            <optgroup label="Universities">
-              <option>Cape Peninsula University of Technology (CPUT)</option>
-              <option>Central University of Technology (CUT)</option>
-              <option>Durban University of Technology (DUT)</option>
-              <option>Mangosuthu University of Technology (MUT)</option>
-              <option>Nelson Mandela University (NMU)</option>
-              <option>North-West University (NWU)</option>
-              <option>Rhodes University (RU)</option>
-              <option>Sefako Makgatho Health Sciences University (SMU)</option>
-              <option>Sol Plaatje University (SPU)</option>
-              <option>Stellenbosch University (SU)</option>
-              <option>Tshwane University of Technology (TUT)</option>
-              <option>University of Cape Town (UCT)</option>
-              <option>University of Fort Hare (UFH)</option>
-              <option>University of Johannesburg (UJ)</option>
-              <option>University of KwaZulu-Natal (UKZN)</option>
-              <option>University of Limpopo (UL)</option>
-              <option>University of Mpumalanga (UMP)</option>
-              <option>University of Pretoria (UP)</option>
-              <option>University of South Africa (UNISA)</option>
-              <option>University of the Free State (UFS)</option>
-              <option>University of the Western Cape (UWC)</option>
-              <option>University of the Witwatersrand (Wits)</option>
-              <option>University of Venda (UNIVEN)</option>
-              <option>University of Zululand (UNIZULU)</option>
-              <option>Vaal University of Technology (VUT)</option>
-              <option>Walter Sisulu University (WSU)</option>
-            </optgroup>
-            <optgroup label="Private Colleges">
-              <option>Afda</option>
-              <option>Boston City Campus</option>
-              <option>Cornerstone Institute</option>
-              <option>CTI Education Group</option>
-              <option>Damelin</option>
-              <option>Eduvos</option>
-              <option>IIE MSA</option>
-              <option>IIE Rosebank College</option>
-              <option>IIE Varsity College</option>
-              <option>Limkokwing University</option>
-              <option>Milpark Education</option>
-              <option>Regent Business School</option>
-              <option>Richfield Graduate Institute</option>
-              <option>SACAP</option>
-              <option>Stadio</option>
-            </optgroup>
+            <option>Cape Peninsula University of Technology (CPUT)</option><option>Central University of Technology (CUT)</option><option>Durban University of Technology (DUT)</option><option>Mangosuthu University of Technology (MUT)</option><option>Nelson Mandela University (NMU)</option><option>North-West University (NWU)</option><option>Rhodes University (RU)</option><option>Sefako Makgatho Health Sciences University (SMU)</option><option>Sol Plaatje University (SPU)</option><option>Stellenbosch University (SU)</option><option>Tshwane University of Technology (TUT)</option><option>University of Cape Town (UCT)</option><option>University of Fort Hare (UFH)</option><option>University of Johannesburg (UJ)</option><option>University of KwaZulu-Natal (UKZN)</option><option>University of Limpopo (UL)</option><option>University of Mpumalanga (UMP)</option><option>University of Pretoria (UP)</option><option>University of South Africa (UNISA)</option><option>University of the Free State (UFS)</option><option>University of the Western Cape (UWC)</option><option>University of the Witwatersrand (Wits)</option><option>University of Venda (UNIVEN)</option><option>University of Zululand (UNIZULU)</option><option>Vaal University of Technology (VUT)</option><option>Walter Sisulu University (WSU)</option><option>Afda</option><option>Boston City Campus</option><option>Cornerstone Institute</option><option>CTI Education Group</option><option>Damelin</option><option>Eduvos</option><option>IIE MSA</option><option>IIE Rosebank College</option><option>IIE Varsity College</option><option>Limkokwing University</option><option>Milpark Education</option><option>Regent Business School</option><option>Richfield Graduate Institute</option><option>SACAP</option><option>Stadio</option><option>Ekurhuleni East TVET College</option><option>Ekurhuleni West TVET College</option><option>Flavius Mareka TVET College</option><option>Gert Sibande TVET College</option><option>Ikhala TVET College</option><option>Ingwe TVET College</option><option>King Hintsa TVET College</option><option>King Sabata Dalindyebo TVET College</option><option>Lephalale TVET College</option><option>Letaba TVET College</option><option>Lovedale TVET College</option><option>Majuba TVET College</option><option>Mnambithi TVET College</option><option>Mopani South East TVET College</option><option>Motheo TVET College</option><option>Nkangala TVET College</option><option>Northern Cape Rural TVET College</option><option>Northern Cape Urban TVET College</option><option>Northlink TVET College</option><option>Orbit TVET College</option><option>Port Elizabeth TVET College</option><option>South Cape TVET College</option><option>Taletso TVET College</option><option>Thekwini TVET College</option><option>Tshwane North TVET College</option><option>Tshwane South TVET College</option><option>Umgungundlovu TVET College</option><option>Umfolozi TVET College</option><option>Waterberg TVET College</option><option>West Coast TVET College</option>
             <option value="Other (please specify)">Other (please specify)</option>
           </select>
         </div>
@@ -357,7 +305,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
-      <button class="nav-icon-btn" id="notifBell" onclick="toggleNotifPanel()" style="position:relative;">🔔<span class="badge" id="notifBadge" style="display:none">0</span></button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
     </div>
@@ -367,7 +314,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <h1>Buy & Sell<br/><em>Textbooks</em> Safely</h1>
     <p>Secure escrow payments. Release funds only when you're happy with your book.</p>
     <div class="search-bar">
-      <input id="searchInput" placeholder="Search by title, module code..." oninput="filterBooksDebounced()"/>
+      <input id="searchInput" placeholder="Search by title, module code..." oninput="filterBooks()"/>
       <button onclick="filterBooks()">Search</button>
     </div>
   </div>
@@ -422,6 +369,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div id="detailRating"></div>
     <div id="detailDescription" style="font-size:13px;color:var(--gray-500);margin-bottom:16px;line-height:1.6;"></div>
     <div id="detailActions"></div>
+    <div id="sellerMoreBooks"></div>
   </div>
 </div>
 
@@ -685,23 +633,6 @@ textarea.form-control{resize:vertical;min-height:80px;}
   <div style="padding:16px;">
     <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact Support</button>
   </div>
-  <div class="section-block">
-    <h3>🔒 Account Settings</h3>
-    <button class="btn btn-secondary btn-full btn-sm" onclick="showChangePassword()">🔑 Change Password</button>
-  </div>
-  <div class="section-block">
-    <h3>💬 App Feedback</h3>
-    <p style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">Help us improve BookWorm — tell us what you think!</p>
-    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;" id="appRatingStars">
-      <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
-      <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(2)">☆</span>
-      <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(3)">☆</span>
-      <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(4)">☆</span>
-      <span style="font-size:28px;cursor:pointer;" onclick="setAppRating(5)">☆</span>
-    </div>
-    <textarea class="form-control" id="appFeedbackText" placeholder="Any comments or suggestions?" style="margin-bottom:10px;"></textarea>
-    <button class="btn btn-primary btn-full btn-sm" onclick="submitAppFeedback()">Submit Feedback</button>
-  </div>
 </div>
 
 <!-- WANTED LISTING SCREEN -->
@@ -770,8 +701,9 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Payment Modal -->
 <div class="modal-overlay" id="paymentModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('paymentModal');document.getElementById('paymentConfirmBtn').disabled=false;">✕</button>
+    <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
     <h3>💳 Confirm Purchase</h3>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;color:#9a3412;font-weight:700;margin-bottom:14px;">⚠️ <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
@@ -892,70 +824,9 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Firebase -->
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,sendEmailVerification,sendPasswordResetEmail,updatePassword,EmailAuthProvider,reauthenticateWithCredential}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,startAfter,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,sendEmailVerification,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* ============================================================
-   FIRESTORE SECURITY RULES — copy to Firebase Console
-   Project Settings > Firestore Database > Rules
-   ============================================================
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isAdmin(){ return request.auth.token.email == "madembemaano@africakai.co.za"; }
-
-    match /books/{bookId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.sellerId == request.auth.uid;
-      allow update: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
-    }
-
-    // Users: doc ID = uid. Owner or admin only.
-    match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
-    }
-
-    match /transactions/{txId} {
-      allow read: if request.auth != null && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid;
-      allow update: if request.auth != null && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin()) && !("codeHash" in request.resource.data);
-    }
-
-    match /payouts/{payoutId} {
-      allow read: if request.auth != null && (resource.data.sellerId == request.auth.uid || isAdmin());
-      allow write: if request.auth != null && isAdmin();
-    }
-
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null && (request.auth.uid in resource.data.participants || isAdmin());
-      match /messages/{msgId} {
-        allow read, write: if request.auth != null && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants || isAdmin());
-      }
-    }
-
-    match /notifications/{id} {
-      allow read, write: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-    }
-
-    match /reviews/{id}   { allow read: if true; allow write: if request.auth != null; }
-    match /disputes/{id}  {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-      allow write: if request.auth != null;
-    }
-    match /wanted/{id}    { allow read: if true; allow write: if request.auth != null; }
-    match /subscriptions/{id} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-    }
-    match /promotions/{id} { allow read: if true; allow write: if request.auth != null; }
-    match /settings/{id}   { allow read: if true; allow write: if isAdmin(); }
-    match /appFeedback/{id}{ allow write: if request.auth != null; allow read: if request.auth != null && isAdmin(); }
-  }
-}
-============================================================ */
 const firebaseConfig={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
@@ -965,13 +836,14 @@ const db=getFirestore(app);
 const CLOUD="drtdddsxp";
 const PRESET="bookworm_upload";
 const ADMIN_EMAIL="admin@bookworm.co.za";
-const API_BASE="https://bookworm-sandy-eta.vercel.app/api";
-// PayFast keys live server-side on Vercel — not in frontend
+const PF_MERCHANT_ID="34606233";
+const PF_MERCHANT_KEY="xbwlwikgiyxwr";
+const PF_SANDBOX=true; // Set to false for live
 const PARGO_DELIVERY_FEE=79;
 
 // STATE
 let currentUser=null,currentUserData=null,allBooks=[],currentBook=null;
-let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null,unsubChatList=null;
+let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null;
 let currentBookType="physical",currentPDFDoc=null,currentReaderPage=1,currentReaderBook=null;
 let commissionRate=5,deliveryFeeAmount=PARGO_DELIVERY_FEE,selectedDelivery=null,currentTxId=null;
 let photoFiles=[null,null,null],currentUploadType="physical";
@@ -979,60 +851,37 @@ let selectedRating=0,reviewTxId=null,reviewSellerId=null;
 let promoteBookId=null,promoteDays=7,promotePrice=0;
 let isSubmittingListing=false;
 
-// SPLASH — only redirect to login if Firebase auth hasn't resolved yet
-let authResolved=false;
-setTimeout(()=>{if(!authResolved&&!currentUser){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("screen-login").classList.add("active");}},2200);
+// SPLASH
+setTimeout(()=>{if(!currentUser){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("screen-login").classList.add("active");}},2200);
 
 // PDF.js
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 // ANTI-SCREENSHOT
 document.addEventListener("keyup",e=>{if(e.key==="PrintScreen"||e.keyCode===44)showScreenshotWarn();});
-document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.getElementById("screen-reader")?.classList.contains("active"))showScreenshotWarn();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.getElementById("screen-reader").classList.contains("active"))showScreenshotWarn();});
 function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}
 
 // AUTH STATE
 let justRegistered=false;
 onAuthStateChanged(auth,async(user)=>{
-  authResolved=true;
   if(user){
-    if(!user.emailVerified){
-      if(!justRegistered){
-        // Only show this message if they're trying to log in, not right after registering
-        toast("Please verify your email before signing in. Check your inbox.","error");
-      }
-      justRegistered=false;
-      await signOut(auth);
-      switchScreen("screen-login");
-      return;
-    }
     justRegistered=false;
     currentUser=user;
     await loadUserData();
     await loadBooks();
-    subscribeNotifications();
     switchScreen("screen-home");
   }else{
     currentUser=null;currentUserData=null;
-    if(unsubNotifs){unsubNotifs();unsubNotifs=null;}
     switchScreen("screen-login");
   }
 });
 
-function switchScreen(id){
-  // Clean up chat listener when leaving chatroom
-  if(id!=="screen-chatroom"&&unsubChat){unsubChat();unsubChat=null;}
-  // Clean up chat list listener when leaving chat list
-  if(id!=="screen-chat"&&unsubChatList){unsubChatList();unsubChatList=null;}
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id)?.classList.add("active");window.scrollTo(0,0);
-}
+function switchScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id)?.classList.add("active");window.scrollTo(0,0);}
 window.showScreen=function(id){if(id==="screen-chat")loadChatList();if(id==="screen-profile")loadProfile();if(id==="screen-upload")resetUploadForm();switchScreen(id);};
 window.requireAuth=function(id){if(!currentUser){toast("Please sign in to continue","error");switchScreen("screen-login");return;}window.showScreen(id);};
 window.goBack=function(){window.showScreen(previousScreen||"screen-home");};
-window.closeModal=function(id){
-  document.getElementById(id)?.classList.remove("active");
-  if(id==="paymentModal"){const b=document.getElementById("paymentConfirmBtn");if(b)b.disabled=false;}
-};
+window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toggleOtherInstitution=function(selId,groupId){const v=document.getElementById(selId)?.value;if(document.getElementById(groupId))document.getElementById(groupId).style.display=v==="Other (please specify)"?"block":"none";};
 window.toggleAccountFields=function(){const t=document.getElementById("regAccountType")?.value;if(document.getElementById("studentFields"))document.getElementById("studentFields").style.display=t==="student"?"block":"none";if(document.getElementById("bookshopFields"))document.getElementById("bookshopFields").style.display=t==="bookshop"?"block":"none";};
 window.showForgotPassword=async function(){
@@ -1048,12 +897,7 @@ window.handleLogin=async function(){
   const pass=document.getElementById("loginPassword").value;
   if(!email||!pass)return toast("Please fill in all fields","error");
   try{
-    const cred=await signInWithEmailAndPassword(auth,email,pass);
-    if(!cred.user.emailVerified){
-      await signOut(auth);
-      toast("Please verify your email first. Check your inbox for the verification link.","error");
-      return;
-    }
+    await signInWithEmailAndPassword(auth,email,pass);
   }catch(e){toast("Invalid email or password","error");}
 };
 window.handleLogout=async function(){await signOut(auth);};
@@ -1084,8 +928,7 @@ window.handleRegister=async function(){
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
     await sendEmailVerification(c.user);
-    // Use uid as document ID so Firestore rules can match /users/{uid} directly
-    await setDoc(doc(db,"users",c.user.uid),{
+    await addDoc(collection(db,"users"),{
       uid:c.user.uid,email,accountType:type,...extra,
       whatsapp,
       banking:null,
@@ -1105,84 +948,23 @@ window.handleRegister=async function(){
 function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
-  try{
-    // Read user doc by uid as document ID (fast, rule-friendly)
-    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
-    if(userDoc.exists()){
-      currentUserData={id:userDoc.id,...userDoc.data()};
-    }else{
-      // Fallback: old accounts stored with random addDoc ID
-      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-      const s=await getDocs(q);
-      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
-    }
-  }catch(e){console.error("loadUserData failed:",e);}
+  const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
+  const s=await getDocs(q);
+  if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
   try{
     const cd=await getDoc(doc(db,"settings","commission"));
     if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
   }catch(e){}
 }
 
-// RETRY HELPER — retries a Firestore write up to 3 times on network failure
-async function withRetry(fn,retries=3,delayMs=800){
-  for(let i=0;i<retries;i++){
-    try{return await fn();}
-    catch(e){
-      const isNetworkErr=e?.code==="unavailable"||e?.message?.includes("network");
-      if(i===retries-1||!isNetworkErr)throw e;
-      await new Promise(r=>setTimeout(r,delayMs*(i+1)));
-    }
-  }
-}
-
 // BOOKS
-const PAGE_SIZE=40;
-let _lastBookDoc=null,_allBooksLoaded=false,_loadingMoreBooks=false;
-let _filterDebounce=null;
-function filterBooksDebounced(){clearTimeout(_filterDebounce);_filterDebounce=setTimeout(filterBooks,180);}
-function showBooksSkeleton(){
-  const grid=document.getElementById("booksGrid");
-  if(!grid)return;
-  grid.innerHTML=Array(6).fill(`
-    <div class="skeleton-card">
-      <div class="skeleton-img skeleton"></div>
-      <div class="skeleton-body">
-        <div class="skeleton-line short skeleton"></div>
-        <div class="skeleton-line skeleton"></div>
-        <div class="skeleton-line price skeleton"></div>
-      </div>
-    </div>`).join("");
-}
-async function loadBooks(reset=true){
-  if(reset){showBooksSkeleton();_lastBookDoc=null;_allBooksLoaded=false;allBooks=[];}
+async function loadBooks(){
   try{
-    let q=query(collection(db,"books"),orderBy("createdAt","desc"),limit(PAGE_SIZE));
-    if(_lastBookDoc)q=query(collection(db,"books"),orderBy("createdAt","desc"),limit(PAGE_SIZE),startAfter(_lastBookDoc));
-    const s=await getDocs(q);
-    if(s.docs.length<PAGE_SIZE)_allBooksLoaded=true;
-    if(s.docs.length>0)_lastBookDoc=s.docs[s.docs.length-1];
-    const newBooks=s.docs.map(d=>({id:d.id,...d.data()}));
-    allBooks=reset?newBooks:[...allBooks,...newBooks];
+    const s=await getDocs(query(collection(db,"books"),orderBy("createdAt","desc")));
+    allBooks=s.docs.map(d=>({id:d.id,...d.data()}));
     filterBooks();
-    renderLoadMoreBtn();
   }catch(e){console.error(e);}
 }
-function renderLoadMoreBtn(){
-  const existing=document.getElementById("loadMoreBtn");
-  if(existing)existing.remove();
-  if(_allBooksLoaded||allBooks.length===0)return;
-  const btn=document.createElement("div");
-  btn.id="loadMoreBtn";
-  btn.style.cssText="grid-column:1/-1;text-align:center;padding:12px 0;";
-  btn.innerHTML=`<button class="btn btn-secondary btn-sm" onclick="loadMoreBooks()">Load More Books</button>`;
-  document.getElementById("booksGrid")?.appendChild(btn);
-}
-window.loadMoreBooks=async function(){
-  if(_loadingMoreBooks||_allBooksLoaded)return;
-  _loadingMoreBooks=true;
-  await loadBooks(false);
-  _loadingMoreBooks=false;
-};
 
 window.switchHomeTab=function(type,el){
   currentBookType=type;
@@ -1228,7 +1010,7 @@ window.filterBooks=function(){
   grid.innerHTML=filtered.map(b=>`
     <div class="book-card" onclick="showDetail('${b.id}')">
       ${b.featured?`<div class="featured-badge">⭐ Featured</div>`:""}
-      <div class="book-card-img">${b.photos?.[0]?`<img src="${b.photos[0]}" alt="${b.title}" loading="lazy" onerror="this.parentElement.innerHTML='📚'"/>`:(b.bookType==="digital"?"📖":"📚")}</div>
+      <div class="book-card-img">${b.photos?.[0]?`<img src="${b.photos[0]}" alt="${b.title}" onerror="this.parentElement.innerHTML='📚'"/>`:(b.bookType==="digital"?"📖":"📚")}</div>
       <div class="book-card-body">
         <div class="book-card-meta">${b.module||""} ${b.edition?`• ${b.edition}`:""}</div>
         <div class="book-card-title">${b.title}</div>
@@ -1262,10 +1044,6 @@ window.showDetail=async function(id){
   const book=allBooks.find(b=>b.id===id)||(await getBookById(id));
   if(!book)return;
   currentBook=book;previousScreen="screen-home";selectedDelivery=null;
-  // Clear any lingering delivery UI selection
-  document.querySelectorAll(".delivery-option").forEach(o=>o.classList.remove("selected"));
-  const mf=document.getElementById("meetupForm");if(mf)mf.style.display="none";
-  const cf=document.getElementById("courierForm");if(cf)cf.style.display="none";
   const photos=book.photos||[];
   document.getElementById("detailPhotos").innerHTML=`
     <div style="margin-bottom:12px;">
@@ -1289,6 +1067,7 @@ window.showDetail=async function(id){
     <div class="seller-avatar">${book.sellerName?.[0]?.toUpperCase()||"S"}</div>
     <div><div style="font-weight:800;font-size:14px;">${book.sellerName||"Seller"}</div>
     <div style="font-size:12px;color:var(--gray-400);">${book.sellerUniversity||""}</div>
+    ${book.campus?`<div style="font-size:12px;color:var(--info);font-weight:700;">📍 ${book.campus}</div>`:""}
     ${sellerRatingCount>0?`<div class="rating-stars">${"★".repeat(Math.round(sellerRating))}${"☆".repeat(5-Math.round(sellerRating))} <span style="font-size:11px;color:var(--gray-400);">(${sellerRatingCount} review${sellerRatingCount!==1?"s":""})</span></div>`:`<div style="font-size:11px;color:var(--gray-400);">No reviews yet</div>`}
     </div>`;
   // Buyer price breakdown
@@ -1322,7 +1101,7 @@ window.showDetail=async function(id){
           ${pendingTx.deliveryMethod==="courier"&&pendingTx.trackingNumber?`<div style="font-size:12px;margin-top:6px;">Tracking: <strong>${pendingTx.trackingNumber}</strong></div>`:""}
         </div>`:""}
         <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <button class="btn btn-secondary btn-full" onclick="openCodeModal('${book.id}')">🔐 Enter Release Code</button>
+          <button class="btn btn-secondary btn-full" onclick="openCodeModal()">🔐 Enter Release Code</button>
           ${pendingTx&&pendingTx.deliveryMethod==="courier"?`<button class="btn btn-info btn-sm" onclick="openTrackingModal('${pendingTx.id}')">📦</button>`:""}
         </div>
         ${!pendingTx?`<button class="btn btn-danger btn-sm btn-full" onclick="openDeleteModal('${book.id}')">🗑️ Remove Listing</button>`:""}
@@ -1385,8 +1164,38 @@ window.showDetail=async function(id){
         <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
       </div>`}`;
   }
+  // Load more books from same seller
+  if(book.bookType==="physical"&&!isOwner){
+    loadSellerMoreBooks(book.sellerId,book.id,book.price);
+  }else{
+    document.getElementById("sellerMoreBooks").innerHTML="";
+  }
   switchScreen("screen-detail");
 };
+
+async function loadSellerMoreBooks(sellerId,currentBookId,currentPrice){
+  const container=document.getElementById("sellerMoreBooks");
+  if(!container)return;
+  const sellerBooks=allBooks.filter(b=>b.sellerId===sellerId&&b.id!==currentBookId&&b.status==="available"&&b.bookType==="physical");
+  if(sellerBooks.length===0){container.innerHTML="";return;}
+  container.innerHTML=`
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200);">
+      <div style="font-size:15px;font-weight:900;margin-bottom:4px;">📚 More books from this seller</div>
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:12px;">💡 Buy multiple books — pay Pargo delivery only once!</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+        ${sellerBooks.map(b=>`
+          <div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="showDetail('${b.id}')">
+            <div style="height:80px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+              ${b.photos?.[0]?`<img src="${b.photos[0]}" style="width:100%;height:100%;object-fit:cover;"/>`:`<span style="font-size:28px;">📚</span>`}
+            </div>
+            <div style="padding:8px;">
+              <div style="font-size:11px;font-weight:800;line-height:1.3;margin-bottom:4px;">${b.title}</div>
+              <div style="font-size:12px;font-weight:900;">R${b.price}</div>
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
 
 window.switchPhoto=function(url,el){
   const img=document.getElementById("mainPhotoImg");if(img)img.src=url;
@@ -1495,24 +1304,47 @@ window.clearScannedData=function(){
 };
 async function lookupISBN(isbn){
   toast("Looking up book...","");
+  // Clean ISBN — remove dashes and spaces
+  const cleanISBN=isbn.replace(/[-\s]/g,"");
   try{
-    const res=await fetch(`${GOOGLE_BOOKS_API}${isbn}`);
-    const data=await res.json();
-    if(!data.totalItems){toast("Book not found. Enter details manually.","warning");showManualEntry();return;}
+    // Try ISBN first
+    let res=await fetch(`${GOOGLE_BOOKS_API}${cleanISBN}`);
+    let data=await res.json();
+    // If not found try with isbn: prefix
+    if(!data.totalItems||data.totalItems===0){
+      res=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${cleanISBN}`);
+      data=await res.json();
+    }
+    if(!data.totalItems||data.totalItems===0||!data.items){
+      toast("Book not found. Please enter details manually.","warning");
+      showManualEntry();
+      return;
+    }
     const info=data.items[0].volumeInfo;
     if(document.getElementById("uploadTitle"))document.getElementById("uploadTitle").value=info.title||"";
     if(document.getElementById("uploadAuthor"))document.getElementById("uploadAuthor").value=(info.authors||[]).join(", ");
-    if(document.getElementById("uploadEdition"))document.getElementById("uploadEdition").value=info.subtitle||"";
-    if(document.getElementById("uploadISBN"))document.getElementById("uploadISBN").value=isbn;
+    if(document.getElementById("uploadEdition"))document.getElementById("uploadEdition").value=info.subtitle?`${info.title} — ${info.subtitle}`:"";
+    if(document.getElementById("uploadISBN"))document.getElementById("uploadISBN").value=cleanISBN;
+    const thumb=info.imageLinks?.thumbnail||info.imageLinks?.smallThumbnail||"";
     document.getElementById("isbnFoundDetails").innerHTML=`
       <div style="display:flex;gap:10px;align-items:flex-start;">
-        ${info.imageLinks?.thumbnail?`<img src="${info.imageLinks.thumbnail}" style="width:50px;border-radius:4px;"/>`:""}
-        <div><div style="font-weight:800;">${info.title}</div>${info.authors?`<div style="font-size:12px;">By ${info.authors.join(", ")}</div>`:""}${info.publishedDate?`<div style="font-size:11px;color:var(--gray-400);">${info.publishedDate}</div>`:""}</div>
+        ${thumb?`<img src="${thumb.replace('http:','https:')}" style="width:50px;border-radius:4px;" alt="Cover"/>`:""}
+        <div>
+          <div style="font-weight:800;">${info.title}</div>
+          ${info.authors?`<div style="font-size:12px;">By ${info.authors.join(", ")}</div>`:""}
+          ${info.publishedDate?`<div style="font-size:11px;color:var(--gray-400);">${info.publishedDate}</div>`:""}
+          ${info.pageCount?`<div style="font-size:11px;color:var(--gray-400);">${info.pageCount} pages</div>`:""}
+        </div>
       </div>`;
     document.getElementById("isbnFoundBox").style.display="block";
     showManualEntry();
+    updatePriceRecommendation();
     toast("✅ Book details auto-filled!","success");
-  }catch(e){toast("Could not look up book. Enter manually.","error");showManualEntry();}
+  }catch(e){
+    console.error("ISBN lookup failed:",e);
+    toast("Could not look up book. Please enter details manually.","error");
+    showManualEntry();
+  }
 }
 
 // PRICE / EARNINGS
@@ -1580,7 +1412,6 @@ window.setBookType=function(type,el){
 // SUBMIT LISTING — with duplicate prevention
 window.submitListing=async function(){
   if(isSubmittingListing)return;
-  if(!currentUserData){toast("Account data still loading, please try again","error");return;}
   const btn=document.getElementById("listBtn");
   btn.disabled=true;isSubmittingListing=true;
   btn.textContent="Uploading...";
@@ -1621,11 +1452,7 @@ window.submitListing=async function(){
     switchScreen("screen-home");
     // Prompt banking details if not set
     if(!currentUserData?.banking){
-      setTimeout(()=>{
-        const desc=document.getElementById("bankingModalDesc");
-        if(desc)desc.textContent="Your book is listed! 🎉 Add your banking details so we know where to send your money when it sells.";
-        document.getElementById("bankingModal").classList.add("active");
-      },800);
+      setTimeout(()=>document.getElementById("bankingModal").classList.add("active"),800);
     }
   }catch(e){
     console.error("Listing failed:",e);
@@ -1661,6 +1488,7 @@ window.openPayment=function(bookId){
   document.getElementById("pbDeliveryRow").style.display=isCourier?"flex":"none";
   document.getElementById("pbTotal").textContent=`R${total}`;
   document.getElementById("paymentBook").textContent=b.title;
+  document.getElementById("paymentConfirmBtn").disabled=false;
   document.getElementById("paymentModal").classList.add("active");
 };
 window.confirmPayment=async function(){
@@ -1671,10 +1499,8 @@ window.confirmPayment=async function(){
   if(!currentBook)return;
   const isCourier=selectedDelivery==="courier";
   const total=isCourier?currentBook.price+deliveryFeeAmount:currentBook.price;
-  // Generate release code — store only a SHA-256 hash in Firestore
+  // Generate a unique 6-digit code tied to this transaction
   const code=Math.floor(100000+Math.random()*900000).toString();
-  const codeHash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(code))
-    .then(buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""));
   const meetupData=selectedDelivery==="meetup"?{
     meetupLocation:document.getElementById("meetupLocation")?.value||"",
     meetupAddress:document.getElementById("meetupAddress")?.value||"",
@@ -1682,74 +1508,51 @@ window.confirmPayment=async function(){
     meetupMapsUrl:window._meetupMapsUrl||null
   }:{pargoAddress:document.getElementById("pargoAddress")?.value||""};
   try{
-    const txRef=await withRetry(()=>addDoc(collection(db,"transactions"),{
+    const txRef=await addDoc(collection(db,"transactions"),{
       bookId:currentBook.id,bookTitle:currentBook.title,
       buyerId:currentUser.uid,buyerName:currentUserData?.name||"Buyer",buyerEmail:currentUser.email,
       sellerId:currentBook.sellerId,sellerName:currentBook.sellerName,
       amount:currentBook.price,deliveryFee:isCourier?deliveryFeeAmount:0,totalAmount:total,
-      commission:commissionRate,
-      codeHash,
+      commission:commissionRate,code,
       status:"pending",deliveryMethod:selectedDelivery,
       ...meetupData,
       createdAt:serverTimestamp(),
       disputeDeadline:new Date(Date.now()+48*60*60*1000)
-    }));
+    });
     currentTxId=txRef.id;
-    await withRetry(()=>updateDoc(doc(db,"books",currentBook.id),{status:"pending"}));
+    // Mark book as pending (NOT sold — stays visible to seller)
+    await updateDoc(doc(db,"books",currentBook.id),{status:"pending"});
+    // Redirect to PayFast
     initiatePayFast(currentBook,txRef.id,code,total);
-    // Notify seller a buyer has paid and is waiting
-    addDoc(collection(db,"notifications"),{
-      userId:currentBook.sellerId,
-      type:"sale",
-      title:"📚 Someone bought your book!",
-      message:`${currentUserData?.name||"A buyer"} has paid for "${currentBook.title}". Arrange delivery and get the release code.`,
-      txId:txRef.id,bookId:currentBook.id,
-      read:false,
-      createdAt:serverTimestamp()
-    }).catch(()=>{});
   }catch(e){
     toast("Payment initiation failed","error");
     btn.disabled=false;
     console.error(e);
   }
-};
-async function initiatePayFast(book,txId,code,total){
-  try{
-    // Ask the backend to build and sign the PayFast redirect — keys never touch the browser
-    const idToken=await currentUser.getIdToken();
-    const res=await fetch(`${API_BASE}/create-payment`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":`Bearer ${idToken}`},
-      body:JSON.stringify({
-        txId,
-        bookTitle:book.title,
-        amount:total.toFixed(2),
-        buyerName:currentUserData?.name||"Student",
-        buyerEmail:currentUser.email,
-        returnUrl:`${window.location.origin}${window.location.pathname}?tx=${txId}`,
-        cancelUrl:`${window.location.origin}${window.location.pathname}?cancel=1`
-      })
-    });
-    if(res.ok){
-      const {redirectUrl,formFields}=await res.json();
-      if(redirectUrl){
-        // Backend returns a signed redirect URL or form fields
-        const form=document.createElement("form");
-        form.method="POST";form.action=redirectUrl;
-        Object.entries(formFields||{}).forEach(([k,v])=>{
-          const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);
-        });
-        document.body.appendChild(form);
-        form.submit();
-        return;
-      }
-    }
-  }catch(e){
-    console.warn("Backend payment initiation failed, falling back to sandbox demo:",e);
-  }
-  // Sandbox / offline fallback — skip real redirect, show transaction screen directly
+};(book,txId,code,total){
+  const form=document.createElement("form");
+  form.method="POST";
+  form.action=PF_SANDBOX?"https://sandbox.payfast.co.za/eng/process":"https://www.payfast.co.za/eng/process";
+  const fields={
+    merchant_id:PF_MERCHANT_ID,merchant_key:PF_MERCHANT_KEY,
+    return_url:`${window.location.origin}${window.location.pathname}?tx=${txId}`,
+    cancel_url:`${window.location.origin}${window.location.pathname}?cancel=1`,
+    notify_url:"https://us-central1-bookworm-b9ba6.cloudfunctions.net/payfastITN",
+    name_first:currentUserData?.name?.split(" ")[0]||"Student",
+    name_last:currentUserData?.name?.split(" ").slice(1).join(" ")||"Buyer",
+    email_address:currentUser.email,
+    m_payment_id:txId,
+    amount:total.toFixed(2),
+    item_name:`BookWorm: ${book.title}`,
+    item_description:`Secure purchase`,
+    custom_str1:txId,custom_str2:code,custom_str3:book.sellerId
+  };
+  Object.entries(fields).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);});
+  document.body.appendChild(form);
+  // For sandbox demo — show transaction screen instead of submitting
+  document.body.removeChild(form);
   showTransactionScreen(code,book,txId);
-  toast("Payment secured in escrow! 🔐 (Sandbox mode)","success");
+  toast("Payment secured in escrow! 🔐","success");
 }
 
 function showTransactionScreen(code,book,txId){
@@ -1831,18 +1634,13 @@ window.submitDispute=async function(){
 };
 
 // CODE RELEASE — locked to correct book + transaction
-window.openCodeModal=function(bookId){
-  if(bookId){const b=allBooks.find(x=>x.id===bookId)||(currentBook?.id===bookId?currentBook:null);if(b)currentBook=b;}
-  document.getElementById("codeInput").value="";document.getElementById("codeModal").classList.add("active");
-};
+window.openCodeModal=function(){document.getElementById("codeInput").value="";document.getElementById("codeModal").classList.add("active");};
 window.verifyCode=async function(){
   const entered=document.getElementById("codeInput").value.trim();
   if(entered.length!==6)return toast("Please enter a 6-digit code","error");
   if(!currentBook)return toast("No book selected","error");
-  // Hash the entered code and compare — raw code is never stored
-  const enteredHash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(entered))
-    .then(buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""));
   try{
+    // Query locked to BOTH sellerId AND bookId — prevents code from working on wrong book
     const q=query(
       collection(db,"transactions"),
       where("sellerId","==",currentUser.uid),
@@ -1853,18 +1651,18 @@ window.verifyCode=async function(){
     if(s.empty)return toast("No pending transaction found for this book","error");
     const tx=s.docs[0];
     const txData=tx.data();
-    // Support both legacy plaintext code (old txs) and new hashed code
-    const codeMatch=txData.codeHash
-      ?txData.codeHash===enteredHash
-      :txData.code===entered;
-    if(!codeMatch)return toast("Incorrect code. Please check with the buyer.","error");
+    if(txData.code!==entered)return toast("Incorrect code. Please check with the buyer.","error");
+    // Code matches — release funds
     const comm=Math.round(txData.amount*(commissionRate/100)*100)/100;
     const net=Math.round((txData.amount-comm)*100)/100;
     await updateDoc(doc(db,"transactions",tx.id),{status:"completed",completedAt:serverTimestamp(),sellerPayout:net,commissionAmount:comm});
     await updateDoc(doc(db,"books",currentBook.id),{status:"sold"});
+    // Trigger payout via Cloud Function (will be set up separately)
+    // For now, record payout intent
     await addDoc(collection(db,"payouts"),{txId:tx.id,sellerId:currentUser.uid,sellerName:currentUserData?.name||"Seller",amount:net,status:"pending",createdAt:serverTimestamp(),banking:currentUserData?.banking||{}});
     closeModal("codeModal");
     toast(`🎉 Funds released! R${net} payout initiated.`,"success");
+    // Prompt buyer review
     reviewTxId=tx.id;reviewSellerId=txData.buyerId;
     setTimeout(()=>openReviewModal(tx.id,txData.buyerName),1500);
     await loadBooks();switchScreen("screen-home");
@@ -1894,16 +1692,15 @@ window.submitReview=async function(){
     const txData=tx.data();
     const reviewedId=currentUser.uid===txData.buyerId?txData.sellerId:txData.buyerId;
     await addDoc(collection(db,"reviews"),{txId:reviewTxId,reviewerId:currentUser.uid,reviewerName:currentUserData?.name||"User",reviewedId,rating:_currentReviewRating,comment:document.getElementById("reviewComment").value.trim(),createdAt:serverTimestamp()});
-    // Update user average rating — read by uid as doc ID
-    try{
-      const reviewedDoc=await getDoc(doc(db,"users",reviewedId));
-      if(reviewedDoc.exists()){
-        const ud=reviewedDoc.data();
-        const newCount=(ud.ratingCount||0)+1;
-        const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
-        await updateDoc(doc(db,"users",reviewedId),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
-      }
-    }catch(e){console.warn("Could not update reviewer rating:",e);}
+    // Update user average rating
+    const userQ=query(collection(db,"users"),where("uid","==",reviewedId));
+    const userSnap=await getDocs(userQ);
+    if(!userSnap.empty){
+      const ud=userSnap.docs[0].data();
+      const newCount=(ud.ratingCount||0)+1;
+      const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
+      await updateDoc(doc(db,"users",userSnap.docs[0].id),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
+    }
     closeModal("reviewModal");toast("Review submitted! Thank you.","success");
   }catch(e){toast("Failed to submit review","error");}
 };
@@ -1912,9 +1709,6 @@ window.submitReview=async function(){
 window.openDeleteModal=function(id){deleteTargetId=id;document.getElementById("deleteModal").classList.add("active");};
 window.confirmDelete=async function(){
   if(!deleteTargetId)return;
-  // Ownership check — only the seller can delete their own book
-  const book=allBooks.find(b=>b.id===deleteTargetId);
-  if(book&&book.sellerId!==currentUser?.uid)return toast("You can only remove your own listings","error");
   try{
     await deleteDoc(doc(db,"books",deleteTargetId));
     closeModal("deleteModal");toast("Listing removed","success");
@@ -1958,7 +1752,6 @@ window.confirmPromotion=async function(){
 window.openSubModal=function(bookId){
   if(!currentUser)return toast("Please sign in to subscribe","error");
   const b=allBooks.find(x=>x.id===bookId);if(!b)return;
-  currentBook=b;
   document.getElementById("subBookTitle").textContent=b.title;
   document.getElementById("subPrice").textContent=`R${b.subPrice}`;
   document.getElementById("subModal").classList.add("active");
@@ -2048,31 +1841,27 @@ window.sendMessage=async function(){
 };
 async function loadChatList(){
   if(!currentUser)return;
-  if(unsubChatList){unsubChatList();unsubChatList=null;}
   const q=query(collection(db,"chats"),where("participants","array-contains",currentUser.uid));
-  unsubChatList=onSnapshot(q,snap=>{
-    const cl=document.getElementById("chatList");
-    if(snap.empty){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
-    const sorted=snap.docs.slice().sort((a,b)=>(b.data().updatedAt?.toMillis?.()??0)-(a.data().updatedAt?.toMillis?.()??0));
-    cl.innerHTML=sorted.map(d=>{
-      const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);
-      const name=c.isSupport?"BookWorm Support 🛟":(c.participantNames?.[otherId]||"User");
-      return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${(c.bookTitle||"").replace(/'/g,"\\'")}')">
-        <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name[0]?.toUpperCase()}</div>
-        <div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div>
-      </div>`;
-    }).join("");
-  });
+  const snap=await getDocs(q);
+  const cl=document.getElementById("chatList");
+  if(snap.empty){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
+  cl.innerHTML=snap.docs.map(d=>{
+    const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);
+    const name=c.isSupport?"BookWorm Support 🛟":(c.participantNames?.[otherId]||"User");
+    return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${c.bookTitle||""}')">
+      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name[0]?.toUpperCase()}</div>
+      <div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div>
+    </div>`;
+  }).join("");
 }
 
 // PROFILE
 async function loadProfile(){
-  // Always reload fresh user data — read by uid doc ID (matches Firestore rules)
+  // Always reload fresh user data when opening profile to avoid stale state
   if(currentUser){
-    try{
-      const userDoc=await getDoc(doc(db,"users",currentUser.uid));
-      if(userDoc.exists())currentUserData={id:userDoc.id,...userDoc.data()};
-    }catch(e){console.error("loadProfile user fetch failed:",e);}
+    const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
+    const s=await getDocs(q);
+    if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
   }
   if(!currentUserData)return;
   const name=currentUserData.name||"";
@@ -2095,14 +1884,14 @@ async function loadProfile(){
           <div style="font-weight:800;font-size:13px;color:#166534;">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
           <div style="font-size:11px;color:#166534;margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
         </div>
-        <button class="btn btn-secondary btn-full btn-sm" onclick="(function(){const d=document.getElementById('bankingModalDesc');if(d)d.textContent='Add your banking details so we know where to send your money when your book sells.';document.getElementById('bankingModal').classList.add('active');})()">✏️ Update Banking Details</button>`;
+        <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('bankingModal').classList.add('active')">✏️ Update Banking Details</button>`;
     }else{
       bankingEl.innerHTML=`
         <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:8px;">
           <div style="font-weight:800;font-size:13px;color:#9a3412;">⚠️ No banking details yet</div>
           <div style="font-size:11px;color:#9a3412;margin-top:2px;">Add them to receive payments when your books sell.</div>
         </div>
-        <button class="btn btn-primary btn-full btn-sm" onclick="(function(){const d=document.getElementById('bankingModalDesc');if(d)d.textContent='Add your banking details so we know where to send your money when your book sells.';document.getElementById('bankingModal').classList.add('active');})()">💰 Add Banking Details</button>`;
+        <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('bankingModal').classList.add('active')">💰 Add Banking Details</button>`;
     }
   }
   // Pending payouts
@@ -2124,113 +1913,12 @@ async function loadProfile(){
   document.getElementById("myPurchases").innerHTML=(boughtTx.empty&&subs.empty)?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No purchases yet.</div>`:[
     ...boughtTx.docs.map(d=>{const t=d.data();return`<div style="padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;">
       <div style="font-weight:800;font-size:13px;">📚 ${t.bookTitle}</div>
-      <div style="font-size:11px;color:var(--gray-400);margin-bottom:6px;">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}`:"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
+      <div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}`:"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
       ${t.status==="completed"?`<button class="btn btn-sm btn-secondary" style="margin-top:6px;" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button>`:""}
-      ${t.status==="pending"?`<button class="btn btn-sm btn-danger" style="margin-top:4px;" onclick="cancelTransaction('${d.id}','${t.bookId}')">❌ Cancel Purchase</button>`:""}
     </div>`;}),
     ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
   ].join("");
 }
-
-// CANCEL PURCHASE (buyer only, pending transactions)
-window.cancelTransaction=async function(txId,bookId){
-  if(!confirm("Are you sure you want to cancel this purchase? This cannot be undone."))return;
-  try{
-    const tx=await getDoc(doc(db,"transactions",txId));
-    if(!tx.exists())return toast("Transaction not found","error");
-    const txData=tx.data();
-    if(txData.buyerId!==currentUser.uid)return toast("You can only cancel your own purchases","error");
-    if(txData.status!=="pending")return toast("Only pending transactions can be cancelled","error");
-    await withRetry(()=>updateDoc(doc(db,"transactions",txId),{status:"cancelled",cancelledAt:serverTimestamp(),cancelledBy:"buyer"}));
-    await withRetry(()=>updateDoc(doc(db,"books",bookId),{status:"available"}));
-    toast("Purchase cancelled. The book is available again.","success");
-    await loadBooks();
-    loadProfile();
-  }catch(e){toast("Failed to cancel purchase","error");console.error(e);}
-};
-
-// NOTIFICATIONS
-let unsubNotifs=null;
-function subscribeNotifications(){
-  if(!currentUser||unsubNotifs)return;
-  const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),orderBy("createdAt","desc"),limit(20));
-  unsubNotifs=onSnapshot(q,snap=>{
-    const unread=snap.docs.filter(d=>!d.data().read).length;
-    const badge=document.getElementById("notifBadge");
-    if(badge){badge.textContent=unread>9?"9+":unread;badge.style.display=unread>0?"flex":"none";}
-    const list=document.getElementById("notifList");
-    if(!list)return;
-    if(snap.empty){list.innerHTML='<p style="font-size:12px;color:var(--gray-400);text-align:center;padding:16px 0;">No notifications yet</p>';return;}
-    list.innerHTML=snap.docs.map(d=>{
-      const n=d.data();
-      const t=n.createdAt?.toDate?.();
-      const when=t?t.toLocaleDateString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
-      return`<div onclick="handleNotifClick('${d.id}','${n.type||""}','${n.txId||""}','${n.bookId||""}')" style="padding:10px;border-radius:8px;margin-bottom:6px;cursor:pointer;background:${n.read?"transparent":"#fef9c3"};border:1px solid ${n.read?"var(--gray-200)":"#fde047"}">
-        <div style="font-weight:800;font-size:13px;">${n.title||"Notification"}</div>
-        <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">${n.message||""}</div>
-        ${when?`<div style="font-size:10px;color:var(--gray-400);margin-top:4px;">${when}</div>`:""}
-      </div>`;
-    }).join("");
-  });
-}
-window.toggleNotifPanel=function(){
-  if(!currentUser)return requireAuth("screen-home");
-  const p=document.getElementById("notifPanel");
-  p.style.display=p.style.display==="none"?"block":"none";
-};
-// Close panel when clicking outside
-document.addEventListener("click",e=>{
-  const panel=document.getElementById("notifPanel");
-  const bell=document.getElementById("notifBell");
-  if(panel&&bell&&!panel.contains(e.target)&&!bell.contains(e.target)){panel.style.display="none";}
-});
-window.handleNotifClick=async function(notifId,type,txId,bookId){
-  // Mark as read
-  try{await updateDoc(doc(db,"notifications",notifId),{read:true});}catch(e){}
-  document.getElementById("notifPanel").style.display="none";
-  // Navigate to relevant screen
-  if(txId&&type==="sale"){
-    if(bookId){const b=allBooks.find(x=>x.id===bookId);if(b){currentBook=b;switchScreen("screen-detail");return;}}
-  }
-  requireAuth("screen-profile");
-};
-window.markAllNotifsRead=async function(){
-  if(!currentUser)return;
-  const q=query(collection(db,"notifications"),where("userId","==",currentUser.uid),where("read","==",false));
-  const snap=await getDocs(q);
-  await Promise.all(snap.docs.map(d=>updateDoc(doc(db,"notifications",d.id),{read:true})));
-};
-
-// CHANGE PASSWORD
-window.showChangePassword=function(){
-  ["currentPassword","newPassword","confirmNewPassword"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-  document.getElementById("changePasswordModal").classList.add("active");
-};
-window.submitChangePassword=async function(){
-  const btn=document.getElementById("changePasswordBtn");
-  if(btn.disabled)return;
-  const current=document.getElementById("currentPassword").value;
-  const newPw=document.getElementById("newPassword").value;
-  const confirm=document.getElementById("confirmNewPassword").value;
-  if(!current||!newPw||!confirm)return toast("Please fill in all fields","error");
-  if(newPw.length<6)return toast("New password must be at least 6 characters","error");
-  if(newPw!==confirm)return toast("New passwords do not match","error");
-  btn.disabled=true;
-  try{
-    // Re-authenticate before changing password (Firebase requirement)
-    const credential=EmailAuthProvider.credential(currentUser.email,current);
-    await reauthenticateWithCredential(currentUser,credential);
-    await updatePassword(currentUser,newPw);
-    closeModal("changePasswordModal");
-    toast("Password updated successfully! 🔒","success");
-  }catch(e){
-    if(e.code==="auth/wrong-password"||e.code==="auth/invalid-credential"){
-      toast("Current password is incorrect","error");
-    }else{
-      toast("Failed to update password. Please try again.","error");
-    }
-  }finally{btn.disabled=false;}
-};
 
 // APP FEEDBACK
 let appRating=0;
@@ -2296,7 +1984,7 @@ window.addEventListener("load",()=>{
   <div class="modal">
     <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
     <h3>💰 Add Banking Details</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;" id="bankingModalDesc">Add your banking details so we know where to send your money when your book sells.</p>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
     <div class="form-group">
       <label>Bank Name</label>
       <select class="form-control" id="bankName">
@@ -2339,35 +2027,6 @@ window.addEventListener("load",()=>{
       <div style="font-size:12px;color:var(--gray-400);margin-top:4px;">12 months of unlimited access</div>
     </div>
     <button class="btn btn-primary btn-full" onclick="confirmSubscription()">Subscribe Now</button>
-  </div>
-</div>
-<!-- Notification Panel -->
-<div id="notifPanel" style="display:none;position:fixed;top:56px;right:12px;width:300px;max-height:400px;overflow-y:auto;background:var(--white);border:1px solid var(--gray-200);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);z-index:500;padding:12px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <span style="font-weight:900;font-size:14px;">Notifications</span>
-    <button onclick="markAllNotifsRead()" style="font-size:11px;background:none;border:none;cursor:pointer;color:var(--gray-400);font-family:'Nunito',sans-serif;">Mark all read</button>
-  </div>
-  <div id="notifList"><p style="font-size:12px;color:var(--gray-400);text-align:center;padding:16px 0;">No notifications yet</p></div>
-</div>
-
-<!-- Change Password Modal -->
-<div class="modal-overlay" id="changePasswordModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
-    <h3>🔑 Change Password</h3>
-    <div class="form-group">
-      <label>Current Password</label>
-      <input class="form-control" id="currentPassword" type="password" placeholder="Your current password"/>
-    </div>
-    <div class="form-group">
-      <label>New Password</label>
-      <input class="form-control" id="newPassword" type="password" placeholder="Min 6 characters"/>
-    </div>
-    <div class="form-group">
-      <label>Confirm New Password</label>
-      <input class="form-control" id="confirmNewPassword" type="password" placeholder="Repeat new password"/>
-    </div>
-    <button class="btn btn-primary btn-full" id="changePasswordBtn" onclick="submitChangePassword()">Update Password</button>
   </div>
 </div>
 </body>
