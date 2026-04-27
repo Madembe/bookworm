@@ -851,8 +851,14 @@ let selectedRating=0,reviewTxId=null,reviewSellerId=null;
 let promoteBookId=null,promoteDays=7,promotePrice=0;
 let isSubmittingListing=false;
 
-// SPLASH
-setTimeout(()=>{if(!currentUser){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("screen-login").classList.add("active");}},2200);
+// SPLASH — only redirects if auth hasn't resolved yet
+let authResolved=false;
+setTimeout(()=>{
+  if(!authResolved){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("screen-login").classList.add("active");
+  }
+},2500);
 
 // PDF.js
 if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -863,17 +869,37 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.g
 function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}
 
 // AUTH STATE
+// justRegistered stays true from when signOut is called during registration
+// until the onAuthStateChanged else block runs — this prevents the false error toast
 let justRegistered=false;
 onAuthStateChanged(auth,async(user)=>{
+  authResolved=true;
   if(user){
-    justRegistered=false;
+    // Block unverified users
+    if(!user.emailVerified){
+      await signOut(auth);
+      // Don't show any toast here — registration flow handles its own messaging
+      if(!justRegistered){
+        toast("Please verify your email before signing in. Check your inbox.","error");
+      }
+      switchScreen("screen-login");
+      return;
+    }
     currentUser=user;
     await loadUserData();
     await loadBooks();
     switchScreen("screen-home");
   }else{
-    currentUser=null;currentUserData=null;
-    switchScreen("screen-login");
+    // This fires after signOut — including after registration signOut
+    // justRegistered flag prevents showing error toast in that case
+    justRegistered=false;
+    currentUser=null;
+    currentUserData=null;
+    // Only switch to login if we're not already showing it
+    const loginScreen=document.getElementById("screen-login");
+    if(!loginScreen.classList.contains("active")){
+      switchScreen("screen-login");
+    }
   }
 });
 
@@ -928,33 +954,49 @@ window.handleRegister=async function(){
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
     await sendEmailVerification(c.user);
-    await addDoc(collection(db,"users"),{
+    // Use setDoc with uid as the document ID so Firestore rules (userId == uid) work
+    await setDoc(doc(db,"users",c.user.uid),{
       uid:c.user.uid,email,accountType:type,...extra,
       whatsapp,
       banking:null,
       sold:0,bought:0,rating:0,ratingCount:0,
       createdAt:serverTimestamp()
     });
+    // Set flag BEFORE signOut so onAuthStateChanged else block knows not to show error
     justRegistered=true;
     await signOut(auth);
+    // At this point onAuthStateChanged has fired and justRegistered is now false again
+    // The success toast and screen switch happen here, after everything is settled
     toast("Account created! 📚 Please check your email to verify before signing in.","success");
     switchScreen("screen-login");
     btn.disabled=false;
   }catch(e){
     btn.disabled=false;
-    toast(e.message.includes("email-already-in-use")?"Email already registered":"Registration failed","error");
+    if(justRegistered){
+      // signOut during registration triggered a catch — ignore it
+      justRegistered=false;
+      return;
+    }
+    toast(e.message.includes("email-already-in-use")?"Email already registered":"Registration failed. Please try again.","error");
   }
 };
 function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
-  const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-  const s=await getDocs(q);
-  if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
   try{
+    // Doc ID is now the uid (set during registration with setDoc)
+    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
+    if(userDoc.exists()){
+      currentUserData={id:userDoc.id,...userDoc.data()};
+    }else{
+      // Fallback for older accounts created with addDoc (random ID)
+      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
+      const s=await getDocs(q);
+      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
+    }
     const cd=await getDoc(doc(db,"settings","commission"));
     if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
-  }catch(e){}
+  }catch(e){console.error("loadUserData error:",e);}
 }
 
 // BOOKS
@@ -1241,15 +1283,15 @@ window.saveBankingDetails=async function(){
   const accountType=document.getElementById("bankAccountType").value;
   const branchCode=document.getElementById("bankBranchCode").value.trim();
   if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
+  const docId=currentUserData?.id||currentUser.uid;
   try{
-    await updateDoc(doc(db,"users",currentUserData.id),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
+    await updateDoc(doc(db,"users",docId),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
     currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
     closeModal("bankingModal");
     toast("Banking details saved! 💰 You're all set to receive payments.","success");
-    // Refresh profile if on profile screen
     const profileScreen=document.getElementById("screen-profile");
     if(profileScreen&&profileScreen.classList.contains("active"))loadProfile();
-  }catch(e){toast("Failed to save banking details","error");}
+  }catch(e){console.error(e);toast("Failed to save banking details","error");}
 };
 
 // BARCODE SCANNER
@@ -1985,7 +2027,7 @@ window.addEventListener("load",()=>{
   <div class="modal">
     <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
     <h3>💰 Add Banking Details</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Add your banking details so we know where to send your money when your books sell.</p>
     <div class="form-group">
       <label>Bank Name</label>
       <select class="form-control" id="bankName">
