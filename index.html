@@ -1529,7 +1529,8 @@ window.confirmPayment=async function(){
     btn.disabled=false;
     console.error(e);
   }
-};(book,txId,code,total){
+};
+function initiatePayFast(book,txId,code,total){
   const form=document.createElement("form");
   form.method="POST";
   form.action=PF_SANDBOX?"https://sandbox.payfast.co.za/eng/process":"https://www.payfast.co.za/eng/process";
