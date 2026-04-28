@@ -882,7 +882,7 @@ const PRESET="bookworm_uploads";
 const ADMIN_EMAIL="admin@bookworm.co.za";
 const PF_MERCHANT_ID="34606233";
 const PF_MERCHANT_KEY="xbwlwikgiyxwr";
-const PF_SANDBOX=true; // Set to false for live
+const PF_SANDBOX=false;
 const PARGO_DELIVERY_FEE=79;
 
 // STATE
@@ -1220,13 +1220,10 @@ window.showDetail=async function(id){
         </div>
         <div class="delivery-option" onclick="selectDelivery('courier',this)">
           <h4>📦 Pargo Courier Delivery — R${deliveryFeeAmount}</h4>
-          <p>Delivered to your nearest Pargo pickup point. Total: R${book.price+deliveryFeeAmount}.</p>
+          <p>Delivered to your nearest Pargo pickup point (Clicks, PnP, etc). Total: R${book.price+deliveryFeeAmount}.</p>
           <div class="courier-form" id="courierForm">
-            <p style="font-size:12px;color:var(--gray-400);">After payment, the seller will drop off at a Pargo point and you'll receive a tracking number.</p>
-            <div class="form-group" style="margin-bottom:0;margin-top:8px;">
-              <label>Your Nearest Pargo Pickup Point</label>
-              <input class="form-control" id="pargoAddress" placeholder="e.g. Clicks Polokwane Mall"/>
-            </div>
+            <button class="btn btn-info btn-sm btn-full" style="margin-top:8px;" onclick="openPargoMap(event)">🗺️ Find My Nearest Pargo Point</button>
+            <div id="selectedPargoDisplay" style="display:none;margin-top:8px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;font-weight:800;color:#1d4ed8;"></div>
           </div>
         </div>
         <div class="delivery-coming-soon">
@@ -1277,6 +1274,27 @@ window.switchPhoto=function(url,el){
   const img=document.getElementById("mainPhotoImg");if(img)img.src=url;
   document.querySelectorAll(".detail-photo-thumb").forEach(t=>t.classList.remove("active"));el.classList.add("active");
 };
+// PARGO MAP
+let selectedPargoPoint=null;
+window.openPargoMap=function(e){
+  if(e)e.stopPropagation();
+  const iframe=document.getElementById("pargoIframe");
+  iframe.src="https://map.pargo.co.za/widget";
+  document.getElementById("pargoModal").classList.add("active");
+};
+window.addEventListener("message",function(e){
+  if(e.data&&(e.data.pargoPointCode||e.data.code)){
+    selectedPargoPoint=e.data;
+    closeModal("pargoModal");
+    const display=document.getElementById("selectedPargoDisplay");
+    if(display){
+      display.textContent=`✅ ${e.data.name||e.data.storeName||"Pargo Point selected"} — ${e.data.address||e.data.street||""}`;
+      display.style.display="block";
+    }
+    toast(`📦 Pargo point selected!`,"success");
+  }
+});
+
 window.selectDelivery=function(type,el){
   document.querySelectorAll(".delivery-option").forEach(o=>o.classList.remove("selected"));
   el.classList.add("selected");selectedDelivery=type;
@@ -1328,45 +1346,71 @@ window.saveBankingDetails=async function(){
   }catch(e){console.error(e);toast("Failed to save banking details","error");}
 };
 
-// BARCODE SCANNER
+// BARCODE SCANNER — uses BarcodeDetector (Chrome/Android) with ZXing fallback (iOS/Safari)
 const GOOGLE_BOOKS_API="https://www.googleapis.com/books/v1/volumes?q=isbn:";
-let scannerStream=null,scannerInterval=null;
+let scannerStream=null,scannerInterval=null,zxingReader=null;
 window.startScanner=async function(){
   document.getElementById("uploadStep1").style.display="none";
   document.getElementById("uploadStep2").style.display="block";
   try{
-    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}}});
     const video=document.getElementById("scannerVideo");
     video.srcObject=scannerStream;
+    await video.play();
     if("BarcodeDetector"in window){
-      const detector=new BarcodeDetector({formats:["ean_13","ean_8"]});
+      // Chrome / Android — native
+      const detector=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e"]});
       scannerInterval=setInterval(async()=>{
         try{
           const barcodes=await detector.detect(video);
           if(barcodes.length>0){
-            clearInterval(scannerInterval);
-            stopScanner();
+            clearInterval(scannerInterval);stopScanner();
             await lookupISBN(barcodes[0].rawValue);
           }
         }catch(e){}
       },600);
     }else{
-      // No BarcodeDetector — fall back to manual after 2s
-      setTimeout(()=>{
+      // iOS Safari / Firefox — load ZXing dynamically
+      toast("Loading scanner...","");
+      const script=document.createElement("script");
+      script.src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js";
+      script.onload=async()=>{
+        try{
+          zxingReader=new ZXing.BrowserMultiFormatReader();
+          zxingReader.decodeFromVideoDevice(null,"scannerVideo",async(result,err)=>{
+            if(result){
+              zxingReader.reset();stopScanner();
+              await lookupISBN(result.getText());
+            }
+          });
+          toast("Scanner ready — point at the barcode","success");
+        }catch(e){
+          stopScanner();
+          toast("Scanner not supported. Please enter details manually.","warning");
+          showManualEntry();
+        }
+      };
+      script.onerror=()=>{
         stopScanner();
-        toast("Barcode scanning not supported on this browser. Please enter ISBN manually.","warning");
+        toast("Scanner could not load. Please enter details manually.","warning");
         showManualEntry();
-      },2000);
+      };
+      document.head.appendChild(script);
     }
   }catch(e){
     stopScanner();
-    toast("Camera not available. Please enter details manually.","error");
+    if(e.name==="NotAllowedError"){
+      toast("Camera permission denied. Please allow camera access and try again.","error");
+    }else{
+      toast("Camera not available. Please enter details manually.","error");
+    }
     showManualEntry();
   }
 };
 window.stopScanner=function(){
   if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
   if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
+  if(zxingReader){try{zxingReader.reset();}catch(e){}zxingReader=null;}
 };
 window.showManualEntry=function(){
   stopScanner();
@@ -1626,10 +1670,7 @@ function initiatePayFast(book,txId,code,total){
   };
   Object.entries(fields).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);});
   document.body.appendChild(form);
-  // For sandbox demo — show transaction screen instead of submitting
-  document.body.removeChild(form);
-  showTransactionScreen(code,book,txId);
-  toast("Payment secured in escrow! 🔐","success");
+  form.submit();
 }
 
 function showTransactionScreen(code,book,txId){
@@ -1934,15 +1975,21 @@ async function loadChatList(){
 
 // PROFILE
 async function loadProfile(){
-  // Always reload fresh user data when opening profile to avoid stale state
-  if(currentUser){
-    const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-    const s=await getDocs(q);
-    if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
-  }
+  if(!currentUser)return;
+  try{
+    // Use uid as doc ID (new accounts) with fallback for old accounts
+    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
+    if(userDoc.exists()){
+      currentUserData={id:userDoc.id,...userDoc.data()};
+    }else{
+      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
+      const s=await getDocs(q);
+      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
+    }
+  }catch(e){console.error("loadProfile fetch:",e);}
   if(!currentUserData)return;
   const name=currentUserData.name||"";
-  document.getElementById("profileAvatar").textContent=name?name[0].toUpperCase():"U";
+  document.getElementById("profileAvatar").textContent=name?name[0].toUpperCase():"?";
   document.getElementById("profileName").textContent=name||"My Account";
   document.getElementById("profileUni").textContent=currentUserData.accountType==="bookshop"?"Bookshop Account":currentUserData.university||"";
   document.getElementById("profileEmail").textContent=currentUser.email;
@@ -2056,6 +2103,18 @@ window.addEventListener("load",()=>{
   }
 });
 </script>
+<!-- PARGO MAP MODAL -->
+<div class="modal-overlay" id="pargoModal" style="align-items:flex-end;padding:0;">
+  <div style="background:white;width:100%;height:88vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-weight:900;font-size:15px;">📦 Select Your Pargo Pickup Point</div>
+      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);">✕</button>
+    </div>
+    <div style="padding:10px 16px;background:#eff6ff;font-size:12px;color:#1d4ed8;flex-shrink:0;">📍 Allow location access to see Pargo points near you. Tap a point to select it.</div>
+    <iframe id="pargoIframe" src="" style="flex:1;border:none;width:100%;" allow="geolocation" title="Pargo Pickup Points"></iframe>
+  </div>
+</div>
+
 <!-- Banking Details Modal -->
 <div class="modal-overlay" id="bankingModal">
   <div class="modal">
