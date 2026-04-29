@@ -647,6 +647,10 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div style="font-size:20px;font-weight:900;" id="profileName"></div>
     <div style="font-size:13px;color:var(--gray-300);margin-top:4px;" id="profileUni"></div>
     <div style="font-size:11px;color:var(--gray-400);margin-top:4px;" id="profileEmail"></div>
+    <div style="margin-top:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--gray-300);line-height:1.5;">
+      🔐 <strong style="color:var(--white);">Identity Verified via Email</strong><br/>
+      Your name above is the one you registered with. It appears on all your listings and transactions as proof of identity, so buyers and sellers know who they're dealing with.
+    </div>
   </div>
   <div class="stat-cards">
     <div class="stat-card"><div class="num" id="statListings">0</div><div class="lbl">Listed</div></div>
@@ -656,6 +660,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
   <div class="section-block">
     <h3>💰 Banking Details</h3>
     <div id="bankingStatus"></div>
+    <button class="btn btn-primary btn-full btn-sm" style="margin-top:8px;" onclick="openBankingModal()">💳 Add / Update Banking Details</button>
   </div>
   <div class="section-block">
     <h3>💰 Pending Payouts</h3>
@@ -1002,16 +1007,23 @@ window.handleRegister=async function(){
     });
     justRegistered=true;
     await signOut(auth);
-    toast("Account created! 📚 Please check your email and verify before signing in.","success");
+    // justRegistered is consumed by onAuthStateChanged — show success after a tick
+    setTimeout(()=>{
+      toast("Account created! 📚 Please check your email and verify before signing in.","success");
+    },100);
     switchScreen("screen-login");
     btn.disabled=false;
   }catch(e){
     btn.disabled=false;
+    justRegistered=false;
     if(e.code==="auth/email-already-in-use"){
       toast("This email is already registered. Try signing in.","error");
     }else{
       console.error("Registration error:",e);
-      toast("Registration failed: "+e.message,"error");
+      // Only show truly unexpected errors, not the email-verification sign-out
+      if(e.code&&e.code!=="auth/user-not-found"){
+        toast("Registration failed. Please try again.","error");
+      }
     }
   }
 };
@@ -1105,14 +1117,59 @@ async function renderWantedListings(){
     const snap=await getDocs(query(collection(db,"wanted"),orderBy("createdAt","desc")));
     if(snap.empty){grid.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><h3>No wanted listings yet</h3><p>Be the first to post what you're looking for!</p></div><div style="padding:0 16px;"><button class="btn btn-primary btn-full" onclick="requireAuth('screen-wanted')">+ Post Wanted Listing</button></div>`;return;}
     grid.innerHTML=`<div style="padding:0 16px 8px;"><button class="btn btn-primary btn-full btn-sm" onclick="requireAuth('screen-wanted')">+ Post What You Need</button></div>`+
-      snap.docs.map(d=>{const w=d.data();return`<div class="wanted-card" style="margin:0 16px 8px;">
-        <h4>🔍 ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
-        <p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>
-        ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
-        <p style="margin-top:6px;">${w.notes||""}</p>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Posted by ${w.posterName||"Student"}</div>
-      </div>`;}).join("");
+      snap.docs.map(d=>{const w=d.data();const isOwner=currentUser&&w.posterId===currentUser.uid;const found=w.status==="found";
+        return`<div class="wanted-card" style="margin:0 16px 8px;${found?"opacity:0.55;":""}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <h4>${found?"✅":"🔍"} ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
+            ${found?`<span style="font-size:10px;font-weight:900;padding:2px 8px;background:#d8f3dc;color:#2d6a4f;border-radius:20px;white-space:nowrap;">Found!</span>`:""}
+          </div>
+          <p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>
+          ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
+          <p style="margin-top:6px;">${w.notes||""}</p>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Posted by ${w.posterName||"Student"}</div>
+          ${isOwner&&!found?`<button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="markWantedFound('${d.id}')">✅ I Found My Book</button>`:""}
+          ${!isOwner&&currentUser&&!found?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="notifyWantedPoster('${d.id}','${w.posterId||""}','${(w.title||"").replace(/'/g,"\\'")}')">📣 I Have This Book</button>`:""}
+        </div>`;}).join("");
   }catch(e){grid.innerHTML=`<div class="empty-state"><p>Could not load wanted listings.</p></div>`;}
+}
+window.markWantedFound=async function(wantedId){
+  try{
+    await updateDoc(doc(db,"wanted",wantedId),{status:"found",foundAt:serverTimestamp()});
+    toast("Great! Marked as found 🎉","success");
+    renderWantedListings();
+  }catch(e){toast("Could not update listing","error");}
+};
+window.notifyWantedPoster=async function(wantedId,posterId,bookTitle){
+  if(!currentUser||!posterId)return toast("Could not send notification","error");
+  if(currentUser.uid===posterId)return toast("That's your own wanted post!","warning");
+  try{
+    // Create a notification doc for the poster
+    await addDoc(collection(db,"notifications"),{
+      toUserId:posterId,fromUserId:currentUser.uid,fromName:currentUserData?.name||"A seller",
+      type:"wanted_match",wantedId,bookTitle,read:false,createdAt:serverTimestamp()
+    });
+    // Also open a chat with the poster
+    await window.startChat(wantedId,posterId,currentUserData?.name||"Seller",bookTitle);
+    toast("Notification sent! Opening chat with them now...","success");
+  }catch(e){toast("Could not send notification","error");console.error(e);}
+};
+// Check for wanted matches when a new book is listed and notify posters
+async function notifyWantedMatches(bookTitle){
+  try{
+    const wantedSnap=await getDocs(query(collection(db,"wanted"),where("status","!=","found")));
+    const matches=wantedSnap.docs.filter(d=>{
+      const w=d.data();
+      return w.posterId!==currentUser.uid&&bookTitle.toLowerCase().includes((w.title||"").toLowerCase().split(" ")[0]);
+    });
+    for(const m of matches){
+      const w=m.data();
+      await addDoc(collection(db,"notifications"),{
+        toUserId:w.posterId,fromUserId:currentUser.uid,fromName:currentUserData?.name||"A seller",
+        type:"wanted_match",wantedId:m.id,bookTitle,read:false,createdAt:serverTimestamp()
+      });
+    }
+    if(matches.length>0)console.log(`Notified ${matches.length} user(s) about ${bookTitle}`);
+  }catch(e){console.error("notifyWantedMatches:",e);}
 }
 
 // DETAIL
@@ -1233,7 +1290,7 @@ window.showDetail=async function(id){
       </div>
       ${isSold||isPending?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-weight:800;color:#166534;">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" onclick="requireAuth('screen-chat');startChat('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message</button>
+        <button class="btn btn-secondary" onclick="openMessageFromDetail('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message</button>
         <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
       </div>`}`;
   }
@@ -1279,8 +1336,19 @@ let selectedPargoPoint=null;
 window.openPargoMap=function(e){
   if(e)e.stopPropagation();
   const iframe=document.getElementById("pargoIframe");
-  iframe.src="https://map.pargo.co.za/widget";
+  // Use Pargo's public store locator (the /widget endpoint requires auth/whitelisting)
+  iframe.src="https://pargo.co.za/store-locator/";
   document.getElementById("pargoModal").classList.add("active");
+};
+window.confirmManualPargoPoint=function(){
+  const addr=document.getElementById("pargoManualInput")?.value.trim();
+  if(!addr)return toast("Please enter a Pargo pickup address","error");
+  selectedPargoPoint={name:addr,address:addr};
+  closeModal("pargoModal");
+  const display=document.getElementById("selectedPargoDisplay");
+  if(display){display.textContent=`✅ ${addr}`;display.style.display="block";}
+  const hidden=document.getElementById("pargoAddress");if(hidden)hidden.value=addr;
+  toast("📦 Pargo point saved!","success");
 };
 window.addEventListener("message",function(e){
   if(e.data&&(e.data.pargoPointCode||e.data.code)){
@@ -1335,16 +1403,37 @@ window.saveBankingDetails=async function(){
   const accountType=document.getElementById("bankAccountType").value;
   const branchCode=document.getElementById("bankBranchCode").value.trim();
   if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
+  if(!currentUser)return toast("Please sign in first","error");
   try{
-    const docId=currentUserData?.id||currentUser.uid;
-    await updateDoc(doc(db,"users",docId),{banking:{bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode}});
-    if(currentUserData)currentUserData.banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
+    // Always use the Firebase Auth UID as the doc ID — most reliable
+    const docId=currentUser.uid;
+    const banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
+    // Try updateDoc first; if doc doesn't exist (old accounts stored differently), use setDoc merge
+    try{
+      await updateDoc(doc(db,"users",docId),{banking});
+    }catch(updateErr){
+      // Fallback: setDoc with merge
+      await setDoc(doc(db,"users",docId),{banking},{ merge:true });
+    }
+    if(currentUserData)currentUserData.banking=banking;
     closeModal("bankingModal");
     toast("Banking details saved! 💰","success");
     const profileScreen=document.getElementById("screen-profile");
     if(profileScreen&&profileScreen.classList.contains("active"))loadProfile();
-  }catch(e){console.error(e);toast("Failed to save banking details","error");}
+  }catch(e){console.error("Banking save error:",e);toast("Failed to save banking details: "+((e.message||"").slice(0,60)),"error");}
 };
+// Pre-populate banking modal when opened
+function prefillBankingModal(){
+  if(!currentUserData?.banking)return;
+  const b=currentUserData.banking;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+  set("bankName",b.bankName);set("bankAccountHolder",b.accountHolder);
+  set("bankAccountNumber",b.accountNumber);set("bankAccountType",b.accountTypeBank);
+  set("bankBranchCode",b.branchCode);
+}
+// Patch the banking modal open button to also prefill
+const _origBankingOpen=()=>{prefillBankingModal();document.getElementById("bankingModal").classList.add("active");};
+window.openBankingModal=_origBankingOpen;
 
 // BARCODE SCANNER — uses BarcodeDetector (Chrome/Android) with ZXing fallback (iOS/Safari)
 const GOOGLE_BOOKS_API="https://www.googleapis.com/books/v1/volumes?q=isbn:";
@@ -1424,23 +1513,48 @@ window.clearScannedData=function(){
 };
 async function lookupISBN(isbn){
   toast("Looking up book...","");
-  // Clean ISBN — remove dashes and spaces
   const cleanISBN=isbn.replace(/[-\s]/g,"");
   try{
-    // Try ISBN first
-    let res=await fetch(`${GOOGLE_BOOKS_API}${cleanISBN}`);
-    let data=await res.json();
-    // If not found try with isbn: prefix
-    if(!data.totalItems||data.totalItems===0){
-      res=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${cleanISBN}`);
-      data=await res.json();
+    // Try three different query forms for best coverage
+    const queries=[
+      `https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanISBN}&maxResults=1`,
+      `https://www.googleapis.com/books/v1/volumes?q=${cleanISBN}&maxResults=1`,
+      `https://openlibrary.org/api/books?bibkeys=ISBN:${cleanISBN}&format=json&jscmd=data`
+    ];
+    let info=null;
+    // Try Google Books first (2 attempts)
+    for(let i=0;i<2;i++){
+      try{
+        const res=await fetch(queries[i]);
+        if(!res.ok)continue;
+        const data=await res.json();
+        if(data.totalItems>0&&data.items?.[0]?.volumeInfo){info=data.items[0].volumeInfo;break;}
+      }catch(e){}
     }
-    if(!data.totalItems||data.totalItems===0||!data.items){
+    // Fallback: Open Library
+    if(!info){
+      try{
+        const res=await fetch(queries[2]);
+        if(res.ok){
+          const data=await res.json();
+          const key=`ISBN:${cleanISBN}`;
+          if(data[key]){
+            const olBook=data[key];
+            info={
+              title:olBook.title||"",
+              authors:(olBook.authors||[]).map(a=>a.name),
+              publishedDate:olBook.publish_date||"",
+              pageCount:olBook.number_of_pages||0,
+              imageLinks:{thumbnail:(olBook.cover?.medium||olBook.cover?.small||"").replace("http:","https:")}
+            };
+          }
+        }
+      }catch(e){}
+    }
+    if(!info){
       toast("Book not found. Please enter details manually.","warning");
-      showManualEntry();
-      return;
+      showManualEntry();return;
     }
-    const info=data.items[0].volumeInfo;
     if(document.getElementById("uploadTitle"))document.getElementById("uploadTitle").value=info.title||"";
     if(document.getElementById("uploadAuthor"))document.getElementById("uploadAuthor").value=(info.authors||[]).join(", ");
     if(document.getElementById("uploadEdition"))document.getElementById("uploadEdition").value=info.subtitle?`${info.title} — ${info.subtitle}`:"";
@@ -1562,6 +1676,8 @@ window.submitListing=async function(){
     }
     await addDoc(collection(db,"books"),data);
     toast("Book listed successfully! 🎉","success");
+    // Notify any wanted posters whose title matches
+    notifyWantedMatches(title);
     // Reset form
     photoFiles=[null,null,null];window.selectedPDFFile=null;
     ["uploadTitle","uploadEdition","uploadModule","uploadPrice","uploadDescription","uploadSubPrice","uploadLicenceRef"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
@@ -1572,7 +1688,7 @@ window.submitListing=async function(){
     switchScreen("screen-home");
     // Prompt banking details if not set
     if(!currentUserData?.banking){
-      setTimeout(()=>document.getElementById("bankingModal").classList.add("active"),800);
+      setTimeout(()=>openBankingModal(),800);
     }
   }catch(e){
     console.error("Listing failed:",e);
@@ -1836,16 +1952,19 @@ window.confirmDelete=async function(){
 
 // PROMOTE
 window.openPromoteModal=async function(bookId){
-  promoteBookId=bookId;
-  // Load promo pricing from settings
+  promoteBookId=bookId;promoteDays=7;promotePrice=29; // sensible defaults pre-selected
   try{const s=await getDoc(doc(db,"settings","promo"));if(s.exists()){const d=s.data();document.getElementById("promotePlans").innerHTML=`
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${d.plan7||29},this)"><div style="font-weight:900;">7 Days — R${d.plan7||29}</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
+      <div style="border:2px solid var(--black);border-radius:10px;padding:12px;cursor:pointer;" id="plan7div" onclick="selectPlan(7,${d.plan7||29},this)"><div style="font-weight:900;">7 Days — R${d.plan7||29}</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
       <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,${d.plan14||49},this)"><div style="font-weight:900;">14 Days — R${d.plan14||49}</div><div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility</div></div>
       <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,${d.plan30||79},this)"><div style="font-weight:900;">30 Days — R${d.plan30||79}</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
-    </div>`;}
+    </div>`;promoteDays=7;promotePrice=d.plan7||29;}
   }catch(e){
-    document.getElementById("promotePlans").innerHTML=`<div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,29,this)"><div style="font-weight:900;">7 Days — R29</div></div><div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;margin-top:8px;" onclick="selectPlan(30,79,this)"><div style="font-weight:900;">30 Days — R79</div></div>`;
+    document.getElementById("promotePlans").innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <div style="border:2px solid var(--black);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,29,this)"><div style="font-weight:900;">7 Days — R29</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
+        <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,79,this)"><div style="font-weight:900;">30 Days — R79</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
+      </div>`;promoteDays=7;promotePrice=29;
   }
   document.getElementById("promoteModal").classList.add("active");
 };
@@ -1916,6 +2035,12 @@ window.readerPage=function(dir){
   currentReaderPage=next;renderPDFPage(next);
 };
 
+window.openMessageFromDetail=async function(bookId,sellerId,sellerName,bookTitle){
+  if(!currentUser){toast("Please sign in to message the seller","error");switchScreen("screen-login");return;}
+  // Ensure user data is loaded before starting chat
+  if(!currentUserData)await loadUserData();
+  await startChat(bookId,sellerId,sellerName,bookTitle);
+};
 // CHAT
 window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
   if(!currentUser)return toast("Please sign in","error");
@@ -1927,12 +2052,13 @@ window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
   openChatRoom(chatId,sellerName,bookTitle);
 };
 window.openSupportChat=async function(){
-  if(!currentUser)return toast("Please sign in","error");
+  if(!currentUser){toast("Please sign in to contact support","error");switchScreen("screen-login");return;}
+  if(!currentUserData)await loadUserData();
   const chatId="support_"+currentUser.uid;
   const ref=doc(db,"chats",chatId);
   const s=await getDoc(ref);
   if(!s.exists())await setDoc(ref,{participants:[currentUser.uid,"support"],participantNames:{[currentUser.uid]:currentUserData?.name||"Student","support":"BookWorm Support"},bookId:"support",bookTitle:"Support Chat",isSupport:true,lastMessage:"",updatedAt:serverTimestamp()});
-  openChatRoom(chatId,"BookWorm Support 🛟","We're here to help!");
+  openChatRoom(chatId,"BookWorm Support 🛟","We're here to help! Typically reply within 24h.");
 };
 window.openChatRoom=function(chatId,otherName,bookTitle){
   currentChatId=chatId;
@@ -1993,7 +2119,16 @@ async function loadProfile(){
   document.getElementById("profileName").textContent=name||"My Account";
   document.getElementById("profileUni").textContent=currentUserData.accountType==="bookshop"?"Bookshop Account":currentUserData.university||"";
   document.getElementById("profileEmail").textContent=currentUser.email;
-  const myBooks=allBooks.filter(b=>b.sellerId===currentUser.uid&&b.status!=="sold");
+  const myBooksFromCache=allBooks.filter(b=>b.sellerId===currentUser.uid&&b.status!=="sold");
+  // Also query Firestore directly in case allBooks cache is stale
+  let myBooks=myBooksFromCache;
+  try{
+    const myBooksSnap=await getDocs(query(collection(db,"books"),where("sellerId","==",currentUser.uid)));
+    if(!myBooksSnap.empty){
+      const fromDB=myBooksSnap.docs.map(d=>({id:d.id,...d.data()})).filter(b=>b.status!=="sold");
+      if(fromDB.length>=myBooksFromCache.length)myBooks=fromDB;
+    }
+  }catch(e){console.error("myBooks fetch:",e);}
   document.getElementById("statListings").textContent=myBooks.length;
   const sold=await getDocs(query(collection(db,"transactions"),where("sellerId","==",currentUser.uid),where("status","==","completed")));
   document.getElementById("statSold").textContent=sold.size;
@@ -2008,14 +2143,14 @@ async function loadProfile(){
           <div style="font-weight:800;font-size:13px;color:#166534;">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
           <div style="font-size:11px;color:#166534;margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
         </div>
-        <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('bankingModal').classList.add('active')">✏️ Update Banking Details</button>`;
+        <button class="btn btn-secondary btn-full btn-sm" onclick="openBankingModal()">✏️ Update Banking Details</button>`;
     }else{
       bankingEl.innerHTML=`
         <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:8px;">
           <div style="font-weight:800;font-size:13px;color:#9a3412;">⚠️ No banking details yet</div>
           <div style="font-size:11px;color:#9a3412;margin-top:2px;">Add them to receive payments when your books sell.</div>
         </div>
-        <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('bankingModal').classList.add('active')">💰 Add Banking Details</button>`;
+        <button class="btn btn-primary btn-full btn-sm" onclick="openBankingModal()">💰 Add Banking Details</button>`;
     }
   }
   // Pending payouts
@@ -2107,11 +2242,19 @@ window.addEventListener("load",()=>{
 <div class="modal-overlay" id="pargoModal" style="align-items:flex-end;padding:0;">
   <div style="background:white;width:100%;height:88vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-weight:900;font-size:15px;">📦 Select Your Pargo Pickup Point</div>
+      <div style="font-weight:900;font-size:15px;">📦 Find Your Nearest Pargo Point</div>
       <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);">✕</button>
     </div>
-    <div style="padding:10px 16px;background:#eff6ff;font-size:12px;color:#1d4ed8;flex-shrink:0;">📍 Allow location access to see Pargo points near you. Tap a point to select it.</div>
+    <div style="padding:10px 16px;background:#eff6ff;font-size:12px;color:#1d4ed8;flex-shrink:0;line-height:1.6;">
+      📍 <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
+      <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:#1d4ed8;font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
+    </div>
     <iframe id="pargoIframe" src="" style="flex:1;border:none;width:100%;" allow="geolocation" title="Pargo Pickup Points"></iframe>
+    <div style="padding:12px 16px;border-top:1px solid var(--gray-200);flex-shrink:0;background:white;">
+      <label style="font-size:12px;font-weight:800;color:var(--gray-500);display:block;margin-bottom:6px;">ENTER YOUR CHOSEN PARGO PICKUP ADDRESS</label>
+      <input id="pargoManualInput" class="form-control" placeholder="e.g. Clicks Limpopo Mall, Polokwane" style="margin-bottom:8px;"/>
+      <button class="btn btn-primary btn-full btn-sm" onclick="confirmManualPargoPoint()">✅ Confirm Pargo Point</button>
+    </div>
   </div>
 </div>
 
