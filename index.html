@@ -160,6 +160,9 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         <div class="nav-item" onclick="showPage('promotions',this)"><span>⭐</span> Promotions</div>
         <div class="nav-item" onclick="showPage('wanted',this)"><span>🔍</span> Wanted</div>
         <div class="nav-item" onclick="showPage('reports',this)"><span>📈</span> Reports</div>
+        <div class="nav-item" onclick="showPage('ambassadors',this)"><span>🎓</span> Ambassadors</div>
+        <div class="nav-item" onclick="showPage('aisupport',this)"><span>🤖</span> AI Support</div>
+        <div class="nav-item" onclick="showPage('appfeedback',this)"><span>💬</span> App Feedback</div>
         <div class="nav-item" onclick="showPage('settings',this)"><span>⚙️</span> Settings</div>
       </nav>
       <div class="sidebar-footer">
@@ -325,6 +328,67 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         </div>
       </div>
 
+      <!-- AMBASSADORS -->
+      <div id="page-ambassadors" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1>🎓 Brand Ambassadors</h1><p>Manage campus ambassadors and track their institution's performance.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('addAmbassadorModal').classList.add('active')">+ Add Ambassador</button>
+        </div>
+        <div class="stats-grid" id="ambassadorStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setAmbTab('active',this)">Active</div>
+          <div class="tab-item" onclick="setAmbTab('probation',this)">🟡 Probation</div>
+          <div class="tab-item" onclick="setAmbTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Ambassadors</h3><button class="btn btn-sm btn-success" onclick="exportAmbassadors()">⬇️ Export CSV</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="ambassadorsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- AI SUPPORT -->
+      <div id="page-aisupport" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🤖 AI Support Config</h1><p>Manage AI responses and escalation rules.</p></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="settings-card">
+            <h3>🤖 AI Responder Settings</h3>
+            <div class="settings-row"><label>AI Support Enabled</label><div class="toggle on" id="togAISupport" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Auto-respond to common questions</label><div class="toggle on" id="togAutoRespond" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Offer live agent option</label><div class="toggle on" id="togLiveAgent" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveAISettings()">Save Settings</button>
+          </div>
+          <div class="settings-card">
+            <h3>📊 Support Stats</h3>
+            <div id="supportStats" style="font-size:13px;color:var(--gray-400);">Loading...</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>📝 AI Knowledge Base</h3><button class="btn btn-sm btn-primary" onclick="document.getElementById('addFAQModal').classList.add('active')">+ Add FAQ</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="faqTable"></table></div>
+        </div>
+        <div class="table-card" style="margin-top:16px;">
+          <div class="table-card-header"><h3>🚨 Escalation Rules</h3></div>
+          <div style="padding:16px;font-size:13px;">
+            <p style="color:var(--gray-400);margin-bottom:12px;">The AI will automatically escalate to your internal team when these keywords are detected:</p>
+            <div id="escalationKeywords" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+            <div style="display:flex;gap:8px;">
+              <input class="form-control" id="newKeyword" placeholder="Add keyword e.g. refund, fraud, scam" style="flex:1;"/>
+              <button class="btn btn-primary btn-sm" onclick="addKeyword()">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APP FEEDBACK -->
+      <div id="page-appfeedback" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>💬 App Feedback</h1><p>Student ratings and suggestions for BookWorm.</p></div></div>
+        <div class="stats-grid" id="feedbackStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>All Feedback</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="feedbackTable"></table></div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div id="page-settings" class="page">
         <div class="page-header"><div class="page-header-left"><h1>⚙️ Settings</h1><p>Platform configuration and fees.</p></div></div>
@@ -393,6 +457,76 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
       </select>
     </div>
     <button class="btn btn-primary btn-full" onclick="savePartner()">Add Partner</button>
+  </div>
+</div>
+
+<!-- ADD AMBASSADOR MODAL -->
+<div class="modal-overlay" id="addAmbassadorModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addAmbassadorModal')">✕</button>
+    <h3>🎓 Add Brand Ambassador</h3>
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="ambName" placeholder="e.g. Thabo Nkosi"/></div>
+    <div class="form-group"><label>Email Address</label><input class="form-control" id="ambEmail" type="email" placeholder="thabo@email.com"/></div>
+    <div class="form-group"><label>WhatsApp Number</label><input class="form-control" id="ambWhatsapp" placeholder="e.g. 0821234567"/></div>
+    <div class="form-group"><label>Student Number</label><input class="form-control" id="ambStudentNum" placeholder="e.g. 202300123"/></div>
+    <div class="form-group"><label>Institution</label>
+      <select class="form-control" id="ambUniversity">
+        <option value="">Select Institution</option>
+        <option>University of Limpopo (UL)</option><option>University of Pretoria (UP)</option><option>University of Johannesburg (UJ)</option><option>University of Cape Town (UCT)</option><option>University of the Witwatersrand (Wits)</option><option>University of KwaZulu-Natal (UKZN)</option><option>University of South Africa (UNISA)</option><option>Stellenbosch University (SU)</option><option>Tshwane University of Technology (TUT)</option><option>Cape Peninsula University of Technology (CPUT)</option><option>Durban University of Technology (DUT)</option><option>Nelson Mandela University (NMU)</option><option>North-West University (NWU)</option><option>University of the Free State (UFS)</option><option>University of the Western Cape (UWC)</option><option>University of Venda (UNIVEN)</option><option>University of Fort Hare (UFH)</option><option>Walter Sisulu University (WSU)</option><option>Vaal University of Technology (VUT)</option><option>Central University of Technology (CUT)</option><option>Mangosuthu University of Technology (MUT)</option><option>Sefako Makgatho Health Sciences University (SMU)</option><option>Sol Plaatje University (SPU)</option><option>University of Mpumalanga (UMP)</option><option>University of Zululand (UNIZULU)</option><option>Rhodes University (RU)</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Commission Rate (%)</label><input class="form-control" id="ambCommission" type="number" value="1" min="0" max="10" step="0.5"/><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">% of BookWorm's commission from all sales at their institution</div></div>
+    <div class="form-group"><label>Contract Start Date</label><input class="form-control" id="ambStartDate" type="date"/></div>
+    <div class="form-group"><label>Contract End Date</label><input class="form-control" id="ambEndDate" type="date"/></div>
+    <div class="form-group"><label>Status</label>
+      <select class="form-control" id="ambStatus">
+        <option value="probation">🟡 Probation (First 6 months)</option>
+        <option value="active">🟢 Active</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea class="form-control" id="ambNotes" placeholder="Any additional notes about this ambassador..."></textarea></div>
+    <button class="btn btn-primary btn-full" onclick="saveAmbassador()">Add Ambassador</button>
+  </div>
+</div>
+
+<!-- VIEW AMBASSADOR MODAL -->
+<div class="modal-overlay" id="viewAmbassadorModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('viewAmbassadorModal')">✕</button>
+    <h3 id="viewAmbName">Ambassador</h3>
+    <div id="viewAmbContent"></div>
+  </div>
+</div>
+
+<!-- MESSAGE AMBASSADOR MODAL -->
+<div class="modal-overlay" id="messageAmbModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('messageAmbModal')">✕</button>
+    <h3>📩 Message Ambassador</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;" id="messageAmbTarget"></p>
+    <div class="form-group"><label>Message</label><textarea class="form-control" id="ambMessageText" placeholder="Type your message to the ambassador..." style="min-height:120px;"></textarea></div>
+    <button class="btn btn-primary btn-full" onclick="sendAmbassadorMessage()">Send Message</button>
+  </div>
+</div>
+
+<!-- ADD FAQ MODAL -->
+<div class="modal-overlay" id="addFAQModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addFAQModal')">✕</button>
+    <h3>📝 Add FAQ / AI Response</h3>
+    <div class="form-group"><label>Question / Trigger</label><input class="form-control" id="faqQuestion" placeholder="e.g. How does escrow work?"/></div>
+    <div class="form-group"><label>AI Response</label><textarea class="form-control" id="faqAnswer" placeholder="The response the AI will give..." style="min-height:120px;"></textarea></div>
+    <div class="form-group"><label>Category</label>
+      <select class="form-control" id="faqCategory">
+        <option value="payment">💳 Payment & Escrow</option>
+        <option value="delivery">📦 Delivery</option>
+        <option value="listing">📚 Listing a Book</option>
+        <option value="dispute">⚠️ Disputes</option>
+        <option value="account">👤 Account</option>
+        <option value="general">💬 General</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveFAQ()">Save FAQ</button>
   </div>
 </div>
 
@@ -473,7 +607,7 @@ window.showPage=function(page,el){
   const pg=document.getElementById(`page-${page}`);
   pg.classList.add("active");pg.style.display="block";
   el.classList.add("active");
-  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates};
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback};
   fns[page]?.();
 };
 
@@ -946,6 +1080,319 @@ function dlCSV(rows,fn){
   const csv=rows.map(r=>r.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=fn;a.click();
 }
+
+// ─── AMBASSADOR LOGIC ─────────────────────────────────────────────────────────
+let ambassadors=[];
+let ambTab="active";
+let currentAmbassadorId=null;
+
+window.setAmbTab=function(tab,el){
+  ambTab=tab;
+  document.querySelectorAll("#page-ambassadors .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderAmbassadors();
+};
+
+async function loadAmbassadors(){
+  try{
+    const snap=await getDocs(collection(db,"ambassadors"));
+    ambassadors=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAmbassadorStats();
+    renderAmbassadors();
+  }catch(e){console.error(e);}
+}
+
+function renderAmbassadorStats(){
+  const active=ambassadors.filter(a=>a.status==="active").length;
+  const probation=ambassadors.filter(a=>a.status==="probation").length;
+  const totalEarned=ambassadors.reduce((s,a)=>s+(a.totalEarned||0),0);
+  const institutions=new Set(ambassadors.map(a=>a.university)).size;
+  document.getElementById("ambassadorStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Active</div><div class="val">${active}</div></div>
+    <div class="stat-card orange"><div class="lbl">Probation</div><div class="val">${probation}</div></div>
+    <div class="stat-card blue"><div class="lbl">Institutions</div><div class="val">${institutions}</div></div>
+    <div class="stat-card"><div class="lbl">Total Paid Out</div><div class="val">R${totalEarned.toFixed(0)}</div></div>`;
+}
+
+function renderAmbassadors(){
+  const list=ambTab==="all"?ambassadors:ambassadors.filter(a=>a.status===ambTab);
+  document.getElementById("ambassadorsTable").innerHTML=`
+    <thead><tr><th>Name</th><th>Institution</th><th>WhatsApp</th><th>Commission</th><th>Earned</th><th>Contract Ends</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${list.length===0?`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-400);">No ambassadors yet. Add your first one!</td></tr>`:
+    list.map(a=>{
+      const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+      const daysLeft=Math.floor((end-new Date())/(864e5));
+      const cc=daysLeft<30?"var(--error)":daysLeft<60?"var(--warning)":"var(--success)";
+      return`<tr>
+        <td style="font-weight:800;">${a.name}</td>
+        <td style="font-size:12px;">${a.university}</td>
+        <td style="font-size:12px;">${a.whatsapp||"-"}</td>
+        <td style="font-weight:900;">${a.commissionRate||1}%</td>
+        <td style="font-weight:900;color:var(--success);">R${(a.totalEarned||0).toFixed(2)}</td>
+        <td style="font-size:12px;color:${cc};">${daysLeft>0?`${daysLeft}d left`:"Expired"}</td>
+        <td><span class="tag ${a.status==="active"?"tag-active":a.status==="terminated"?"tag-cancelled":"tag-pending"}">${a.status==="active"?"🟢 Active":a.status==="terminated"?"🔴 Ended":"🟡 Probation"}</span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-info" onclick="viewAmbassador('${a.id}')">View</button>
+          <button class="btn btn-sm btn-primary" onclick="openMessageAmb('${a.id}','${a.name.replace(/'/g,"\\'")}')">📩</button>
+          ${a.status!=="terminated"?`<button class="btn btn-sm btn-danger" onclick="terminateAmbassador('${a.id}','${a.name.replace(/'/g,"\\'")}')">End</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.saveAmbassador=async function(){
+  const name=document.getElementById("ambName").value.trim();
+  const email=document.getElementById("ambEmail").value.trim();
+  const whatsapp=document.getElementById("ambWhatsapp").value.trim();
+  const studentNum=document.getElementById("ambStudentNum").value.trim();
+  const university=document.getElementById("ambUniversity").value;
+  const commissionRate=parseFloat(document.getElementById("ambCommission").value)||1;
+  const startDate=document.getElementById("ambStartDate").value;
+  const endDate=document.getElementById("ambEndDate").value;
+  const status=document.getElementById("ambStatus").value;
+  const notes=document.getElementById("ambNotes").value.trim();
+  if(!name||!email||!university||!startDate||!endDate)return toast("Please fill in all required fields","error");
+  try{
+    await addDoc(collection(db,"ambassadors"),{
+      name,email,whatsapp,studentNumber:studentNum,university,
+      commissionRate,startDate:new Date(startDate),endDate:new Date(endDate),
+      status,notes,totalEarned:0,createdAt:serverTimestamp()
+    });
+    closeModal("addAmbassadorModal");
+    ["ambName","ambEmail","ambWhatsapp","ambStudentNum","ambNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    toast(`${name} added as ambassador!`,"success");
+    await loadAmbassadors();
+  }catch(e){toast("Failed to save ambassador","error");console.error(e);}
+};
+
+window.viewAmbassador=async function(id){
+  const a=ambassadors.find(x=>x.id===id);if(!a)return;
+  currentAmbassadorId=id;
+  // Calc uni revenue
+  const uniTx=D.transactions.filter(t=>t.status==="completed").filter(t=>{
+    const buyer=D.users.find(u=>u.uid===t.buyerId);
+    const seller=D.users.find(u=>u.uid===t.sellerId);
+    return buyer?.university===a.university||seller?.university===a.university;
+  });
+  const uniRevenue=uniTx.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const ambEarnings=Math.round(uniRevenue*(a.commissionRate/100)*100)/100;
+  const uniUsers=D.users.filter(u=>u.university===a.university).length;
+  const start=a.startDate?.toDate?a.startDate.toDate():new Date((a.startDate?.seconds||0)*1000);
+  const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+  document.getElementById("viewAmbName").textContent=a.name;
+  document.getElementById("viewAmbContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Institution:</strong> ${a.university}</div>
+      <div><strong>Email:</strong> ${a.email}</div>
+      <div><strong>WhatsApp:</strong> ${a.whatsapp||"-"}</div>
+      <div><strong>Student Number:</strong> ${a.studentNumber||"-"}</div>
+      <div><strong>Commission Rate:</strong> ${a.commissionRate}% of BookWorm's earnings at their university</div>
+      <div><strong>Status:</strong> <span class="tag ${a.status==="active"?"tag-active":"tag-pending"}">${a.status}</span></div>
+      <div><strong>Contract:</strong> ${start.toLocaleDateString("en-ZA")} → ${end.toLocaleDateString("en-ZA")}</div>
+      ${a.notes?`<div><strong>Notes:</strong> ${a.notes}</div>`:""}
+      <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-top:4px;">
+        <div style="font-weight:900;font-size:13px;margin-bottom:10px;">📊 ${a.university} Stats</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;">${uniUsers}</div><div style="font-size:10px;color:var(--gray-400);">Registered Users</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;">${uniTx.length}</div><div style="font-size:10px;color:var(--gray-400);">Completed Sales</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--success);">R${uniRevenue.toFixed(0)}</div><div style="font-size:10px;color:var(--gray-400);">BookWorm Revenue</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--info);">R${ambEarnings.toFixed(2)}</div><div style="font-size:10px;color:var(--gray-400);">Ambassador Earned</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-primary btn-sm btn-full" onclick="openMessageAmb('${a.id}','${a.name.replace(/'/g,"\\'")}');closeModal('viewAmbassadorModal')">📩 Send Message</button>
+        ${ambEarnings>0?`<button class="btn btn-success btn-sm btn-full" onclick="markAmbPaid('${a.id}',${ambEarnings})">💰 Pay R${ambEarnings.toFixed(2)}</button>`:""}
+      </div>
+      ${a.status==="probation"?`<button class="btn btn-success btn-full btn-sm" onclick="promoteAmbassador('${a.id}','${a.name.replace(/'/g,"\\'")}')">✅ Activate (End Probation)</button>`:""}
+    </div>`;
+  document.getElementById("viewAmbassadorModal").classList.add("active");
+};
+
+window.openMessageAmb=function(id,name){
+  currentAmbassadorId=id;
+  document.getElementById("messageAmbTarget").textContent=`To: ${name}`;
+  document.getElementById("ambMessageText").value="";
+  document.getElementById("messageAmbModal").classList.add("active");
+};
+
+window.sendAmbassadorMessage=async function(){
+  const text=document.getElementById("ambMessageText").value.trim();
+  if(!text)return toast("Please type a message","error");
+  const a=ambassadors.find(x=>x.id===currentAmbassadorId);if(!a)return;
+  try{
+    const userSnap=await getDocs(query(collection(db,"users"),where("email","==",a.email)));
+    if(!userSnap.empty){
+      const uid=userSnap.docs[0].data().uid;
+      const chatId=`admin_${uid}`;
+      const chatRef=doc(db,"chats",chatId);
+      const chatDoc=await getDoc(chatRef);
+      if(!chatDoc.exists()){
+        await setDoc(chatRef,{participants:[uid,"admin"],participantNames:{admin:"BookWorm Team 📢"},bookId:"admin",bookTitle:"BookWorm Team",isAdminChat:true,lastMessage:text,updatedAt:serverTimestamp()});
+      }else{await updateDoc(chatRef,{lastMessage:text,updatedAt:serverTimestamp()});}
+      await addDoc(collection(db,"chats",chatId,"messages"),{text,senderId:"admin",senderName:"BookWorm Team",createdAt:serverTimestamp()});
+      await addDoc(collection(db,"notifications"),{userId:uid,type:"admin_message",title:"📢 Message from BookWorm Team",message:text,read:false,createdAt:serverTimestamp()});
+    }
+    closeModal("messageAmbModal");
+    toast("Message sent!","success");
+  }catch(e){toast("Failed to send message","error");console.error(e);}
+};
+
+window.promoteAmbassador=async function(id,name){
+  if(!confirm(`Activate ${name} as full ambassador?`))return;
+  await updateDoc(doc(db,"ambassadors",id),{status:"active",activatedAt:serverTimestamp()});
+  toast(`${name} is now active!`,"success");
+  closeModal("viewAmbassadorModal");
+  await loadAmbassadors();
+};
+
+window.terminateAmbassador=async function(id,name){
+  if(!confirm(`End contract with ${name}?`))return;
+  await updateDoc(doc(db,"ambassadors",id),{status:"terminated",terminatedAt:serverTimestamp()});
+  toast(`${name}'s contract ended`,"warning");
+  await loadAmbassadors();
+};
+
+window.markAmbPaid=async function(id,amount){
+  if(!confirm(`Mark R${amount} as paid?`))return;
+  const a=ambassadors.find(x=>x.id===id);if(!a)return;
+  await updateDoc(doc(db,"ambassadors",id),{totalEarned:(a.totalEarned||0)+parseFloat(amount),lastPaidAt:serverTimestamp()});
+  await addDoc(collection(db,"ambassadorPayments"),{ambassadorId:id,ambassadorName:a.name,university:a.university,amount:parseFloat(amount),paidAt:serverTimestamp()});
+  closeModal("viewAmbassadorModal");
+  toast(`R${amount} marked paid to ${a.name}`,"success");
+  await loadAmbassadors();
+};
+
+window.exportAmbassadors=function(){
+  const rows=[["Name","Email","WhatsApp","Institution","Commission %","Status","Contract End","Total Earned"],...ambassadors.map(a=>{
+    const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+    return[a.name,a.email,a.whatsapp||"",a.university,a.commissionRate,a.status,end.toLocaleDateString("en-ZA"),a.totalEarned||0];
+  })];
+  dlCSV(rows,"bookworm_ambassadors.csv");
+};
+
+// ─── AI SUPPORT LOGIC ─────────────────────────────────────────────────────────
+let faqs=[];
+let escalationKeywords=["refund","fraud","scam","stolen","police","lawyer","legal","hacked","abuse","threat","report"];
+
+async function loadAISupport(){
+  try{
+    const snap=await getDocs(collection(db,"faqs"));
+    faqs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderFAQs();
+    const settings=await getDoc(doc(db,"settings","aiSupport"));
+    if(settings.exists()){
+      const sd=settings.data();
+      if(sd.keywords)escalationKeywords=sd.keywords;
+      if(sd.enabled===false)document.getElementById("togAISupport").classList.remove("on");
+      if(sd.autoRespond===false)document.getElementById("togAutoRespond").classList.remove("on");
+      if(sd.liveAgent===false)document.getElementById("togLiveAgent").classList.remove("on");
+    }
+    renderKeywords();
+    const supportChats=await getDocs(query(collection(db,"chats"),where("isSupport","==",true)));
+    document.getElementById("supportStats").innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <div><strong>Total Support Chats:</strong> ${supportChats.size}</div>
+        <div><strong>FAQ Entries:</strong> ${faqs.length}</div>
+        <div><strong>Escalation Keywords:</strong> ${escalationKeywords.length}</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--gray-400);">AI responds instantly to common questions. Escalation keywords alert your internal team.</div>
+      </div>`;
+  }catch(e){console.error(e);}
+}
+
+function renderFAQs(){
+  document.getElementById("faqTable").innerHTML=`
+    <thead><tr><th>Question / Trigger</th><th>AI Response Preview</th><th>Category</th><th></th></tr></thead>
+    <tbody>${faqs.length===0?`<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--gray-400);">No FAQs yet. Add responses to train the AI.</td></tr>`:
+    faqs.map(f=>`<tr>
+      <td style="font-weight:800;max-width:200px;">${f.question}</td>
+      <td style="font-size:12px;max-width:250px;color:var(--gray-500);">${(f.answer||"").substring(0,80)}...</td>
+      <td><span class="tag tag-active">${f.category||"general"}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteFAQ('${f.id}')">Delete</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+
+window.saveFAQ=async function(){
+  const question=document.getElementById("faqQuestion").value.trim();
+  const answer=document.getElementById("faqAnswer").value.trim();
+  const category=document.getElementById("faqCategory").value;
+  if(!question||!answer)return toast("Please fill in question and answer","error");
+  try{
+    await addDoc(collection(db,"faqs"),{question,answer,category,createdAt:serverTimestamp()});
+    closeModal("addFAQModal");
+    document.getElementById("faqQuestion").value="";
+    document.getElementById("faqAnswer").value="";
+    toast("FAQ added to AI knowledge base!","success");
+    await loadAISupport();
+  }catch(e){toast("Failed to save FAQ","error");}
+};
+
+window.deleteFAQ=async function(id){
+  if(!confirm("Delete this FAQ?"))return;
+  await deleteDoc(doc(db,"faqs",id));
+  faqs=faqs.filter(f=>f.id!==id);
+  renderFAQs();toast("FAQ deleted","success");
+};
+
+function renderKeywords(){
+  const container=document.getElementById("escalationKeywords");
+  if(!container)return;
+  container.innerHTML=escalationKeywords.map((k,i)=>`
+    <div style="display:flex;align-items:center;gap:4px;background:#fee2e2;color:#c1121f;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;">
+      ${k} <span style="cursor:pointer;margin-left:4px;" onclick="removeKeyword(${i})">✕</span>
+    </div>`).join("");
+}
+
+window.addKeyword=async function(){
+  const kw=document.getElementById("newKeyword").value.trim().toLowerCase();
+  if(!kw)return;
+  if(escalationKeywords.includes(kw))return toast("Already in list","warning");
+  escalationKeywords.push(kw);
+  document.getElementById("newKeyword").value="";
+  renderKeywords();
+  await setDoc(doc(db,"settings","aiSupport"),{keywords:escalationKeywords,updatedAt:serverTimestamp()},{merge:true});
+  toast("Keyword added","success");
+};
+
+window.removeKeyword=async function(i){
+  escalationKeywords.splice(i,1);
+  renderKeywords();
+  await setDoc(doc(db,"settings","aiSupport"),{keywords:escalationKeywords,updatedAt:serverTimestamp()},{merge:true});
+};
+
+window.saveAISettings=async function(){
+  await setDoc(doc(db,"settings","aiSupport"),{
+    enabled:document.getElementById("togAISupport").classList.contains("on"),
+    autoRespond:document.getElementById("togAutoRespond").classList.contains("on"),
+    liveAgent:document.getElementById("togLiveAgent").classList.contains("on"),
+    keywords:escalationKeywords,updatedAt:serverTimestamp()
+  });
+  toast("AI support settings saved","success");
+};
+
+// ─── APP FEEDBACK ─────────────────────────────────────────────────────────────
+async function loadAppFeedback(){
+  try{
+    const snap=await getDocs(query(collection(db,"appFeedback"),orderBy("createdAt","desc")));
+    const feedback=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const avg=feedback.length?feedback.reduce((s,f)=>s+(f.rating||0),0)/feedback.length:0;
+    document.getElementById("feedbackStats").innerHTML=`
+      <div class="stat-card green"><div class="lbl">Average Rating</div><div class="val">${avg.toFixed(1)} ⭐</div></div>
+      <div class="stat-card"><div class="lbl">Total Responses</div><div class="val">${feedback.length}</div></div>
+      <div class="stat-card blue"><div class="lbl">5-Star</div><div class="val">${feedback.filter(f=>f.rating===5).length}</div></div>
+      <div class="stat-card red"><div class="lbl">1-Star</div><div class="val">${feedback.filter(f=>f.rating===1).length}</div><div class="sub">Needs attention</div></div>`;
+    document.getElementById("feedbackTable").innerHTML=`
+      <thead><tr><th>User</th><th>Institution</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+      <tbody>${feedback.length===0?`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">No feedback yet.</td></tr>`:
+      feedback.map(f=>{const d=f.createdAt?.toDate?f.createdAt.toDate():new Date((f.createdAt?.seconds||0)*1000);
+        return`<tr>
+          <td style="font-weight:800;">${f.userName||"-"}</td>
+          <td style="font-size:12px;">${f.university||"-"}</td>
+          <td>${"★".repeat(f.rating||0)}${"☆".repeat(5-(f.rating||0))}</td>
+          <td style="font-size:12px;max-width:250px;">${f.comment||"-"}</td>
+          <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);}
+}
+
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
 </script>
