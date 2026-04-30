@@ -907,7 +907,7 @@ window.showPage=function(page,el){
   const pg=document.getElementById(`page-${page}`);
   pg.classList.add("active");pg.style.display="block";
   el.classList.add("active");
-  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:window.loadStatusMonitor};
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:loadStatusMonitor};
   fns[page]?.();
 };
 
@@ -2302,7 +2302,7 @@ window.saveFeatureStatus=async function(){
 
 // ─── STATUS MONITOR (inline view) ─────────────────────────────────────────────
 let monitorTimer=null;
-window.loadStatusMonitor=async function(){
+async function loadStatusMonitor(){
   try{
     const snap=await getDocs(collection(db,"systemStatus"));
     const features=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -2341,9 +2341,13 @@ window.loadStatusMonitor=async function(){
     const mt=document.getElementById("monitorTimestamp");
     if(mt)mt.textContent=`Last refreshed: ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})} · Auto-refreshes every 60s`;
     if(monitorTimer)clearTimeout(monitorTimer);
-    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(window.loadStatusMonitor,60000);}
-  }catch(e){console.error("Monitor error:",e);}
+    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(loadStatusMonitor,60000);}
+  }catch(e){
+    document.getElementById("monitorBanner").textContent="⚠️ Could not load status.";
+    console.error("Monitor error:",e);
+  }
 }
+window.loadStatusMonitor=loadStatusMonitor;
 
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
