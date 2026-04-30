@@ -163,6 +163,12 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         <div class="nav-item" onclick="showPage('ambassadors',this)"><span>🎓</span> Ambassadors</div>
         <div class="nav-item" onclick="showPage('aisupport',this)"><span>🤖</span> AI Support</div>
         <div class="nav-item" onclick="showPage('appfeedback',this)"><span>💬</span> App Feedback</div>
+        <div class="nav-item" onclick="showPage('escalation',this)"><span>🚨</span> Escalations <span class="nav-badge" id="escalationBadge" style="display:none;">0</span></div>
+        <div class="nav-item" onclick="showPage('flagged',this)"><span>🚩</span> Flagged Content <span class="nav-badge" id="flaggedBadge" style="display:none;">0</span></div>
+        <div class="nav-item" onclick="showPage('health',this)"><span>🩺</span> Platform Health</div>
+        <div class="nav-item" onclick="showPage('systemstatus',this)"><span>🟢</span> System Status</div>
+        <div class="nav-item" onclick="showPage('team',this)"><span>👤</span> Team Members</div>
+        <div class="nav-item" onclick="showPage('auditlog',this)"><span>📋</span> Audit Log</div>
         <div class="nav-item" onclick="showPage('settings',this)"><span>⚙️</span> Settings</div>
       </nav>
       <div class="sidebar-footer">
@@ -194,6 +200,12 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
           <div class="tab-item" onclick="setLTab('sold',this)">Sold</div>
           <div class="tab-item" onclick="setLTab('stale',this)">🚩 Stale 90+ days</div>
         </div>
+        <div style="background:var(--gray-100);border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:800;color:var(--gray-500);">BULK ACTIONS:</span>
+          <button class="btn btn-sm btn-warning" onclick="bulkNudgeStale()">📩 Nudge All Stale</button>
+          <button class="btn btn-sm btn-danger" onclick="bulkRemoveSold()">🗑️ Remove All Sold (90d+)</button>
+          <span id="bulkCount" style="font-size:11px;color:var(--gray-400);margin-left:auto;"></span>
+        </div>
         <div class="table-card">
           <div class="table-card-header"><h3 id="listingTabTitle">All Listings</h3><span id="listingCount" style="font-size:12px;color:var(--gray-400);"></span></div>
           <div style="overflow-x:auto;"><table class="admin-table" id="listingsTable"></table></div>
@@ -202,7 +214,17 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
 
       <!-- USERS -->
       <div id="page-users" class="page">
-        <div class="page-header"><div class="page-header-left"><h1>👥 Users</h1><p>All registered users.</p></div><input class="form-control" id="userSearch" placeholder="Search users..." style="width:200px;" oninput="renderUsers()"/></div>
+        <div class="page-header"><div class="page-header-left"><h1>👥 Users</h1><p>All registered users.</p></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-info btn-sm" onclick="openBulkComms()">📣 Bulk Message</button>
+            <input class="form-control" id="userSearch" placeholder="Search users..." style="width:200px;" oninput="renderUsers()"/>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setUserTab('all',this)">All</div>
+          <div class="tab-item" onclick="setUserTab('unverified',this)">⚠️ Unverified ID</div>
+          <div class="tab-item" onclick="setUserTab('suspended',this)">🔴 Suspended</div>
+        </div>
         <div class="table-card">
           <div class="table-card-header"><h3>Users</h3><span id="userCount" style="font-size:12px;color:var(--gray-400);"></span></div>
           <div style="overflow-x:auto;"><table class="admin-table" id="usersTable"></table></div>
@@ -249,6 +271,10 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
           <div class="tab-item active" onclick="setPTab('pending',this)">Pending</div>
           <div class="tab-item" onclick="setPTab('completed',this)">Completed</div>
           <div class="tab-item" onclick="setPTab('failed',this)">Failed</div>
+          <div class="tab-item" onclick="setPTab('refunds',this)">↩️ Refunds</div>
+        </div>
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:#9a3412;font-weight:700;">
+          ⚠️ Payouts over <strong>R500</strong> require approval from a second admin before processing. These are marked 🔒 Pending Approval.
         </div>
         <div class="table-card">
           <div class="table-card-header"><h3>Payouts</h3><button class="btn btn-sm btn-success" onclick="exportPayouts()">⬇️ Export CSV</button></div>
@@ -386,6 +412,113 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         <div class="table-card">
           <div class="table-card-header"><h3>All Feedback</h3></div>
           <div style="overflow-x:auto;"><table class="admin-table" id="feedbackTable"></table></div>
+        </div>
+      </div>
+
+      <!-- ESCALATION DASHBOARD -->
+      <div id="page-escalation" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🚨 Escalation Dashboard</h1><p>AI support chats flagged for human follow-up.</p></div><button class="btn btn-secondary btn-sm" onclick="loadEscalations()">🔄 Refresh</button></div>
+        <div class="stats-grid" id="escalationStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setEscTab('open',this)">🔴 Open</div>
+          <div class="tab-item" onclick="setEscTab('in_progress',this)">🟡 In Progress</div>
+          <div class="tab-item" onclick="setEscTab('resolved',this)">✅ Resolved</div>
+          <div class="tab-item" onclick="setEscTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Flagged Chats</h3><span id="escCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="escalationTable"></table></div>
+        </div>
+      </div>
+
+      <!-- TEAM MEMBERS -->
+      <div id="page-team" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1>👤 Team Members</h1><p>Internal staff with portal access.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('addTeamModal').classList.add('active')">+ Add Team Member</button>
+        </div>
+        <div class="stats-grid" id="teamStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Staff</h3><span id="teamCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="teamTable"></table></div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div id="page-auditlog" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>📋 Audit Log</h1><p>All admin and staff actions on the platform.</p></div><button class="btn btn-secondary btn-sm" onclick="loadAuditLog()">🔄 Refresh</button></div>
+        <div class="report-filters">
+          <div class="form-group"><label>Filter by action</label>
+            <select class="form-control" id="auditFilter" onchange="renderAuditLog()" style="width:200px;">
+              <option value="all">All Actions</option>
+              <option value="login">Logins</option>
+              <option value="listing">Listings</option>
+              <option value="transaction">Transactions</option>
+              <option value="dispute">Disputes</option>
+              <option value="payout">Payouts</option>
+              <option value="user">Users</option>
+              <option value="team">Team</option>
+              <option value="escalation">Escalations</option>
+              <option value="settings">Settings</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="exportAuditLog()">⬇️ Export CSV</button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Activity Log</h3><span id="auditCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="auditTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PLATFORM HEALTH -->
+      <div id="page-health" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🩺 Platform Health</h1><p>Growth trends, dropout funnel, and activity patterns.</p></div><button class="btn btn-secondary btn-sm" onclick="loadPlatformHealth()">🔄 Refresh</button></div>
+        <div class="stats-grid" id="healthStats"></div>
+        <div class="two-col" style="margin-bottom:20px;">
+          <div class="table-card"><div class="table-card-header"><h3>📈 Growth (Last 6 Months)</h3></div><div id="growthChart" style="padding:16px;"></div></div>
+          <div class="table-card"><div class="table-card-header"><h3>⏰ Activity Heatmap (by Hour)</h3></div><div id="activityHeatmap" style="padding:16px;"></div></div>
+        </div>
+        <div class="table-card" style="margin-bottom:20px;">
+          <div class="table-card-header"><h3>🕳️ Dropout Funnel — Listings with Views but No Sales</h3><span id="dropoutCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="dropoutTable"></table></div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>🏆 Seller Performance</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="sellerPerfTable"></table></div>
+        </div>
+      </div>
+
+      <!-- FLAGGED CONTENT -->
+      <div id="page-flagged" class="page">
+        <div class="page-header"><div class="page-header-left"><h1>🚩 Flagged Content</h1><p>User-reported listings and accounts awaiting review.</p></div><button class="btn btn-secondary btn-sm" onclick="loadFlagged()">🔄 Refresh</button></div>
+        <div class="stats-grid" id="flaggedStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setFlagTab('open',this)">🔴 Pending Review</div>
+          <div class="tab-item" onclick="setFlagTab('reviewed',this)">✅ Reviewed</div>
+          <div class="tab-item" onclick="setFlagTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Flagged Items</h3><span id="flaggedCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="flaggedTable"></table></div>
+        </div>
+      </div>
+
+      <!-- SYSTEM STATUS -->
+      <div id="page-systemstatus" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1>🟢 System Status</h1><p>Live status of all BookWorm features. Updates reflect on the public status page.</p></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadSystemStatus()">🔄 Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('addFeatureModal').classList.add('active')">+ Add Feature</button>
+          </div>
+        </div>
+        <div style="background:#e8f4fd;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#1a6fa8;font-weight:700;">
+          🔗 Share the public status page with your team: <strong>bookworm_status.html</strong> — it updates automatically from this panel.
+        </div>
+        <div class="stats-grid" id="statusSummary"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Feature Status</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="statusTable"></table></div>
         </div>
       </div>
 
@@ -530,6 +663,100 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
   </div>
 </div>
 
+<!-- BULK COMMS MODAL -->
+<div class="modal-overlay" id="bulkCommsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('bulkCommsModal')">✕</button>
+    <h3>📣 Bulk Message to Users</h3>
+    <div class="form-group"><label>Target Audience</label>
+      <select class="form-control" id="bulkTarget">
+        <option value="all">All Users</option>
+        <option value="sellers">Sellers with Active Listings</option>
+        <option value="buyers">Users who've bought</option>
+        <option value="unverified">Unverified Users</option>
+        <option value="suspended">Suspended Users</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notification Title</label><input class="form-control" id="bulkTitle" placeholder="e.g. Important platform update"/></div>
+    <div class="form-group"><label>Message</label><textarea class="form-control" id="bulkMessage" placeholder="Write your message..." style="min-height:100px;"></textarea></div>
+    <div id="bulkPreview" style="font-size:12px;color:var(--gray-400);margin-bottom:12px;"></div>
+    <button class="btn btn-primary btn-full" onclick="sendBulkMessage()">📣 Send to All</button>
+  </div>
+</div>
+
+<!-- ADD FEATURE STATUS MODAL -->
+<div class="modal-overlay" id="addFeatureModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addFeatureModal')">✕</button>
+    <h3>➕ Add Feature to Status Board</h3>
+    <div class="form-group"><label>Feature Name</label><input class="form-control" id="featName" placeholder="e.g. Pargo Courier Integration"/></div>
+    <div class="form-group"><label>Category</label>
+      <select class="form-control" id="featCategory">
+        <option value="payments">💳 Payments & Escrow</option>
+        <option value="auth">🔐 Authentication</option>
+        <option value="listings">📚 Listings</option>
+        <option value="delivery">🚚 Delivery</option>
+        <option value="chat">💬 Chat & Support</option>
+        <option value="ai">🤖 AI Features</option>
+        <option value="notifications">🔔 Notifications</option>
+        <option value="other">⚙️ Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select class="form-control" id="featStatus">
+        <option value="live">✅ Live</option>
+        <option value="issue">⚠️ Issue</option>
+        <option value="down">🔴 Down</option>
+        <option value="maintenance">🔧 Maintenance</option>
+        <option value="coming_soon">🔜 Coming Soon</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes (optional)</label><input class="form-control" id="featNotes" placeholder="e.g. API key expired, investigating..."/></div>
+    <button class="btn btn-primary btn-full" onclick="saveFeatureStatus()">Save</button>
+  </div>
+</div>
+
+<!-- FLAGGED REVIEW MODAL -->
+<div class="modal-overlay" id="flaggedModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('flaggedModal')">✕</button>
+    <h3>🚩 Review Flagged Item</h3>
+    <div id="flaggedModalContent"></div>
+  </div>
+</div>
+
+<!-- ADD TEAM MEMBER MODAL -->
+<div class="modal-overlay" id="addTeamModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addTeamModal')">✕</button>
+    <h3>👤 Add Team Member</h3>
+    <p style="font-size:12px;color:var(--gray-400);margin-bottom:16px;">This creates a Firebase account for the staff member. They can sign in with the email and password you set here.</p>
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="tmName" placeholder="e.g. Lerato Dlamini"/></div>
+    <div class="form-group"><label>Email Address</label><input class="form-control" id="tmEmail" type="email" placeholder="lerato@africakai.co.za"/></div>
+    <div class="form-group"><label>Role</label>
+      <select class="form-control" id="tmRole">
+        <option value="support">🛟 Support Agent — Chats & Support only</option>
+        <option value="listings">📚 Listings Manager — Listings & Wanted</option>
+        <option value="finance">💰 Finance — Transactions, Payouts & Reports</option>
+        <option value="operations">⚙️ Operations — All except Team & Settings</option>
+        <option value="admin">👑 Full Admin — Everything</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Temporary Password</label><input class="form-control" id="tmPassword" type="password" placeholder="Min 8 characters"/></div>
+    <div class="form-group"><label>Notes (optional)</label><input class="form-control" id="tmNotes" placeholder="e.g. Part-time, Mon–Wed"/></div>
+    <button class="btn btn-primary btn-full" onclick="addTeamMember()">Add Team Member</button>
+  </div>
+</div>
+
+<!-- ESCALATION VIEW MODAL -->
+<div class="modal-overlay" id="escalationModal">
+  <div class="modal" style="max-width:580px;">
+    <button class="modal-close" onclick="closeModal('escalationModal')">✕</button>
+    <h3 id="escModalTitle">🚨 Escalated Chat</h3>
+    <div id="escModalContent"></div>
+  </div>
+</div>
+
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -540,6 +767,29 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const ADMIN_EMAIL="madembemaano@africakai.co.za";
+let currentUserRole="admin";
+let currentUserName="Admin";
+let auditLogData=[];
+let escalationsData=[];
+let escTab="open";
+let teamMembers=[];
+let userTab="all";
+let flagTab="open";
+let flaggedData=[];
+let systemFeatures=[];
+
+// ─── AUDIT LOG HELPER ─────────────────────────────────────────────────────────
+async function logAction(action,category,detail){
+  try{
+    await addDoc(collection(db,"auditLog"),{
+      action,category,detail,
+      performedBy:currentUserName,
+      performedByEmail:auth.currentUser?.email||"unknown",
+      role:currentUserRole,
+      timestamp:serverTimestamp()
+    });
+  }catch(e){console.warn("Audit log failed:",e);}
+}
 
 let D={users:[],books:[],transactions:[],disputes:[],payouts:[],promotions:[],wanted:[]};
 let commissionRate=5,deliveryFee=79;
@@ -547,21 +797,54 @@ let lTab="all",txTab="all",delTab="all",poTab="pending";
 let supChatId=null,unsubSup=null,unsubView=null;
 
 onAuthStateChanged(auth,async u=>{
-  if(u&&u.email===ADMIN_EMAIL){
+  if(u){
+    // Check if super admin
+    if(u.email===ADMIN_EMAIL){
+      currentUserRole="admin";currentUserName="Maano";
+    } else {
+      // Check if registered team member
+      const tmSnap=await getDocs(query(collection(db,"teamMembers"),where("email","==",u.email),where("active","==",true)));
+      if(!tmSnap.empty){
+        const tm=tmSnap.docs[0].data();
+        currentUserRole=tm.role;
+        currentUserName=tm.name;
+      } else {
+        await signOut(auth);
+        toast("Access denied. Authorised personnel only.","error");
+        return;
+      }
+    }
     document.getElementById("adminLogin").style.display="none";
     document.getElementById("adminApp").style.display="block";
-    document.getElementById("adminEmailDisplay").textContent=u.email;
+    document.getElementById("adminEmailDisplay").textContent=`${currentUserName} (${currentUserRole})`;
     document.getElementById("dashDate").textContent=new Date().toLocaleDateString("en-ZA",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    applyRoleRestrictions(currentUserRole);
+    await logAction("Signed in","login",`${currentUserName} logged into admin portal`);
     await loadAll();
     await loadSettings();
-  }else if(u){
-    await signOut(auth);
-    toast("Access denied. Admin only.","error");
+    await checkEscalationBadge();
   }else{
     document.getElementById("adminLogin").style.display="flex";
     document.getElementById("adminApp").style.display="none";
   }
 });
+
+function applyRoleRestrictions(role){
+  const roleMap={
+    support:["dashboard","support","chats","escalation"],
+    listings:["dashboard","listings","digital","wanted","promotions","flagged"],
+    finance:["dashboard","transactions","payouts","reports"],
+    operations:["dashboard","listings","users","transactions","deliveries","payouts","disputes","support","chats","digital","promotions","wanted","reports","ambassadors","aisupport","appfeedback","escalation","flagged","health"],
+    admin:null
+  };
+  if(role==="admin")return;
+  const allowed=roleMap[role]||["dashboard"];
+  document.querySelectorAll(".nav-item").forEach(item=>{
+    const onclick=item.getAttribute("onclick")||"";
+    const match=onclick.match(/showPage\('(\w+)'/);
+    if(match&&!allowed.includes(match[1])){item.style.display="none";}
+  });
+}
 
 window.adminLogin=async function(){
   const e=document.getElementById("loginEmail").value.trim();
@@ -570,7 +853,7 @@ window.adminLogin=async function(){
   try{await signInWithEmailAndPassword(auth,e,p);}
   catch(e){toast("Invalid email or password","error");}
 };
-window.adminLogout=async function(){await signOut(auth);};
+window.adminLogout=async function(){await logAction("Signed out","login",`${currentUserName} signed out`);await signOut(auth);};
 
 window.loadAll=async function(){
   try{
@@ -607,7 +890,7 @@ window.showPage=function(page,el){
   const pg=document.getElementById(`page-${page}`);
   pg.classList.add("active");pg.style.display="block";
   el.classList.add("active");
-  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback};
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged};
   fns[page]?.();
 };
 
@@ -670,7 +953,9 @@ function renderListings(){
 }
 window.delBook=async function(id){
   if(!confirm("Remove this listing?"))return;
+  const b=D.books.find(x=>x.id===id);
   await deleteDoc(doc(db,"books",id));
+  await logAction("Removed listing","listing",`Removed "${b?.title||id}"`);
   D.books=D.books.filter(b=>b.id!==id);
   renderListings();renderDashboard();toast("Listing removed","success");
 };
@@ -681,7 +966,9 @@ window.nudgeSeller=async function(bid,sid){
 
 function renderUsers(){
   const s=(document.getElementById("userSearch")?.value||"").toLowerCase();
-  const users=D.users.filter(u=>!s||u.name?.toLowerCase().includes(s)||u.email?.toLowerCase().includes(s));
+  let users=D.users.filter(u=>!s||u.name?.toLowerCase().includes(s)||u.email?.toLowerCase().includes(s));
+  if(userTab==="unverified")users=users.filter(u=>!u.idVerified);
+  else if(userTab==="suspended")users=users.filter(u=>u.suspended);
   document.getElementById("userCount").textContent=`${users.length} users`;
   document.getElementById("usersTable").innerHTML=`
     <thead><tr><th>Name</th><th>Type</th><th>Email</th><th>WhatsApp</th><th>Institution</th><th>Rating</th><th>Actions</th></tr></thead>
@@ -694,6 +981,7 @@ function renderUsers(){
       <td style="font-size:12px;">${u.rating?`${"★".repeat(Math.round(u.rating))} (${u.ratingCount||0})`:"-"}</td>
       <td style="display:flex;gap:6px;">
         <button class="btn btn-sm btn-info" onclick="viewUser('${u.id}')">View</button>
+        ${!u.idVerified?`<button class="btn btn-sm btn-success" onclick="verifyUser('${u.id}','${(u.name||"User").replace(/'/g,"\\'")}')">✅ Verify</button>`:`<span style="font-size:11px;color:var(--success);font-weight:800;">✅ Verified</span>`}
         <button class="btn btn-sm btn-danger" onclick="suspendUser('${u.id}','${(u.name||"User").replace(/'/g,"\\'")}')">Suspend</button>
       </td>
     </tr>`).join("")}</tbody>`;
@@ -723,6 +1011,7 @@ window.viewUser=function(id){
 window.suspendUser=async function(id,name){
   if(!confirm(`Suspend ${name}? They will not be able to log in.`))return;
   await updateDoc(doc(db,"users",id),{suspended:true,suspendedAt:serverTimestamp()});
+  await logAction("Suspended user","user",`Suspended ${name}`);
   toast(`${name} suspended`,"warning");
   await loadAll();renderUsers();
 };
@@ -771,11 +1060,13 @@ window.viewTx=function(id){
 };
 window.adminCompleteTx=async function(id){
   await updateDoc(doc(db,"transactions",id),{status:"completed",completedAt:serverTimestamp(),adminOverride:true});
+  await logAction("Completed transaction","transaction",`Admin marked transaction ${id} complete`);
   closeModal("txModal");await loadAll();renderTransactions();toast("Marked complete","success");
 };
 window.adminCancelTx=async function(id){
   if(!confirm("Cancel this transaction?"))return;
   await updateDoc(doc(db,"transactions",id),{status:"cancelled",cancelledAt:serverTimestamp()});
+  await logAction("Cancelled transaction","transaction",`Cancelled transaction ${id}`);
   closeModal("txModal");await loadAll();renderTransactions();toast("Transaction cancelled","warning");
 };
 
@@ -837,8 +1128,18 @@ function renderPayouts(){
       </td>
     </tr>`).join("")}</tbody>`;
 }
-window.markPaid=async function(id){await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp()});await loadAll();renderPayouts();toast("Payout marked as completed","success");};
-window.markFailed=async function(id){await updateDoc(doc(db,"payouts",id),{status:"failed",failedAt:serverTimestamp()});await loadAll();renderPayouts();toast("Marked as failed","warning");};
+window.markPaid=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp()});
+  await logAction("Payout completed","payout",`Paid R${p?.amount||"?"} to ${p?.sellerName||id}`);
+  await loadAll();renderPayouts();toast("Payout marked as completed","success");
+};
+window.markFailed=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  await updateDoc(doc(db,"payouts",id),{status:"failed",failedAt:serverTimestamp()});
+  await logAction("Payout failed","payout",`Marked payout to ${p?.sellerName||id} as failed`);
+  await loadAll();renderPayouts();toast("Marked as failed","warning");
+};
 window.exportPayouts=function(){
   const rows=[["Seller","Amount","Bank","Account Holder","Account Number","Branch Code","Status"],...D.payouts.map(p=>[p.sellerName,p.amount,p.banking?.bankName,p.banking?.accountHolder,p.banking?.accountNumber,p.banking?.branchCode,p.status])];
   dlCSV(rows,"bookworm_payouts.csv");
@@ -867,6 +1168,7 @@ window.resolveDispute=async function(did,tid,winner){
   const outcome=winner==="seller"?"completed":"refunded";
   await updateDoc(doc(db,"disputes",did),{status:"resolved",resolvedAt:serverTimestamp(),winner});
   await updateDoc(doc(db,"transactions",tid),{status:outcome,resolvedAt:serverTimestamp()});
+  await logAction("Resolved dispute","dispute",`Dispute ${did} resolved — ${winner} wins`);
   await loadAll();renderDisputes();renderDashboard();
   toast(`Dispute resolved — ${winner} wins`,"success");
 };
@@ -1392,6 +1694,594 @@ async function loadAppFeedback(){
         </tr>`;}).join("")}</tbody>`;
   }catch(e){console.error(e);}
 }
+
+// ─── TEAM MEMBERS ─────────────────────────────────────────────────────────────
+async function loadTeamMembers(){
+  try{
+    const snap=await getDocs(collection(db,"teamMembers"));
+    teamMembers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const active=teamMembers.filter(t=>t.active!==false);
+    document.getElementById("teamCount").textContent=`${active.length} active staff`;
+    document.getElementById("teamStats").innerHTML=`
+      <div class="stat-card blue"><div class="lbl">Total Staff</div><div class="val">${active.length}</div></div>
+      <div class="stat-card"><div class="lbl">Support Agents</div><div class="val">${active.filter(t=>t.role==="support").length}</div></div>
+      <div class="stat-card green"><div class="lbl">Finance</div><div class="val">${active.filter(t=>t.role==="finance").length}</div></div>
+      <div class="stat-card orange"><div class="lbl">Operations</div><div class="val">${active.filter(t=>t.role==="operations"||t.role==="listings").length}</div></div>`;
+    const roleLabels={support:"🛟 Support",listings:"📚 Listings",finance:"💰 Finance",operations:"⚙️ Operations",admin:"👑 Admin"};
+    document.getElementById("teamTable").innerHTML=`
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Notes</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${teamMembers.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No team members yet. Add your first staff member.</td></tr>`:
+      teamMembers.map(t=>{
+        const d=t.createdAt?.toDate?t.createdAt.toDate():new Date((t.createdAt?.seconds||0)*1000);
+        const isActive=t.active!==false;
+        return`<tr>
+          <td style="font-weight:800;">${t.name}</td>
+          <td style="font-size:12px;">${t.email}</td>
+          <td><span class="tag tag-active">${roleLabels[t.role]||t.role}</span></td>
+          <td style="font-size:12px;color:var(--gray-400);">${t.notes||"-"}</td>
+          <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+          <td><span class="tag ${isActive?"tag-active":"tag-cancelled"}">${isActive?"Active":"Deactivated"}</span></td>
+          <td style="display:flex;gap:6px;">
+            ${isActive?`<button class="btn btn-sm btn-danger" onclick="deactivateTeamMember('${t.id}','${t.name.replace(/'/g,"\\'")}')">Deactivate</button>`:`<button class="btn btn-sm btn-success" onclick="reactivateTeamMember('${t.id}','${t.name.replace(/'/g,"\\'")}')">Reactivate</button>`}
+          </td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);toast("Failed to load team","error");}
+}
+
+window.addTeamMember=async function(){
+  const name=document.getElementById("tmName").value.trim();
+  const email=document.getElementById("tmEmail").value.trim();
+  const role=document.getElementById("tmRole").value;
+  const password=document.getElementById("tmPassword").value;
+  const notes=document.getElementById("tmNotes").value.trim();
+  if(!name||!email||!password)return toast("Please fill in name, email and password","error");
+  if(password.length<8)return toast("Password must be at least 8 characters","error");
+  if(email===ADMIN_EMAIL)return toast("Cannot add the super admin account here","error");
+  const existing=teamMembers.find(t=>t.email===email&&t.active!==false);
+  if(existing)return toast("This email is already an active team member","error");
+  try{
+    // Save to Firestore — Firebase Auth account must be created manually in Firebase Console
+    await addDoc(collection(db,"teamMembers"),{name,email,role,notes,active:true,createdAt:serverTimestamp(),createdBy:currentUserName});
+    await logAction("Added team member","team",`Added ${name} (${role}) — ${email}`);
+    // Store temp password hint (not actual auth — admin must create Firebase Auth account)
+    closeModal("addTeamModal");
+    ["tmName","tmEmail","tmPassword","tmNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    toast(`${name} added! ⚠️ Remember to create their Firebase Auth account.`,"success");
+    await loadTeamMembers();
+    // Show reminder
+    setTimeout(()=>{
+      alert(`✅ ${name} added to TeamMembers.\n\n⚠️ IMPORTANT: You still need to manually create their Firebase Authentication account:\n\n1. Go to console.firebase.google.com\n2. Open bookworm-b9ba6 → Authentication → Users\n3. Click "Add user"\n4. Email: ${email}\n5. Set their password\n\nWithout this step, they cannot sign in.`);
+    },500);
+  }catch(e){toast("Failed to add team member","error");console.error(e);}
+};
+
+window.deactivateTeamMember=async function(id,name){
+  if(!confirm(`Deactivate ${name}? They will no longer be able to access the portal.`))return;
+  await updateDoc(doc(db,"teamMembers",id),{active:false,deactivatedAt:serverTimestamp()});
+  await logAction("Deactivated team member","team",`Deactivated ${name}`);
+  toast(`${name} deactivated`,"warning");
+  await loadTeamMembers();
+};
+
+window.reactivateTeamMember=async function(id,name){
+  if(!confirm(`Reactivate ${name}?`))return;
+  await updateDoc(doc(db,"teamMembers",id),{active:true,reactivatedAt:serverTimestamp()});
+  await logAction("Reactivated team member","team",`Reactivated ${name}`);
+  toast(`${name} reactivated`,"success");
+  await loadTeamMembers();
+};
+
+// ─── ESCALATION DASHBOARD ──────────────────────────────────────────────────────
+async function checkEscalationBadge(){
+  try{
+    const snap=await getDocs(query(collection(db,"escalations"),where("status","==","open")));
+    const badge=document.getElementById("escalationBadge");
+    if(snap.size>0){badge.textContent=snap.size;badge.style.display="inline";}
+    else{badge.style.display="none";}
+  }catch(e){}
+}
+
+window.setEscTab=function(tab,el){
+  escTab=tab;
+  document.querySelectorAll("#page-escalation .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderEscalations();
+};
+
+async function loadEscalations(){
+  try{
+    const snap=await getDocs(query(collection(db,"escalations"),orderBy("createdAt","desc")));
+    escalationsData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const open=escalationsData.filter(e=>e.status==="open").length;
+    const inProg=escalationsData.filter(e=>e.status==="in_progress").length;
+    const resolved=escalationsData.filter(e=>e.status==="resolved").length;
+    document.getElementById("escalationStats").innerHTML=`
+      <div class="stat-card red"><div class="lbl">Open</div><div class="val">${open}</div><div class="sub">Needs attention</div></div>
+      <div class="stat-card orange"><div class="lbl">In Progress</div><div class="val">${inProg}</div></div>
+      <div class="stat-card green"><div class="lbl">Resolved</div><div class="val">${resolved}</div></div>
+      <div class="stat-card"><div class="lbl">Total</div><div class="val">${escalationsData.length}</div></div>`;
+    renderEscalations();
+    await checkEscalationBadge();
+  }catch(e){console.error(e);}
+}
+
+function renderEscalations(){
+  const filtered=escTab==="all"?escalationsData:escalationsData.filter(e=>e.status===escTab);
+  document.getElementById("escCount").textContent=`${filtered.length} chats`;
+  document.getElementById("escalationTable").innerHTML=`
+    <thead><tr><th>User</th><th>Trigger Keyword</th><th>Chat Preview</th><th>Flagged</th><th>Status</th><th>Assigned To</th><th>Actions</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No ${escTab==="all"?"":escTab} escalations.</td></tr>`:
+    filtered.map(e=>{
+      const d=e.createdAt?.toDate?e.createdAt.toDate():new Date((e.createdAt?.seconds||0)*1000);
+      return`<tr>
+        <td style="font-weight:800;">${e.userName||"-"}</td>
+        <td><span class="tag tag-open">${e.triggerKeyword||"-"}</span></td>
+        <td style="font-size:12px;max-width:200px;color:var(--gray-500);">${(e.messagePreview||"").substring(0,80)}${(e.messagePreview||"").length>80?"...":""}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag tag-${e.status==="open"?"open":e.status==="in_progress"?"pending":"resolved"}">${e.status==="open"?"🔴 Open":e.status==="in_progress"?"🟡 In Progress":"✅ Resolved"}</span></td>
+        <td style="font-size:12px;">${e.assignedTo||"<span style='color:var(--gray-400);'>Unassigned</span>"}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-info" onclick="viewEscalation('${e.id}')">View</button>
+          ${e.status==="open"?`<button class="btn btn-sm btn-warning" onclick="claimEscalation('${e.id}')">Claim</button>`:""}
+          ${e.status!=="resolved"?`<button class="btn btn-sm btn-success" onclick="resolveEscalation('${e.id}')">Resolve</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.viewEscalation=async function(id){
+  const e=escalationsData.find(x=>x.id===id);if(!e)return;
+  document.getElementById("escModalTitle").textContent=`🚨 Escalation — ${e.userName||"User"}`;
+  document.getElementById("escModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>User:</strong> ${e.userName||"-"}</div>
+      <div><strong>Trigger Keyword:</strong> <span class="tag tag-open">${e.triggerKeyword||"-"}</span></div>
+      <div><strong>Status:</strong> <span class="tag tag-${e.status==="open"?"open":e.status==="in_progress"?"pending":"resolved"}">${e.status}</span></div>
+      <div><strong>Assigned To:</strong> ${e.assignedTo||"Unassigned"}</div>
+      ${e.messagePreview?`<div style="background:var(--gray-100);border-radius:8px;padding:12px;"><strong>Message that triggered escalation:</strong><br/><span style="font-style:italic;color:var(--gray-500);">"${e.messagePreview}"</span></div>`:""}
+      ${e.notes?`<div><strong>Notes:</strong> ${e.notes}</div>`:""}
+      <div class="form-group" style="margin-top:8px;"><label>Add Note</label><textarea class="form-control" id="escNote" placeholder="Add a note about this escalation..." style="min-height:80px;"></textarea></div>
+      <div style="display:flex;gap:8px;">
+        ${e.status!=="in_progress"?`<button class="btn btn-warning btn-sm" onclick="claimEscalation('${e.id}');closeModal('escalationModal')">Claim</button>`:""}
+        ${e.status!=="resolved"?`<button class="btn btn-success btn-sm" onclick="resolveEscalation('${e.id}');closeModal('escalationModal')">✅ Resolve</button>`:""}
+        <button class="btn btn-secondary btn-sm" onclick="saveEscNote('${e.id}')">Save Note</button>
+      </div>
+    </div>`;
+  document.getElementById("escalationModal").classList.add("active");
+};
+
+window.claimEscalation=async function(id){
+  await updateDoc(doc(db,"escalations",id),{status:"in_progress",assignedTo:currentUserName,claimedAt:serverTimestamp()});
+  await logAction("Claimed escalation","escalation",`${currentUserName} claimed escalation ${id}`);
+  toast("Escalation claimed","success");
+  await loadEscalations();
+};
+
+window.resolveEscalation=async function(id){
+  const note=document.getElementById("escNote")?.value||"";
+  await updateDoc(doc(db,"escalations",id),{status:"resolved",resolvedBy:currentUserName,resolvedAt:serverTimestamp(),...(note?{resolutionNote:note}:{})});
+  await logAction("Resolved escalation","escalation",`${currentUserName} resolved escalation ${id}`);
+  toast("Escalation resolved","success");
+  await loadEscalations();
+  await checkEscalationBadge();
+};
+
+window.saveEscNote=async function(id){
+  const note=document.getElementById("escNote")?.value?.trim();
+  if(!note)return toast("Please write a note first","warning");
+  await updateDoc(doc(db,"escalations",id),{notes:note,noteBy:currentUserName,noteAt:serverTimestamp()});
+  toast("Note saved","success");
+};
+
+// ─── AUDIT LOG ────────────────────────────────────────────────────────────────
+async function loadAuditLog(){
+  try{
+    const snap=await getDocs(query(collection(db,"auditLog"),orderBy("timestamp","desc")));
+    auditLogData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAuditLog();
+  }catch(e){console.error(e);}
+}
+
+function renderAuditLog(){
+  const filter=document.getElementById("auditFilter")?.value||"all";
+  const filtered=filter==="all"?auditLogData:auditLogData.filter(a=>a.category===filter);
+  document.getElementById("auditCount").textContent=`${filtered.length} entries`;
+  const catColors={login:"tag-active",listing:"tag-pending",transaction:"tag-sold",dispute:"tag-disputed",payout:"tag-completed",user:"tag-open",team:"tag-featured",escalation:"tag-open",settings:"tag-cancelled"};
+  document.getElementById("auditTable").innerHTML=`
+    <thead><tr><th>Date & Time</th><th>Staff Member</th><th>Role</th><th>Category</th><th>Action</th><th>Detail</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No audit entries yet.</td></tr>`:
+    filtered.map(a=>{
+      const d=a.timestamp?.toDate?a.timestamp.toDate():new Date((a.timestamp?.seconds||0)*1000);
+      return`<tr>
+        <td style="font-size:12px;white-space:nowrap;">${d.toLocaleDateString("en-ZA")} ${d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</td>
+        <td style="font-weight:800;">${a.performedBy||"-"}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${a.role||"-"}</td>
+        <td><span class="tag ${catColors[a.category]||"tag-cancelled"}">${a.category||"-"}</span></td>
+        <td style="font-size:12px;font-weight:700;">${a.action||"-"}</td>
+        <td style="font-size:12px;color:var(--gray-500);max-width:250px;">${a.detail||"-"}</td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.exportAuditLog=function(){
+  const rows=[["Date","Time","Staff Member","Role","Category","Action","Detail"],...auditLogData.map(a=>{
+    const d=a.timestamp?.toDate?a.timestamp.toDate():new Date((a.timestamp?.seconds||0)*1000);
+    return[d.toLocaleDateString("en-ZA"),d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),a.performedBy,a.role,a.category,a.action,a.detail];
+  })];
+  dlCSV(rows,"bookworm_audit_log.csv");
+};
+
+// ─── USER TAB + VERIFY ────────────────────────────────────────────────────────
+window.setUserTab=function(tab,el){userTab=tab;document.querySelectorAll("#page-users .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderUsers();};
+window.verifyUser=async function(id,name){
+  if(!confirm(`Mark ${name} as ID-verified?`))return;
+  await updateDoc(doc(db,"users",id),{idVerified:true,verifiedAt:serverTimestamp(),verifiedBy:currentUserName});
+  await logAction("Verified user ID","user",`Verified ID for ${name}`);
+  toast(`${name} verified`,"success");
+  await loadAll();renderUsers();
+};
+
+// ─── BULK LISTING ACTIONS ─────────────────────────────────────────────────────
+window.bulkNudgeStale=async function(){
+  const now=new Date(),d90=new Date(now-90*864e5);
+  const stale=D.books.filter(b=>b.status==="available"&&ts(b.createdAt)<d90);
+  if(!stale.length)return toast("No stale listings found","warning");
+  if(!confirm(`Nudge ${stale.length} sellers with stale listings?`))return;
+  let count=0;
+  for(const b of stale){
+    await addDoc(collection(db,"notifications"),{userId:b.sellerId,type:"stale_listing",bookId:b.id,message:"Your listing has been on BookWorm for 90+ days. Consider adjusting your price or updating your photos to attract buyers.",createdAt:serverTimestamp(),read:false});
+    count++;
+  }
+  await logAction("Bulk nudge","listing",`Nudged ${count} sellers with stale listings`);
+  toast(`${count} sellers nudged`,"success");
+};
+
+window.bulkRemoveSold=async function(){
+  const now=new Date(),d90=new Date(now-90*864e5);
+  const old=D.books.filter(b=>b.status==="sold"&&ts(b.createdAt)<d90);
+  if(!old.length)return toast("No old sold listings to remove","warning");
+  if(!confirm(`Remove ${old.length} sold listings older than 90 days?`))return;
+  for(const b of old)await deleteDoc(doc(db,"books",b.id));
+  await logAction("Bulk remove sold","listing",`Removed ${old.length} sold listings 90d+`);
+  await loadAll();renderListings();toast(`${old.length} listings removed`,"success");
+};
+
+// ─── BULK COMMUNICATIONS ──────────────────────────────────────────────────────
+window.openBulkComms=function(){
+  document.getElementById("bulkCommsModal").classList.add("active");
+  updateBulkPreview();
+};
+window.updateBulkPreview=function(){
+  const target=document.getElementById("bulkTarget")?.value||"all";
+  const labels={all:"All users",sellers:"Sellers with active listings",buyers:"Users who've bought",unverified:"Unverified users",suspended:"Suspended users"};
+  document.getElementById("bulkPreview").textContent=`Recipients: ${labels[target]||target}`;
+};
+window.sendBulkMessage=async function(){
+  const title=document.getElementById("bulkTitle").value.trim();
+  const msg=document.getElementById("bulkMessage").value.trim();
+  const target=document.getElementById("bulkTarget").value;
+  if(!title||!msg)return toast("Please fill in title and message","error");
+  let recipients=D.users;
+  if(target==="sellers")recipients=D.users.filter(u=>D.books.some(b=>b.sellerId===u.id||b.sellerId===u.uid));
+  else if(target==="buyers")recipients=D.users.filter(u=>D.transactions.some(t=>t.buyerId===u.id||t.buyerId===u.uid));
+  else if(target==="unverified")recipients=D.users.filter(u=>!u.idVerified);
+  else if(target==="suspended")recipients=D.users.filter(u=>u.suspended);
+  if(!recipients.length)return toast("No recipients found for this target","warning");
+  if(!confirm(`Send to ${recipients.length} users?`))return;
+  let sent=0;
+  for(const u of recipients){
+    const uid=u.uid||u.id;
+    await addDoc(collection(db,"notifications"),{userId:uid,type:"broadcast",title,message:msg,read:false,createdAt:serverTimestamp()});
+    sent++;
+  }
+  await logAction("Bulk message sent","user",`Sent "${title}" to ${sent} ${target} users`);
+  closeModal("bulkCommsModal");
+  toast(`Message sent to ${sent} users`,"success");
+};
+
+// ─── REFUNDS ──────────────────────────────────────────────────────────────────
+window.renderRefunds=function(){
+  const refunds=D.transactions.filter(t=>t.status==="refunded"||t.refundRequested);
+  document.getElementById("payoutsTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Amount</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${refunds.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No refunds on record.</td></tr>`:
+    refunds.map(t=>`<tr>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-weight:900;color:var(--error);">R${t.amount||0}</td>
+      <td style="font-size:12px;">${t.refundReason||"Not specified"}</td>
+      <td><span class="tag tag-${t.status==="refunded"?"completed":"pending"}">${t.status==="refunded"?"Refunded":"Pending"}</span></td>
+      <td>${t.status!=="refunded"?`<button class="btn btn-sm btn-success" onclick="processRefund('${t.id}')">Process Refund</button>`:"<span style='font-size:11px;color:var(--gray-400);'>Done</span>"}</td>
+    </tr>`).join("")}</tbody>`;
+};
+window.processRefund=async function(id){
+  if(!confirm("Process this refund?"))return;
+  await updateDoc(doc(db,"transactions",id),{status:"refunded",refundedAt:serverTimestamp(),refundedBy:currentUserName});
+  await logAction("Processed refund","payout",`Refund processed for transaction ${id}`);
+  toast("Refund processed","success");
+  await loadAll();renderPayouts();
+};
+
+// Override setPTab to handle refunds tab
+const _origSetPTab=window.setPTab;
+window.setPTab=function(tab,el){
+  poTab=tab;
+  document.querySelectorAll("#page-payouts .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  if(tab==="refunds"){renderRefunds();}else{renderPayouts();}
+};
+
+// Payout approval for large amounts
+window.markPaid=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  if((p?.amount||0)>500&&currentUserRole!=="admin"){
+    toast("Payouts over R500 require admin approval","error");
+    await addDoc(collection(db,"notifications"),{userId:"admin",type:"payout_approval",message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,payoutId:id,read:false,createdAt:serverTimestamp()});
+    await updateDoc(doc(db,"payouts",id),{pendingApproval:true,requestedBy:currentUserName,requestedAt:serverTimestamp()});
+    toast("Approval request sent to admin","warning");
+    return;
+  }
+  await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp(),approvedBy:currentUserName});
+  await logAction("Payout completed","payout",`Paid R${p?.amount||"?"} to ${p?.sellerName||id}`);
+  await loadAll();renderPayouts();toast("Payout marked as completed","success");
+};
+
+// ─── FLAGGED CONTENT ──────────────────────────────────────────────────────────
+window.setFlagTab=function(tab,el){flagTab=tab;document.querySelectorAll("#page-flagged .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderFlagged();};
+
+async function loadFlagged(){
+  try{
+    const snap=await getDocs(query(collection(db,"flaggedContent"),orderBy("createdAt","desc")));
+    flaggedData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const open=flaggedData.filter(f=>f.status==="open").length;
+    const badge=document.getElementById("flaggedBadge");
+    if(open>0){badge.textContent=open;badge.style.display="inline";}else{badge.style.display="none";}
+    document.getElementById("flaggedStats").innerHTML=`
+      <div class="stat-card red"><div class="lbl">Pending Review</div><div class="val">${open}</div></div>
+      <div class="stat-card green"><div class="lbl">Reviewed</div><div class="val">${flaggedData.filter(f=>f.status==="reviewed").length}</div></div>
+      <div class="stat-card"><div class="lbl">Total Flags</div><div class="val">${flaggedData.length}</div></div>`;
+    renderFlagged();
+  }catch(e){console.error(e);}
+}
+
+function renderFlagged(){
+  const filtered=flagTab==="all"?flaggedData:flaggedData.filter(f=>f.status===flagTab);
+  document.getElementById("flaggedCount").textContent=`${filtered.length} items`;
+  document.getElementById("flaggedTable").innerHTML=`
+    <thead><tr><th>Type</th><th>Item</th><th>Reported By</th><th>Reason</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No ${flagTab==="all"?"":flagTab} flagged items.</td></tr>`:
+    filtered.map(f=>{
+      const d=f.createdAt?.toDate?f.createdAt.toDate():new Date((f.createdAt?.seconds||0)*1000);
+      return`<tr>
+        <td><span class="tag tag-pending">${f.type||"listing"}</span></td>
+        <td style="font-weight:800;max-width:140px;">${f.itemTitle||f.itemId||"-"}</td>
+        <td style="font-size:12px;">${f.reportedByName||"-"}</td>
+        <td style="font-size:12px;max-width:160px;">${f.reason||"-"}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag tag-${f.status==="open"?"open":"resolved"}">${f.status==="open"?"🔴 Pending":"✅ Reviewed"}</span></td>
+        <td style="display:flex;gap:4px;">
+          <button class="btn btn-sm btn-info" onclick="reviewFlagged('${f.id}')">Review</button>
+          ${f.status==="open"?`<button class="btn btn-sm btn-success" onclick="dismissFlag('${f.id}')">Dismiss</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.reviewFlagged=function(id){
+  const f=flaggedData.find(x=>x.id===id);if(!f)return;
+  const book=D.books.find(b=>b.id===f.itemId);
+  document.getElementById("flaggedModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Type:</strong> ${f.type||"listing"}</div>
+      <div><strong>Item:</strong> ${f.itemTitle||f.itemId}</div>
+      <div><strong>Reported By:</strong> ${f.reportedByName||"-"}</div>
+      <div><strong>Reason:</strong> ${f.reason||"-"}</div>
+      ${book?`<div style="background:var(--gray-100);border-radius:8px;padding:10px;"><strong>Book:</strong> ${book.title}<br/><strong>Seller:</strong> ${book.sellerName}<br/><strong>Price:</strong> R${book.price||0}<br/><strong>Status:</strong> ${book.status}</div>`:""}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        ${book?`<button class="btn btn-sm btn-danger" onclick="delBook('${f.itemId}');markFlagReviewed('${f.id}');closeModal('flaggedModal')">Remove Listing</button>`:""}
+        <button class="btn btn-sm btn-success" onclick="dismissFlag('${f.id}');closeModal('flaggedModal')">Dismiss Flag</button>
+      </div>
+    </div>`;
+  document.getElementById("flaggedModal").classList.add("active");
+};
+
+window.dismissFlag=async function(id){
+  await updateDoc(doc(db,"flaggedContent",id),{status:"reviewed",reviewedBy:currentUserName,reviewedAt:serverTimestamp(),action:"dismissed"});
+  await logAction("Dismissed flag","listing",`Dismissed flagged item ${id}`);
+  toast("Flag dismissed","success");
+  await loadFlagged();
+};
+window.markFlagReviewed=async function(id){
+  await updateDoc(doc(db,"flaggedContent",id),{status:"reviewed",reviewedBy:currentUserName,reviewedAt:serverTimestamp(),action:"removed"});
+};
+
+// ─── PLATFORM HEALTH ──────────────────────────────────────────────────────────
+async function loadPlatformHealth(){
+  try{
+    const now=new Date();
+    const users=D.users;const books=D.books;const txs=D.transactions;
+
+    // Health stats
+    const activeListings=books.filter(b=>b.status==="available").length;
+    const convRate=books.length?((txs.filter(t=>t.status==="completed").length/books.length)*100).toFixed(1):0;
+    const avgTxVal=txs.length?(txs.reduce((s,t)=>s+(t.amount||0),0)/txs.length).toFixed(0):0;
+    const d30=new Date(now-30*864e5);
+    const newUsersMonth=users.filter(u=>ts(u.createdAt)>d30).length;
+    document.getElementById("healthStats").innerHTML=`
+      <div class="stat-card blue"><div class="lbl">New Users (30d)</div><div class="val">${newUsersMonth}</div></div>
+      <div class="stat-card green"><div class="lbl">Conversion Rate</div><div class="val">${convRate}%</div><div class="sub">Listings → Sales</div></div>
+      <div class="stat-card"><div class="lbl">Avg Transaction</div><div class="val">R${avgTxVal}</div></div>
+      <div class="stat-card orange"><div class="lbl">Active Listings</div><div class="val">${activeListings}</div></div>`;
+
+    // Growth chart (last 6 months)
+    const months=[];
+    for(let i=5;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const end=new Date(now.getFullYear(),now.getMonth()-i+1,0);
+      const label=d.toLocaleDateString("en-ZA",{month:"short"});
+      const newU=users.filter(u=>{const t=ts(u.createdAt);return t>=d&&t<=end;}).length;
+      const newB=books.filter(b=>{const t=ts(b.createdAt);return t>=d&&t<=end;}).length;
+      months.push({label,users:newU,listings:newB});
+    }
+    document.getElementById("growthChart").innerHTML=`
+      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:20px;">
+        ${months.map(m=>{
+          const maxU=Math.max(...months.map(x=>x.users),1);
+          const maxB=Math.max(...months.map(x=>x.listings),1);
+          return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="display:flex;gap:2px;align-items:flex-end;height:90px;">
+              <div title="Users: ${m.users}" style="width:14px;background:var(--info);border-radius:3px 3px 0 0;height:${Math.max((m.users/maxU)*80,2)}px;"></div>
+              <div title="Listings: ${m.listings}" style="width:14px;background:var(--warning);border-radius:3px 3px 0 0;height:${Math.max((m.listings/maxB)*80,2)}px;"></div>
+            </div>
+            <div style="font-size:10px;font-weight:800;color:var(--gray-400);">${m.label}</div>
+          </div>`;}).join("")}
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;font-weight:800;">
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--info);border-radius:2px;margin-right:4px;"></span>Users</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--warning);border-radius:2px;margin-right:4px;"></span>Listings</span>
+      </div>`;
+
+    // Activity heatmap by hour
+    const hourCounts=Array(24).fill(0);
+    txs.forEach(t=>{const d=ts(t.createdAt);if(d)hourCounts[d.getHours()]++;});
+    const maxH=Math.max(...hourCounts,1);
+    document.getElementById("activityHeatmap").innerHTML=`
+      <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+        ${hourCounts.map((c,h)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div title="${h}:00 — ${c} txns" style="width:100%;background:${c===0?"var(--gray-200)":c===maxH?"var(--success)":"var(--info)"};border-radius:2px 2px 0 0;height:${Math.max((c/maxH)*70,2)}px;opacity:${0.4+(c/maxH)*0.6};"></div>
+          ${h%4===0?`<div style="font-size:8px;color:var(--gray-400);">${h}h</div>`:"<div style='height:12px'></div>"}
+        </div>`).join("")}
+      </div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:8px;font-weight:700;">Peak activity shown in green. Based on all transactions.</div>`;
+
+    // Dropout funnel
+    const d90=new Date(now-90*864e5);
+    const dropout=books.filter(b=>b.status==="available"&&ts(b.createdAt)<d90&&(b.viewCount||0)>0);
+    document.getElementById("dropoutCount").textContent=`${dropout.length} listings`;
+    document.getElementById("dropoutTable").innerHTML=`
+      <thead><tr><th>Title</th><th>Seller</th><th>Price</th><th>Views</th><th>Days Listed</th><th>Actions</th></tr></thead>
+      <tbody>${dropout.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No dropout listings found.</td></tr>`:
+      dropout.slice(0,20).map(b=>`<tr>
+        <td style="font-weight:800;">${b.title}</td>
+        <td style="font-size:12px;">${b.sellerName||"-"}</td>
+        <td style="font-weight:900;">R${b.price||0}</td>
+        <td style="font-weight:800;color:var(--info);">${b.viewCount||0} views</td>
+        <td style="font-size:12px;color:var(--error);">${daysAgo(b.createdAt)}d</td>
+        <td><button class="btn btn-sm btn-warning" onclick="nudgeSeller('${b.id}','${b.sellerId}')">📩 Nudge</button></td>
+      </tr>`).join("")}</tbody>`;
+
+    // Seller performance
+    const sellerMap={};
+    txs.forEach(t=>{
+      const sid=t.sellerId;if(!sid)return;
+      if(!sellerMap[sid])sellerMap[sid]={name:t.sellerName||"-",total:0,completed:0,disputed:0,revenue:0};
+      sellerMap[sid].total++;
+      if(t.status==="completed"){sellerMap[sid].completed++;sellerMap[sid].revenue+=(t.amount||0);}
+      if(t.status==="disputed")sellerMap[sid].disputed++;
+    });
+    const sellers=Object.values(sellerMap).sort((a,b)=>b.revenue-a.revenue).slice(0,15);
+    document.getElementById("sellerPerfTable").innerHTML=`
+      <thead><tr><th>Seller</th><th>Total Sales</th><th>Completed</th><th>Disputed</th><th>Revenue</th><th>Completion Rate</th></tr></thead>
+      <tbody>${sellers.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No seller data yet.</td></tr>`:
+      sellers.map(s=>{
+        const rate=s.total?(s.completed/s.total*100).toFixed(0):0;
+        const rateColor=rate>=80?"var(--success)":rate>=50?"var(--warning)":"var(--error)";
+        return`<tr>
+          <td style="font-weight:800;">${s.name}</td>
+          <td>${s.total}</td>
+          <td style="color:var(--success);font-weight:800;">${s.completed}</td>
+          <td style="color:${s.disputed>0?"var(--error)":"var(--gray-400)"};">${s.disputed}</td>
+          <td style="font-weight:900;">R${s.revenue.toFixed(0)}</td>
+          <td><span style="font-weight:900;color:${rateColor};">${rate}%</span></td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);toast("Failed to load platform health","error");}
+}
+
+// ─── SYSTEM STATUS ────────────────────────────────────────────────────────────
+async function loadSystemStatus(){
+  try{
+    const snap=await getDocs(collection(db,"systemStatus"));
+    systemFeatures=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(systemFeatures.length===0){
+      // Seed default features
+      const defaults=[
+        {name:"User Registration & Login",category:"auth",status:"live",notes:""},
+        {name:"Book Listings (Buy & Sell)",category:"listings",status:"live",notes:""},
+        {name:"Escrow Payment System",category:"payments",status:"live",notes:""},
+        {name:"Pargo Courier Delivery",category:"delivery",status:"live",notes:""},
+        {name:"Meetup Delivery",category:"delivery",status:"live",notes:""},
+        {name:"In-App Chat (Buyer/Seller)",category:"chat",status:"live",notes:""},
+        {name:"Support Chat",category:"chat",status:"live",notes:""},
+        {name:"AI Support Bot",category:"ai",status:"live",notes:""},
+        {name:"Push Notifications",category:"notifications",status:"live",notes:""},
+        {name:"Seller Payouts",category:"payments",status:"live",notes:""},
+        {name:"Digital Book Listings",category:"listings",status:"live",notes:""},
+        {name:"Promotions (Featured Listings)",category:"listings",status:"live",notes:""},
+        {name:"Brand Ambassador Program",category:"other",status:"live",notes:""},
+        {name:"App Feedback System",category:"other",status:"live",notes:""},
+        {name:"ID Verification",category:"auth",status:"coming_soon",notes:"In development"},
+      ];
+      for(const f of defaults){await addDoc(collection(db,"systemStatus"),{...f,updatedAt:serverTimestamp(),updatedBy:"system"});}
+      const snap2=await getDocs(collection(db,"systemStatus"));
+      systemFeatures=snap2.docs.map(d=>({id:d.id,...d.data()}));
+    }
+    renderSystemStatus();
+  }catch(e){console.error(e);}
+}
+
+function renderSystemStatus(){
+  const live=systemFeatures.filter(f=>f.status==="live").length;
+  const issues=systemFeatures.filter(f=>f.status==="issue").length;
+  const down=systemFeatures.filter(f=>f.status==="down").length;
+  const maint=systemFeatures.filter(f=>f.status==="maintenance").length;
+  document.getElementById("statusSummary").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Operational</div><div class="val">${live}</div></div>
+    <div class="stat-card orange"><div class="lbl">Issues</div><div class="val">${issues}</div></div>
+    <div class="stat-card red"><div class="lbl">Down</div><div class="val">${down}</div></div>
+    <div class="stat-card"><div class="lbl">Maintenance</div><div class="val">${maint}</div></div>`;
+  const statusMeta={live:{label:"✅ Live",cls:"tag-active"},issue:{label:"⚠️ Issue",cls:"tag-pending"},down:{label:"🔴 Down",cls:"tag-open"},maintenance:{label:"🔧 Maintenance",cls:"tag-sold"},coming_soon:{label:"🔜 Coming Soon",cls:"tag-cancelled"}};
+  document.getElementById("statusTable").innerHTML=`
+    <thead><tr><th>Feature</th><th>Category</th><th>Status</th><th>Notes</th><th>Last Updated</th><th>Actions</th></tr></thead>
+    <tbody>${systemFeatures.map(f=>{
+      const d=f.updatedAt?.toDate?f.updatedAt.toDate():new Date((f.updatedAt?.seconds||0)*1000);
+      const sm=statusMeta[f.status]||statusMeta.live;
+      return`<tr>
+        <td style="font-weight:800;">${f.name}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${f.category}</td>
+        <td><span class="tag ${sm.cls}">${sm.label}</span></td>
+        <td style="font-size:12px;color:var(--gray-500);">${f.notes||"-"}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <select class="form-control" style="width:130px;padding:4px 8px;font-size:11px;" onchange="updateFeatureStatus('${f.id}',this.value)">
+            <option value="live"${f.status==="live"?" selected":""}>✅ Live</option>
+            <option value="issue"${f.status==="issue"?" selected":""}>⚠️ Issue</option>
+            <option value="down"${f.status==="down"?" selected":""}>🔴 Down</option>
+            <option value="maintenance"${f.status==="maintenance"?" selected":""}>🔧 Maintenance</option>
+            <option value="coming_soon"${f.status==="coming_soon"?" selected":""}>🔜 Coming Soon</option>
+          </select>
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.updateFeatureStatus=async function(id,status){
+  await updateDoc(doc(db,"systemStatus",id),{status,updatedAt:serverTimestamp(),updatedBy:currentUserName});
+  await logAction("Updated system status","settings",`Feature ${id} set to ${status}`);
+  const f=systemFeatures.find(x=>x.id===id);
+  if(f)f.status=status;
+  renderSystemStatus();
+  toast("Status updated","success");
+};
+
+window.saveFeatureStatus=async function(){
+  const name=document.getElementById("featName").value.trim();
+  const category=document.getElementById("featCategory").value;
+  const status=document.getElementById("featStatus").value;
+  const notes=document.getElementById("featNotes").value.trim();
+  if(!name)return toast("Please enter a feature name","error");
+  await addDoc(collection(db,"systemStatus"),{name,category,status,notes,updatedAt:serverTimestamp(),updatedBy:currentUserName});
+  await logAction("Added feature to status","settings",`Added "${name}" with status ${status}`);
+  closeModal("addFeatureModal");
+  document.getElementById("featName").value="";document.getElementById("featNotes").value="";
+  toast("Feature added","success");
+  await loadSystemStatus();
+};
 
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
