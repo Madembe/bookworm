@@ -2343,8 +2343,15 @@ async function loadStatusMonitor(){
     if(monitorTimer)clearTimeout(monitorTimer);
     if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(loadStatusMonitor,60000);}
   }catch(e){
-    document.getElementById("monitorBanner").textContent="⚠️ Could not load status.";
-    console.error("Monitor error:",e);
+    const banner=document.getElementById("monitorBanner");
+    if(banner){banner.style.cssText="background:#fee2e2;color:#c1121f;padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`⚠️ Error: ${e.message||e.code||"Unknown error"}`;}
+    const mf=document.getElementById("monitorFeatures");
+    if(mf)mf.innerHTML=`<div style="padding:24px;color:var(--error);font-size:13px;font-weight:700;">
+      <p>Error code: <strong>${e.code||"none"}</strong></p>
+      <p style="margin-top:8px;">Message: ${e.message||"Unknown"}</p>
+      <p style="margin-top:12px;color:var(--gray-400);font-weight:600;">If this says "permission-denied", go to Firebase Console → Firestore → Rules and ensure admin reads are allowed.<br/>If it says "not-found", visit <strong>System Status</strong> first to seed the collection.</p>
+    </div>`;
+    console.error("Monitor error full:",e);
   }
 }
 window.loadStatusMonitor=loadStatusMonitor;
