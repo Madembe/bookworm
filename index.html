@@ -901,12 +901,13 @@ function ts(t){return t?.toDate?t.toDate():new Date((t?.seconds||0)*1000);}
 function daysAgo(t){return Math.floor((new Date()-ts(t))/(864e5));}
 
 window.showPage=function(page,el){
+  if(page!=="statuspreview"&&monitorTimer){clearTimeout(monitorTimer);monitorTimer=null;}
   document.querySelectorAll(".page").forEach(p=>{p.classList.remove("active");p.style.display="none";});
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   const pg=document.getElementById(`page-${page}`);
   pg.classList.add("active");pg.style.display="block";
   el.classList.add("active");
-  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:loadStatusMonitor};
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:window.loadStatusMonitor};
   fns[page]?.();
 };
 
@@ -2301,7 +2302,7 @@ window.saveFeatureStatus=async function(){
 
 // ─── STATUS MONITOR (inline view) ─────────────────────────────────────────────
 let monitorTimer=null;
-async function loadStatusMonitor(){
+window.loadStatusMonitor=async function(){
   try{
     const snap=await getDocs(collection(db,"systemStatus"));
     const features=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -2340,7 +2341,7 @@ async function loadStatusMonitor(){
     const mt=document.getElementById("monitorTimestamp");
     if(mt)mt.textContent=`Last refreshed: ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})} · Auto-refreshes every 60s`;
     if(monitorTimer)clearTimeout(monitorTimer);
-    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(loadStatusMonitor,60000);}
+    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(window.loadStatusMonitor,60000);}
   }catch(e){console.error("Monitor error:",e);}
 }
 
