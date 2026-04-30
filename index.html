@@ -116,7 +116,7 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
 .empty-state{text-align:center;padding:40px;color:var(--gray-400);}
 .report-filters{display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;}
 .report-filters .form-group{margin-bottom:0;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.monitor-category{margin-bottom:18px;}.monitor-cat-title{font-size:11px;font-weight:900;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--gray-200);}.monitor-row{background:var(--white);border-radius:10px;padding:13px 18px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--gray-200);gap:12px;}.monitor-row .feat-name{font-weight:800;font-size:13px;}.monitor-row .feat-notes{font-size:11px;color:var(--gray-400);margin-top:2px;}.monitor-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;flex-shrink:0;}.mb-live{background:#d8f3dc;color:#2d6a4f;}.mb-issue{background:#fff3e0;color:#e76f51;}.mb-down{background:#fee2e2;color:#c1121f;}.mb-maintenance{background:#e8f4fd;color:#1a6fa8;}.mb-coming_soon{background:var(--gray-100);color:var(--gray-500);}
 @media(max-width:900px){.two-col{grid-template-columns:1fr;}.sidebar{width:200px;}.main-content{margin-left:200px;}}
 </style>
 </head>
@@ -167,6 +167,7 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         <div class="nav-item" onclick="showPage('flagged',this)"><span>🚩</span> Flagged Content <span class="nav-badge" id="flaggedBadge" style="display:none;">0</span></div>
         <div class="nav-item" onclick="showPage('health',this)"><span>🩺</span> Platform Health</div>
         <div class="nav-item" onclick="showPage('systemstatus',this)"><span>🟢</span> System Status</div>
+        <div class="nav-item" onclick="showPage('statuspreview',this)"><span>📡</span> Status Monitor</div>
         <div class="nav-item" onclick="showPage('team',this)"><span>👤</span> Team Members</div>
         <div class="nav-item" onclick="showPage('auditlog',this)"><span>📋</span> Audit Log</div>
         <div class="nav-item" onclick="showPage('settings',this)"><span>⚙️</span> Settings</div>
@@ -503,7 +504,22 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
         </div>
       </div>
 
-      <!-- SYSTEM STATUS -->
+      <!-- STATUS MONITOR -->
+      <div id="page-statuspreview" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1>📡 Status Monitor</h1><p>Live BookWorm platform status — updates every 60 seconds.</p></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadStatusMonitor()">🔄 Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="showPage('systemstatus',document.querySelector('[onclick*=systemstatus]'))">⚙️ Edit Status</button>
+          </div>
+        </div>
+        <div id="monitorBanner" style="padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;">Checking...</div>
+        <div class="stats-grid" id="monitorSummary"></div>
+        <div id="monitorFeatures" style="margin-top:8px;"></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-400);margin-top:16px;font-weight:700;" id="monitorTimestamp"></div>
+      </div>
+
+      <!-- SYSTEM STATUS (edit panel) -->
       <div id="page-systemstatus" class="page">
         <div class="page-header">
           <div class="page-header-left"><h1>🟢 System Status</h1><p>Live status of all BookWorm features. Updates reflect on the public status page.</p></div>
@@ -890,7 +906,7 @@ window.showPage=function(page,el){
   const pg=document.getElementById(`page-${page}`);
   pg.classList.add("active");pg.style.display="block";
   el.classList.add("active");
-  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged};
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:loadStatusMonitor};
   fns[page]?.();
 };
 
@@ -2282,6 +2298,51 @@ window.saveFeatureStatus=async function(){
   toast("Feature added","success");
   await loadSystemStatus();
 };
+
+// ─── STATUS MONITOR (inline view) ─────────────────────────────────────────────
+let monitorTimer=null;
+async function loadStatusMonitor(){
+  try{
+    const snap=await getDocs(collection(db,"systemStatus"));
+    const features=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const live=features.filter(f=>f.status==="live").length;
+    const issues=features.filter(f=>f.status==="issue").length;
+    const down=features.filter(f=>f.status==="down").length;
+    const maint=features.filter(f=>f.status==="maintenance").length;
+    const banner=document.getElementById("monitorBanner");
+    if(banner){
+      if(down>0){banner.style.cssText="background:#fee2e2;color:#c1121f;padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`🔴 ${down} feature${down>1?"s":""} currently down`;}
+      else if(issues>0){banner.style.cssText="background:#fff3e0;color:#e76f51;padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`⚠️ ${issues} feature${issues>1?"s":""} experiencing issues`;}
+      else{banner.style.cssText="background:#d8f3dc;color:#2d6a4f;padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent="✅ All systems operational";}
+    }
+    const ms=document.getElementById("monitorSummary");
+    if(ms)ms.innerHTML=`
+      <div class="stat-card green"><div class="lbl">Operational</div><div class="val">${live}</div></div>
+      <div class="stat-card orange"><div class="lbl">Issues</div><div class="val">${issues}</div></div>
+      <div class="stat-card red"><div class="lbl">Down</div><div class="val">${down}</div></div>
+      <div class="stat-card"><div class="lbl">Maintenance</div><div class="val">${maint}</div></div>`;
+    const catLabels={auth:"🔐 Authentication",payments:"💳 Payments & Escrow",listings:"📚 Listings",delivery:"🚚 Delivery",chat:"💬 Chat & Support",ai:"🤖 AI Features",notifications:"🔔 Notifications",other:"⚙️ Other"};
+    const statusMeta={live:{label:"✅ Operational",cls:"mb-live"},issue:{label:"⚠️ Degraded",cls:"mb-issue"},down:{label:"🔴 Outage",cls:"mb-down"},maintenance:{label:"🔧 Maintenance",cls:"mb-maintenance"},coming_soon:{label:"🔜 Coming Soon",cls:"mb-coming_soon"}};
+    const cats={};features.forEach(f=>{const c=f.category||"other";if(!cats[c])cats[c]=[];cats[c].push(f);});
+    const catOrder=["auth","payments","listings","delivery","chat","ai","notifications","other"];
+    let html="";
+    catOrder.forEach(cat=>{
+      if(!cats[cat]?.length)return;
+      html+=`<div class="monitor-category"><div class="monitor-cat-title">${catLabels[cat]||cat}</div>`;
+      cats[cat].forEach(f=>{
+        const sm=statusMeta[f.status]||statusMeta.live;
+        html+=`<div class="monitor-row"><div><div class="feat-name">${f.name}</div>${f.notes?`<div class="feat-notes">${f.notes}</div>`:""}</div><span class="monitor-badge ${sm.cls}">${sm.label}</span></div>`;
+      });
+      html+="</div>";
+    });
+    const mf=document.getElementById("monitorFeatures");
+    if(mf)mf.innerHTML=html||"<p style='text-align:center;color:var(--gray-400);padding:32px;'>No features configured. Go to System Status to add them.</p>";
+    const mt=document.getElementById("monitorTimestamp");
+    if(mt)mt.textContent=`Last refreshed: ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})} · Auto-refreshes every 60s`;
+    if(monitorTimer)clearTimeout(monitorTimer);
+    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(loadStatusMonitor,60000);}
+  }catch(e){console.error("Monitor error:",e);}
+}
 
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
 window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
