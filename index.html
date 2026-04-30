@@ -349,6 +349,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
+      <button class="nav-icon-btn" id="notifBell" onclick="requireAuth('screen-notifications')" title="Notifications">🔔<span class="badge" id="notifBadge" style="display:none;">0</span></button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
       <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
     </div>
@@ -723,6 +724,18 @@ textarea.form-control{resize:vertical;min-height:80px;}
   </div>
 </div>
 
+<!-- NOTIFICATIONS SCREEN -->
+<div class="screen" id="screen-notifications">
+  <nav>
+    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo-text">🔔 Notifications</div>
+    <div class="nav-actions"><button class="nav-btn btn-sm" onclick="markAllNotifsRead()">Mark all read</button></div>
+  </nav>
+  <div id="notifList" style="padding:16px;flex:1;overflow-y:auto;">
+    <div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll let you know about wanted matches, messages and more.</p></div>
+  </div>
+</div>
+
 <!-- PDF READER -->
 <div class="screen" id="screen-reader">
   <div class="reader-toolbar">
@@ -892,7 +905,7 @@ const PARGO_DELIVERY_FEE=79;
 
 // STATE
 let currentUser=null,currentUserData=null,allBooks=[],currentBook=null;
-let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null;
+let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null,unsubNotif=null;
 let currentBookType="physical",currentPDFDoc=null,currentReaderPage=1,currentReaderBook=null;
 let commissionRate=5,deliveryFeeAmount=PARGO_DELIVERY_FEE,selectedDelivery=null,currentTxId=null;
 let photoFiles=[null,null,null],currentUploadType="physical";
@@ -937,11 +950,12 @@ onAuthStateChanged(auth,async(user)=>{
     currentUser=user;
     await loadUserData();
     await loadBooks();
+    startNotifListener();
     switchScreen("screen-home");
   }else{
     currentUser=null;
     currentUserData=null;
-    // Only redirect to login if not already there
+    if(unsubNotif){unsubNotif();unsubNotif=null;}
     if(!document.getElementById("screen-login").classList.contains("active")){
       switchScreen("screen-login");
     }
@@ -949,7 +963,7 @@ onAuthStateChanged(auth,async(user)=>{
 });
 
 function switchScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id)?.classList.add("active");window.scrollTo(0,0);}
-window.showScreen=function(id){if(id==="screen-chat")loadChatList();if(id==="screen-profile")loadProfile();if(id==="screen-upload")resetUploadForm();switchScreen(id);};
+window.showScreen=function(id){if(id==="screen-chat")loadChatList();if(id==="screen-profile")loadProfile();if(id==="screen-upload")resetUploadForm();if(id==="screen-notifications")loadNotifications();switchScreen(id);};
 window.requireAuth=function(id){if(!currentUser){toast("Please sign in to continue","error");switchScreen("screen-login");return;}window.showScreen(id);};
 window.goBack=function(){window.showScreen(previousScreen||"screen-home");};
 window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
@@ -1016,15 +1030,11 @@ window.handleRegister=async function(){
   }catch(e){
     btn.disabled=false;
     justRegistered=false;
+    console.error("Registration error:",e);
     if(e.code==="auth/email-already-in-use"){
       toast("This email is already registered. Try signing in.","error");
-    }else{
-      console.error("Registration error:",e);
-      // Only show truly unexpected errors, not the email-verification sign-out
-      if(e.code&&e.code!=="auth/user-not-found"){
-        toast("Registration failed. Please try again.","error");
-      }
     }
+    // All other errors: do NOT show a toast — the success/verify message already handles the flow
   }
 };
 function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
@@ -1140,18 +1150,42 @@ window.markWantedFound=async function(wantedId){
   }catch(e){toast("Could not update listing","error");}
 };
 window.notifyWantedPoster=async function(wantedId,posterId,bookTitle){
-  if(!currentUser||!posterId)return toast("Could not send notification","error");
-  if(currentUser.uid===posterId)return toast("That's your own wanted post!","warning");
+  if(!currentUser){toast("Please sign in first","error");switchScreen("screen-login");return;}
+  if(!posterId||posterId==="undefined"){toast("Could not identify the poster","error");return;}
+  if(currentUser.uid===posterId){toast("That's your own wanted post!","warning");return;}
+  if(!currentUserData)await loadUserData();
   try{
-    // Create a notification doc for the poster
+    // Write notification to Firestore
     await addDoc(collection(db,"notifications"),{
-      toUserId:posterId,fromUserId:currentUser.uid,fromName:currentUserData?.name||"A seller",
-      type:"wanted_match",wantedId,bookTitle,read:false,createdAt:serverTimestamp()
+      toUserId:posterId,
+      fromUserId:currentUser.uid,
+      fromName:currentUserData?.name||"A seller",
+      type:"wanted_match",
+      wantedId:wantedId,
+      bookTitle:bookTitle,
+      read:false,
+      createdAt:serverTimestamp()
     });
-    // Also open a chat with the poster
-    await window.startChat(wantedId,posterId,currentUserData?.name||"Seller",bookTitle);
-    toast("Notification sent! Opening chat with them now...","success");
-  }catch(e){toast("Could not send notification","error");console.error(e);}
+    // Open a chat so they can talk directly — use wantedId as the bookId context
+    const chatId=[currentUser.uid,posterId].sort().join("_")+"_wanted_"+wantedId;
+    const ref=doc(db,"chats",chatId);
+    const s=await getDoc(ref);
+    if(!s.exists()){
+      await setDoc(ref,{
+        participants:[currentUser.uid,posterId],
+        participantNames:{[currentUser.uid]:currentUserData?.name||"Seller",[posterId]:"Student"},
+        bookId:"wanted_"+wantedId,
+        bookTitle:bookTitle+" (Wanted)",
+        lastMessage:"",
+        updatedAt:serverTimestamp()
+      });
+    }
+    openChatRoom(chatId,currentUserData?.name||"Seller",bookTitle+" (Wanted)");
+    toast("✅ Notification sent! Chat opened.","success");
+  }catch(e){
+    console.error("notifyWantedPoster error:",e);
+    toast("Could not send notification: "+((e.message||"").slice(0,80)),"error");
+  }
 };
 // Check for wanted matches when a new book is listed and notify posters
 async function notifyWantedMatches(bookTitle){
@@ -1952,29 +1986,57 @@ window.confirmDelete=async function(){
 
 // PROMOTE
 window.openPromoteModal=async function(bookId){
-  promoteBookId=bookId;promoteDays=7;promotePrice=29; // sensible defaults pre-selected
-  try{const s=await getDoc(doc(db,"settings","promo"));if(s.exists()){const d=s.data();document.getElementById("promotePlans").innerHTML=`
+  promoteBookId=bookId;promoteDays=0;promotePrice=0;
+  const defaultPlans=`
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <div style="border:2px solid var(--black);border-radius:10px;padding:12px;cursor:pointer;" id="plan7div" onclick="selectPlan(7,${d.plan7||29},this)"><div style="font-weight:900;">7 Days — R${d.plan7||29}</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
-      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,${d.plan14||49},this)"><div style="font-weight:900;">14 Days — R${d.plan14||49}</div><div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility</div></div>
-      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,${d.plan30||79},this)"><div style="font-weight:900;">30 Days — R${d.plan30||79}</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
-    </div>`;promoteDays=7;promotePrice=d.plan7||29;}
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,29,this)">
+        <div style="font-weight:900;">⚡ 7 Days — R29</div>
+        <div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div>
+      </div>
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,49,this)">
+        <div style="font-weight:900;">🔥 14 Days — R49</div>
+        <div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility — most popular</div>
+      </div>
+      <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,79,this)">
+        <div style="font-weight:900;">🏆 30 Days — R79</div>
+        <div style="font-size:12px;color:var(--gray-400);">Best value — full month at the top</div>
+      </div>
+    </div>`;
+  try{
+    const s=await getDoc(doc(db,"settings","promo"));
+    if(s.exists()){
+      const d=s.data();
+      document.getElementById("promotePlans").innerHTML=`
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+          <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${d.plan7||29},this)">
+            <div style="font-weight:900;">⚡ 7 Days — R${d.plan7||29}</div>
+            <div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div>
+          </div>
+          <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(14,${d.plan14||49},this)">
+            <div style="font-weight:900;">🔥 14 Days — R${d.plan14||49}</div>
+            <div style="font-size:12px;color:var(--gray-400);">2 weeks of top visibility — most popular</div>
+          </div>
+          <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,${d.plan30||79},this)">
+            <div style="font-weight:900;">🏆 30 Days — R${d.plan30||79}</div>
+            <div style="font-size:12px;color:var(--gray-400);">Best value — full month at the top</div>
+          </div>
+        </div>`;
+    }else{
+      document.getElementById("promotePlans").innerHTML=defaultPlans;
+    }
   }catch(e){
-    document.getElementById("promotePlans").innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-        <div style="border:2px solid var(--black);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,29,this)"><div style="font-weight:900;">7 Days — R29</div><div style="font-size:12px;color:var(--gray-400);">Appear at the top for 1 week</div></div>
-        <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(30,79,this)"><div style="font-weight:900;">30 Days — R79</div><div style="font-size:12px;color:var(--gray-400);">Best value — full month</div></div>
-      </div>`;promoteDays=7;promotePrice=29;
+    document.getElementById("promotePlans").innerHTML=defaultPlans;
   }
   document.getElementById("promoteModal").classList.add("active");
 };
 window.selectPlan=function(days,price,el){
   promoteDays=days;promotePrice=price;
-  document.querySelectorAll("#promotePlans>div").forEach(d=>d.style.borderColor="var(--gray-200)");
+  document.querySelectorAll("#promotePlans > div > div").forEach(d=>d.style.borderColor="var(--gray-200)");
   el.style.borderColor="var(--black)";
+  el.style.background="var(--gray-100)";
 };
 window.confirmPromotion=async function(){
-  if(!promoteDays||!promotePrice)return toast("Please select a plan","error");
+  if(!promoteDays||!promotePrice)return toast("Please tap a plan to select it first","error");
   const expiresAt=new Date(Date.now()+promoteDays*24*60*60*1000);
   try{
     await updateDoc(doc(db,"books",promoteBookId),{featured:true,featuredUntil:expiresAt,featuredDays:promoteDays,featuredPrice:promotePrice});
@@ -2044,35 +2106,92 @@ window.openMessageFromDetail=async function(bookId,sellerId,sellerName,bookTitle
 // CHAT
 window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
   if(!currentUser)return toast("Please sign in","error");
+  if(!sellerId||sellerId==="undefined"){return toast("Cannot start chat — seller info missing","error");}
   if(currentUser.uid===sellerId)return toast("You can't chat with yourself!","error");
+  if(!currentUserData)await loadUserData();
   const chatId=[currentUser.uid,sellerId].sort().join("_")+"_"+bookId;
-  const ref=doc(db,"chats",chatId);
-  const s=await getDoc(ref);
-  if(!s.exists())await setDoc(ref,{participants:[currentUser.uid,sellerId],participantNames:{[currentUser.uid]:currentUserData?.name||"Buyer",[sellerId]:sellerName},bookId,bookTitle,lastMessage:"",updatedAt:serverTimestamp()});
-  openChatRoom(chatId,sellerName,bookTitle);
+  try{
+    const ref=doc(db,"chats",chatId);
+    const s=await getDoc(ref);
+    if(!s.exists()){
+      await setDoc(ref,{
+        participants:[currentUser.uid,sellerId],
+        participantNames:{[currentUser.uid]:currentUserData?.name||"Buyer",[sellerId]:sellerName||"Seller"},
+        bookId,
+        bookTitle:bookTitle||"Book",
+        lastMessage:"",
+        updatedAt:serverTimestamp()
+      });
+    }
+    openChatRoom(chatId,sellerName||"Seller",bookTitle||"Book");
+  }catch(e){
+    console.error("startChat error:",e);
+    toast("Could not open chat. Please try again.","error");
+  }
 };
 window.openSupportChat=async function(){
   if(!currentUser){toast("Please sign in to contact support","error");switchScreen("screen-login");return;}
   if(!currentUserData)await loadUserData();
   const chatId="support_"+currentUser.uid;
-  const ref=doc(db,"chats",chatId);
-  const s=await getDoc(ref);
-  if(!s.exists())await setDoc(ref,{participants:[currentUser.uid,"support"],participantNames:{[currentUser.uid]:currentUserData?.name||"Student","support":"BookWorm Support"},bookId:"support",bookTitle:"Support Chat",isSupport:true,lastMessage:"",updatedAt:serverTimestamp()});
-  openChatRoom(chatId,"BookWorm Support 🛟","We're here to help! Typically reply within 24h.");
+  try{
+    const ref=doc(db,"chats",chatId);
+    const s=await getDoc(ref);
+    if(!s.exists()){
+      await setDoc(ref,{
+        participants:[currentUser.uid,"support"],
+        participantNames:{[currentUser.uid]:currentUserData?.name||"Student","support":"BookWorm Support"},
+        bookId:"support",
+        bookTitle:"BookWorm Support Chat",
+        isSupport:true,
+        lastMessage:"Hi, I need help!",
+        updatedAt:serverTimestamp()
+      });
+      // Send an opening message automatically
+      await addDoc(collection(db,"chats",chatId,"messages"),{
+        text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`,
+        senderId:currentUser.uid,
+        senderName:currentUserData?.name||"Student",
+        createdAt:serverTimestamp()
+      });
+    }
+    openChatRoom(chatId,"BookWorm Support 🛟","We typically reply within 24 hours.");
+  }catch(e){
+    console.error("Support chat error:",e);
+    toast("Could not open support chat. Please email support@bookworm.co.za","error");
+  }
 };
 window.openChatRoom=function(chatId,otherName,bookTitle){
+  if(!currentUser){toast("Please sign in","error");return;}
   currentChatId=chatId;
-  document.getElementById("chatroomAvatar").textContent=otherName==="BookWorm Support 🛟"?"🛟":otherName?.[0]?.toUpperCase()||"?";
-  document.getElementById("chatroomName").textContent=otherName;
-  document.getElementById("chatroomBook").textContent=bookTitle;
+  const avatar=document.getElementById("chatroomAvatar");
+  const nameEl=document.getElementById("chatroomName");
+  const bookEl=document.getElementById("chatroomBook");
+  if(avatar)avatar.textContent=otherName==="BookWorm Support 🛟"?"🛟":(otherName?.[0]?.toUpperCase()||"?");
+  if(nameEl)nameEl.textContent=otherName||"Chat";
+  if(bookEl)bookEl.textContent=bookTitle||"";
   if(unsubChat)unsubChat();
-  unsubChat=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
+  const msgCol=collection(db,"chats",chatId,"messages");
+  unsubChat=onSnapshot(query(msgCol,orderBy("createdAt")),snap=>{
     const c=document.getElementById("chatMessages");
-    c.innerHTML=snap.docs.map(d=>{const m=d.data();const sent=m.senderId===currentUser?.uid||m.senderId==="support_reply";
-      return `<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"}"><div class="message ${sent?"sent":"received"}">${m.text}</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"now"}</div></div>`;
-    }).join("");c.scrollTop=c.scrollHeight;
+    if(!c)return;
+    if(snap.empty){c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:13px;">No messages yet. Say hello! 👋</div>`;return;}
+    c.innerHTML=snap.docs.map(d=>{
+      const m=d.data();
+      const sent=m.senderId===currentUser?.uid;
+      const time=m.createdAt?.toDate?.()?.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})||"";
+      return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"};margin-bottom:10px;">
+        <div class="message ${sent?"sent":"received"}" style="max-width:80%;word-break:break-word;">${m.text}</div>
+        <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${time}</div>
+      </div>`;
+    }).join("");
+    c.scrollTop=c.scrollHeight;
+  },e=>{
+    console.error("Chat listener error:",e);
+    const c=document.getElementById("chatMessages");
+    if(c)c.innerHTML=`<div style="padding:20px;color:var(--error);text-align:center;font-size:13px;">Could not load messages. Check your connection.</div>`;
   });
-  previousScreen="screen-chat";switchScreen("screen-chatroom");
+  previousScreen="screen-chat";
+  switchScreen("screen-chatroom");
 };
 window.sendMessage=async function(){
   const input=document.getElementById("chatInput");
@@ -2098,6 +2217,67 @@ async function loadChatList(){
     </div>`;
   }).join("");
 }
+
+// NOTIFICATIONS
+function startNotifListener(){
+  if(!currentUser||unsubNotif)return;
+  const q=query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc"));
+  unsubNotif=onSnapshot(q,snap=>{
+    const unread=snap.docs.filter(d=>!d.data().read).length;
+    const badge=document.getElementById("notifBadge");
+    if(badge){badge.textContent=unread>9?"9+":unread;badge.style.display=unread>0?"flex":"none";}
+  },e=>console.error("notif listener:",e));
+}
+async function loadNotifications(){
+  if(!currentUser)return;
+  const container=document.getElementById("notifList");
+  container.innerHTML=`<div style="text-align:center;padding:30px;color:var(--gray-400);">Loading...</div>`;
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc")));
+    if(snap.empty){container.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll notify you about wanted matches, messages, and more.</p></div>`;return;}
+    container.innerHTML=snap.docs.map(d=>{
+      const n=d.data();const read=n.read;
+      const time=n.createdAt?.toDate?.()?.toLocaleDateString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})||"";
+      let icon="🔔",text="";
+      if(n.type==="wanted_match"){icon="📚";text=`<strong>${n.fromName}</strong> says they have a book matching your wanted post: <em>"${n.bookTitle||n.wantedTitle||""}"</em>`;}
+      else if(n.type==="message"){icon="💬";text=`New message from <strong>${n.fromName}</strong>`;}
+      else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${n.bookTitle}"</em> has been purchased!`;}
+      else{text=n.message||"New notification";}
+      return`<div onclick="markNotifRead('${d.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"#eff6ff"};transition:background 0.2s;">
+        <div style="font-size:22px;flex-shrink:0;">${icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;line-height:1.5;${read?"":"font-weight:700;"}">${text}</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:3px;">${time}</div>
+        </div>
+        ${!read?`<div style="width:8px;height:8px;background:var(--info);border-radius:50%;margin-top:4px;flex-shrink:0;"></div>`:""}
+      </div>`;
+    }).join("");
+  }catch(e){container.innerHTML=`<div style="padding:16px;color:var(--error);">Could not load notifications.</div>`;}
+}
+window.markNotifRead=async function(notifId,type,wantedId,chatId){
+  try{await updateDoc(doc(db,"notifications",notifId),{read:true});}catch(e){}
+  // Navigate based on type
+  if(type==="wanted_match"&&wantedId)switchHomeTab_wanted();
+  else if(type==="message"&&chatId)openChatRoom(chatId,"","");
+  else showScreen("screen-notifications");
+};
+function switchHomeTab_wanted(){
+  showScreen("screen-home");
+  setTimeout(()=>{
+    const tab=document.querySelector('.home-tab:nth-child(3)');
+    if(tab)tab.click();
+  },200);
+}
+window.markAllNotifsRead=async function(){
+  if(!currentUser)return;
+  try{
+    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),where("read","==",false)));
+    const batch=snap.docs.map(d=>updateDoc(doc(db,"notifications",d.id),{read:true}));
+    await Promise.all(batch);
+    toast("All notifications marked as read","success");
+    loadNotifications();
+  }catch(e){toast("Could not update notifications","error");}
+};
 
 // PROFILE
 async function loadProfile(){
