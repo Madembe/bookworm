@@ -682,6 +682,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
   </div>
   <div style="padding:16px;">
     <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact Support</button>
+    <button class="btn btn-secondary btn-full btn-sm" style="margin-top:8px;" onclick="document.getElementById('appFeedbackModal').classList.add('active')">💬 Rate BookWorm</button>
   </div>
 </div>
 
@@ -951,6 +952,8 @@ onAuthStateChanged(auth,async(user)=>{
     await loadUserData();
     await loadBooks();
     startNotifListener();
+    applyDeliverySettings();
+    cleanExpiredPromos();
     switchScreen("screen-home");
   }else{
     currentUser=null;
@@ -1277,8 +1280,9 @@ window.showDetail=async function(id){
     }
   }else if(book.bookType==="digital"){
     const hasSub=await checkSubscription(book.id);
-    acts.innerHTML=hasSub?`<button class="btn btn-success btn-full" onclick="openReader('${book.id}')">📖 Read Now</button>`:
-      `<button class="btn btn-primary btn-full" onclick="openSubModal('${book.id}')">📖 Subscribe – R${book.subPrice}/year</button>`;
+    acts.innerHTML=(hasSub?`<button class="btn btn-success btn-full" onclick="openReader('${book.id}')">📖 Read Now</button>`:
+      `<button class="btn btn-primary btn-full" onclick="openSubModal('${book.id}')">📖 Subscribe – R${book.subPrice}/year</button>`)+
+      `<div style="text-align:center;margin-top:12px;"><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:none;text-decoration:underline;" onclick="openFlagModal('${book.id}','${(book.title||"").replace(/'/g,"\\'")}')">🚩 Report this listing</button></div>`;
   }else{
     const isSold=book.status==="sold";
     const isPending=book.status==="pending";
@@ -1861,7 +1865,8 @@ function showTransactionScreen(code,book,txId){
     <div style="display:flex;gap:8px;">
       <button class="btn btn-warning btn-sm" onclick="openDisputeModal('${txId}')">⚠️ Dispute</button>
       <button class="btn btn-secondary btn-full btn-sm" onclick="startChat('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message Seller</button>
-    </div>`;
+    </div>
+    <div style="text-align:center;margin-top:10px;"><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:none;text-decoration:underline;" onclick="openFlagModal('${book.id}','${book.title.replace(/'/g,"\\'")}')">🚩 Report this listing</button></div>`;
   // Live tracking update
   if(isCourier){
     onSnapshot(doc(db,"transactions",txId),snap=>{
@@ -2353,7 +2358,7 @@ async function loadProfile(){
     ...boughtTx.docs.map(d=>{const t=d.data();return`<div style="padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;">
       <div style="font-weight:800;font-size:13px;">📚 ${t.bookTitle}</div>
       <div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}`:"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
-      ${t.status==="completed"?`<button class="btn btn-sm btn-secondary" style="margin-top:6px;" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button>`:""}
+      ${t.status==="completed"?`<div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-sm btn-secondary" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:1px solid var(--gray-200);" onclick="openRefundModal('${d.id}','${(t.bookTitle||"").replace(/'/g,"\\'")}')">↩ Request Refund</button></div>`:""}
     </div>`;}),
     ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
   ].join("");
@@ -2382,6 +2387,153 @@ window.submitAppFeedback=async function(){
     toast("Thank you for your feedback! 🙏","success");
   }catch(e){console.error(e);toast("Failed to submit feedback","error");}
 };
+
+// FLAG / REPORT LISTING
+let flagTargetId=null,flagTargetTitle=null;
+window.openFlagModal=function(bookId,bookTitle){
+  if(!currentUser){toast("Please sign in to report a listing","error");switchScreen("screen-login");return;}
+  flagTargetId=bookId;flagTargetTitle=bookTitle;
+  document.getElementById("flagReason").value="";
+  document.getElementById("flagDetails").value="";
+  document.getElementById("flagModal").classList.add("active");
+};
+window.submitFlag=async function(){
+  const reason=document.getElementById("flagReason").value;
+  const details=document.getElementById("flagDetails").value.trim();
+  if(!reason)return toast("Please select a reason","error");
+  try{
+    await addDoc(collection(db,"flaggedContent"),{
+      itemId:flagTargetId,itemTitle:flagTargetTitle,type:"listing",
+      reason,details,reportedBy:currentUser.uid,
+      reportedByName:currentUserData?.name||"User",
+      status:"open",createdAt:serverTimestamp()
+    });
+    closeModal("flagModal");
+    toast("Report submitted. Our team will review within 24 hours.","success");
+  }catch(e){toast("Failed to submit report","error");console.error(e);}
+};
+
+// REFUND REQUEST
+let refundTxId=null;
+window.openRefundModal=function(txId){
+  refundTxId=txId;
+  document.getElementById("refundReason").value="";
+  document.getElementById("refundDetails").value="";
+  document.getElementById("refundModal").classList.add("active");
+};
+window.submitRefundRequest=async function(){
+  const reason=document.getElementById("refundReason").value;
+  const details=document.getElementById("refundDetails").value.trim();
+  if(!reason)return toast("Please select a reason","error");
+  if(!details)return toast("Please describe the issue","error");
+  try{
+    await updateDoc(doc(db,"transactions",refundTxId),{
+      refundRequested:true,refundReason:reason,refundDetails:details,
+      refundRequestedAt:serverTimestamp(),refundRequestedBy:currentUser.uid
+    });
+    await addDoc(collection(db,"notifications"),{
+      toUserId:"admin_refund_queue",type:"refund_request",txId:refundTxId,
+      userId:currentUser.uid,userName:currentUserData?.name||"User",
+      reason,details,read:false,createdAt:serverTimestamp()
+    });
+    closeModal("refundModal");
+    toast("Refund request submitted. We'll respond within 48 hours.","success");
+  }catch(e){toast("Failed to submit refund request","error");console.error(e);}
+};
+
+// AI SUPPORT BOT — reads faqs from Firestore, auto-responds in support chat
+async function getAIResponse(userMessage){
+  try{
+    const settingsDoc=await getDoc(doc(db,"settings","aiSupport"));
+    const aiEnabled=settingsDoc.exists()?settingsDoc.data().enabled!==false:true;
+    const autoRespond=settingsDoc.exists()?settingsDoc.data().autoRespond!==false:true;
+    if(!aiEnabled||!autoRespond)return null;
+    const faqsSnap=await getDocs(collection(db,"faqs"));
+    const faqs=faqsSnap.docs.map(d=>d.data());
+    const msg=userMessage.toLowerCase();
+    const match=faqs.find(f=>{
+      const triggers=(f.question||"").toLowerCase().split(" ");
+      return triggers.some(t=>t.length>3&&msg.includes(t));
+    });
+    if(match)return match.answer;
+    const keywords=settingsDoc.exists()&&settingsDoc.data().keywords
+      ?settingsDoc.data().keywords
+      :["refund","fraud","scam","stolen","police","lawyer","legal","hacked","abuse","threat"];
+    const needsEscalation=keywords.some(k=>msg.includes(k));
+    if(needsEscalation){
+      await addDoc(collection(db,"escalations"),{
+        chatId:"support_"+currentUser.uid,userId:currentUser.uid,
+        userName:currentUserData?.name||"User",triggerMessage:userMessage,
+        status:"open",createdAt:serverTimestamp()
+      });
+      return"This sounds urgent — I've flagged your message for a human agent who will follow up shortly. For emergencies email support@bookworm.co.za directly.";
+    }
+    return null;
+  }catch(e){console.error("AI support error:",e);return null;}
+}
+
+// Patch sendMessage to trigger AI bot in support chats
+const _origSend=window.sendMessage;
+window.sendMessage=async function(){
+  const input=document.getElementById("chatInput");
+  const text=input?.value.trim();if(!text||!currentChatId)return;
+  input.value="";
+  try{
+    await addDoc(collection(db,"chats",currentChatId,"messages"),{
+      text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()
+    });
+    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
+    if(currentChatId.startsWith("support_")){
+      const aiReply=await getAIResponse(text);
+      if(aiReply){
+        setTimeout(async()=>{
+          await addDoc(collection(db,"chats",currentChatId,"messages"),{
+            text:aiReply,senderId:"support",senderName:"BookWorm Bot 🤖",
+            isBot:true,createdAt:serverTimestamp()
+          });
+          await updateDoc(doc(db,"chats",currentChatId),{lastMessage:aiReply,updatedAt:serverTimestamp()});
+        },900);
+      }
+    }
+  }catch(e){console.error(e);}
+};
+
+// DELIVERY SETTINGS — read from Firestore so admin toggles take effect in-app
+async function applyDeliverySettings(){
+  try{
+    const s=await getDoc(doc(db,"settings","delivery"));
+    if(!s.exists())return;
+    const d=s.data();
+    document.querySelectorAll("[data-delivery='courier']").forEach(el=>{
+      el.style.display=d.courier===false?"none":"";
+    });
+    document.querySelectorAll("[data-delivery='meetup']").forEach(el=>{
+      el.style.display=d.meetup===false?"none":"";
+    });
+    if(d.bookshop===true){
+      document.querySelectorAll(".delivery-coming-soon").forEach(el=>{
+        el.classList.remove("delivery-coming-soon");
+      });
+    }
+  }catch(e){console.error("Delivery settings:",e);}
+}
+
+// PROMO EXPIRY — auto-unfeature expired listings client-side on load
+async function cleanExpiredPromos(){
+  try{
+    const now=new Date();
+    const expired=(allBooks||[]).filter(b=>{
+      if(!b.featured||!b.featuredUntil)return false;
+      const exp=b.featuredUntil.toDate?b.featuredUntil.toDate():new Date(b.featuredUntil);
+      return exp<now;
+    });
+    for(const b of expired){
+      await updateDoc(doc(db,"books",b.id),{featured:false});
+      await updateDoc(doc(db,"promotions",b.id),{status:"expired"}).catch(()=>{});
+    }
+    if(expired.length)await loadBooks();
+  }catch(e){console.error("Promo expiry:",e);}
+}
 
 // RESET UPLOAD FORM
 function resetUploadForm(){
@@ -2472,6 +2624,79 @@ window.addEventListener("load",()=>{
     </div>
     <button class="btn btn-primary btn-full" onclick="saveBankingDetails()">💾 Save Banking Details</button>
     <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="closeModal('bankingModal')">I'll do this later</button>
+  </div>
+</div>
+
+<!-- Refund Request Modal -->
+<div class="modal-overlay" id="refundModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('refundModal')">✕</button>
+    <h3>↩ Request a Refund</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Refunds are reviewed by our team. Please provide details and we'll respond within 48 hours.</p>
+    <div class="form-group">
+      <label>Reason for refund</label>
+      <select class="form-control" id="refundReason">
+        <option value="">Select a reason</option>
+        <option value="not_as_described">Item not as described</option>
+        <option value="damaged">Item arrived damaged</option>
+        <option value="wrong_item">Wrong item received</option>
+        <option value="not_received">Item never arrived</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Details</label>
+      <textarea class="form-control" id="refundDetails" placeholder="Describe the issue in detail..."></textarea>
+    </div>
+    <button class="btn btn-warning btn-full" onclick="submitRefundRequest()">Submit Refund Request</button>
+  </div>
+</div>
+
+<!-- App Feedback Modal -->
+<div class="modal-overlay" id="appFeedbackModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('appFeedbackModal')">✕</button>
+    <h3>💬 Rate BookWorm</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with BookWorm so far? Your feedback helps us improve.</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="appRatingStars">
+      <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
+      <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(2)">☆</span>
+      <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(3)">☆</span>
+      <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(4)">☆</span>
+      <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(5)">☆</span>
+    </div>
+    <div class="form-group">
+      <label>Comments (optional)</label>
+      <textarea class="form-control" id="appFeedbackText" placeholder="What do you love? What could be better?"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="submitAppFeedback()">Send Feedback</button>
+  </div>
+</div>
+
+<!-- Flag / Report Modal -->
+<div class="modal-overlay" id="flagModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('flagModal')">✕</button>
+    <h3>🚩 Report Listing</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep BookWorm safe. Our team reviews every report within 24 hours.</p>
+    <div class="form-group">
+      <label>Reason for reporting</label>
+      <select class="form-control" id="flagReason">
+        <option value="">Select a reason</option>
+        <option value="fake">Fake or misleading listing</option>
+        <option value="wrong_condition">Condition doesn't match photos</option>
+        <option value="wrong_edition">Wrong edition listed</option>
+        <option value="scam">Suspected scam</option>
+        <option value="duplicate">Duplicate listing</option>
+        <option value="inappropriate">Inappropriate content</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Additional details (optional)</label>
+      <textarea class="form-control" id="flagDetails" placeholder="Tell us more about the issue..."></textarea>
+    </div>
+    <button class="btn btn-warning btn-full" onclick="submitFlag()">Submit Report</button>
   </div>
 </div>
 
