@@ -775,7 +775,7 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,setDoc,serverTimestamp,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FC={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a"};
@@ -1279,11 +1279,12 @@ function renderPromotions(){
     <div class="stat-card blue"><div class="lbl">Active Promotions</div><div class="val">${active.length}</div></div>
     <div class="stat-card"><div class="lbl">Total Promotions</div><div class="val">${D.promotions.length}</div></div>`;
   document.getElementById("promoTable").innerHTML=`
-    <thead><tr><th>Book</th><th>Seller</th><th>Plan</th><th>Price Paid</th><th>Expires</th><th>Status</th></tr></thead>
+    <thead><tr><th>Book</th><th>Seller</th><th>Plan</th><th>Price Paid</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>${D.promotions.map(p=>{
       const exp=new Date((p.expiresAt?.seconds||0)*1000);const isA=exp>new Date();
       const book=D.books.find(b=>b.id===p.bookId);
       const seller=D.users.find(u=>u.uid===p.sellerId);
+      const isFeatured=book?.featured===true;
       return`<tr>
         <td style="font-weight:800;">${book?.title||"-"}</td>
         <td style="font-size:12px;">${seller?.name||"-"}</td>
@@ -1291,8 +1292,31 @@ function renderPromotions(){
         <td style="font-weight:900;">R${p.price||0}</td>
         <td style="font-size:12px;">${exp.toLocaleDateString("en-ZA")}</td>
         <td><span class="tag ${isA?"tag-active":"tag-sold"}">${isA?"Active":"Expired"}</span></td>
+        <td style="display:flex;gap:6px;">
+          ${p.bookId?`<button class="btn btn-sm ${isFeatured?"btn-warning":"btn-success"}" onclick="toggleFeature('${p.bookId}',${isFeatured})">${isFeatured?"⬇ Unfeature":"⭐ Feature"}</button>`:""}
+          ${isA?`<button class="btn btn-sm btn-danger" onclick="expirePromo('${p.id}','${p.bookId}')">Expire</button>`:""}
+        </td>
       </tr>`;}).join("")}</tbody>`;
 }
+
+window.toggleFeature=async function(bookId,currentlyFeatured){
+  try{
+    await updateDoc(doc(db,"books",bookId),{featured:!currentlyFeatured});
+    await logAction("Promotion","promotions",`${currentlyFeatured?"Unfeatured":"Featured"} book ${bookId} manually`);
+    toast(currentlyFeatured?"Book unfeatured":"Book featured ⭐","success");
+    await loadAll();renderPromotions();
+  }catch(e){toast("Failed to update feature status","error");console.error(e);}
+};
+window.expirePromo=async function(promoId,bookId){
+  if(!confirm("Expire this promotion and unfeature the book?"))return;
+  try{
+    await updateDoc(doc(db,"promotions",promoId),{status:"expired",expiredAt:serverTimestamp()});
+    if(bookId)await updateDoc(doc(db,"books",bookId),{featured:false});
+    await logAction("Promotion","promotions",`Manually expired promo ${promoId}`);
+    toast("Promotion expired","warning");
+    await loadAll();renderPromotions();
+  }catch(e){toast("Failed to expire promotion","error");console.error(e);}
+};
 
 function renderWanted(){
   document.getElementById("wantedTable").innerHTML=`
@@ -1757,19 +1781,28 @@ window.addTeamMember=async function(){
   const existing=teamMembers.find(t=>t.email===email&&t.active!==false);
   if(existing)return toast("This email is already an active team member","error");
   try{
-    // Save to Firestore — Firebase Auth account must be created manually in Firebase Console
-    await addDoc(collection(db,"teamMembers"),{name,email,role,notes,active:true,createdAt:serverTimestamp(),createdBy:currentUserName});
+    // Create Firebase Auth account for the team member
+    const secondaryAuth=getAuth();
+    const cred=await createUserWithEmailAndPassword(secondaryAuth,email,password);
+    const newUid=cred.user.uid;
+    // Use the UID as the Firestore document ID so isTeamMember() rule works correctly
+    await setDoc(doc(db,"teamMembers",newUid),{
+      name,email,role,notes,uid:newUid,
+      active:true,createdAt:serverTimestamp(),createdBy:currentUserName
+    });
     await logAction("Added team member","team",`Added ${name} (${role}) — ${email}`);
-    // Store temp password hint (not actual auth — admin must create Firebase Auth account)
     closeModal("addTeamModal");
     ["tmName","tmEmail","tmPassword","tmNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-    toast(`${name} added! ⚠️ Remember to create their Firebase Auth account.`,"success");
+    toast(`${name} added and account created successfully! ✅`,"success");
     await loadTeamMembers();
-    // Show reminder
-    setTimeout(()=>{
-      alert(`✅ ${name} added to TeamMembers.\n\n⚠️ IMPORTANT: You still need to manually create their Firebase Authentication account:\n\n1. Go to console.firebase.google.com\n2. Open bookworm-b9ba6 → Authentication → Users\n3. Click "Add user"\n4. Email: ${email}\n5. Set their password\n\nWithout this step, they cannot sign in.`);
-    },500);
-  }catch(e){toast("Failed to add team member","error");console.error(e);}
+  }catch(e){
+    if(e.code==="auth/email-already-in-use"){
+      toast("A Firebase Auth account already exists for this email. Ask them to log in directly.","error");
+    }else{
+      toast("Failed to add team member: "+e.message,"error");
+    }
+    console.error(e);
+  }
 };
 
 window.deactivateTeamMember=async function(id,name){
@@ -2031,7 +2064,7 @@ window.markPaid=async function(id){
   const p=D.payouts.find(x=>x.id===id);
   if((p?.amount||0)>500&&currentUserRole!=="admin"){
     toast("Payouts over R500 require admin approval","error");
-    await addDoc(collection(db,"notifications"),{userId:"admin",type:"payout_approval",message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,payoutId:id,read:false,createdAt:serverTimestamp()});
+    await addDoc(collection(db,"notifications"),{toUserId:ADMIN_EMAIL,type:"payout_approval",message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,payoutId:id,read:false,createdAt:serverTimestamp()});
     await updateDoc(doc(db,"payouts",id),{pendingApproval:true,requestedBy:currentUserName,requestedAt:serverTimestamp()});
     toast("Approval request sent to admin","warning");
     return;
