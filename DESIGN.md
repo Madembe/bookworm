@@ -88,7 +88,7 @@ Plain, calm, short. Say what happens to the money. No hype, no exclamation marks
 
 1. Read this file before touching any UI.
 2. **Never push to `main` and never merge.** Work on a branch and open a PR. The owner merges.
-3. Design PRs change look and structure only. Do not change business logic, data, auth, or payment behaviour (for example `create-payment.js`) in a design PR.
+3. Design PRs change look and structure only. Do not change business logic, data, auth, or payment behaviour (for example `create-payment.js`) in a design PR. The backend is being moved from Firebase to Supabase in a separate workstream, so **keep every element `id`, `name` and `onclick`/handler function name unchanged** when restyling markup, and never edit the `<script>` data and auth code.
 4. Do not invent business rules (fees, limits, policies) in the UI. Show only what the system really does.
 5. Keep PRs small: one screen or one concern each, and describe what changed.
 6. If something here conflicts with a request, flag it in the PR rather than overriding it.

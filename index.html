@@ -4,12 +4,17 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BookWorm – Student Textbook Marketplace</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-:root{--black:#0a0a0a;--white:#f8f7f4;--gray-100:#f0efec;--gray-200:#e0deda;--gray-300:#c8c5bf;--gray-400:#9a9690;--gray-500:#6b6660;--success:#2d6a4f;--error:#c1121f;--warning:#e76f51;--info:#1a6fa8;}
+/* bugu design tokens: see DESIGN.md. Legacy names (--black, --white, --gray-*) are aliases so old rules keep working. */
+:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--tint:#e4e4e3;--hover:#3a3a3a;
+--black:var(--ink);--white:var(--bg);--gray-100:#e9e9e8;--gray-200:var(--line);--gray-300:#b8b8b6;--gray-400:var(--mute);--gray-500:#555555;
+--success:var(--ink);--error:var(--ink);--warning:var(--ink);--info:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}}
+:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:var(--white);color:var(--black);min-height:100vh;user-select:none;-webkit-user-select:none;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--white);color:var(--black);min-height:100vh;user-select:none;-webkit-user-select:none;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
 .screen.active{display:flex;}
 #screen-splash{background:var(--black);align-items:center;justify-content:center;gap:16px;}
@@ -22,15 +27,15 @@ nav{background:var(--black);color:var(--white);padding:12px 20px;display:flex;al
 .nav-logo img{height:34px;width:auto;}
 .nav-logo-text{font-size:18px;font-weight:900;color:var(--white);}
 .nav-actions{display:flex;gap:8px;align-items:center;}
-.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;transition:all 0.2s;}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:700;transition:all 0.2s;}
 .nav-btn:hover{background:rgba(255,255,255,0.1);}
 .nav-btn.primary{background:var(--white);color:var(--black);}
 .nav-icon-btn{background:transparent;border:none;color:var(--white);cursor:pointer;padding:8px;border-radius:6px;font-size:18px;position:relative;}
 .badge{position:absolute;top:2px;right:2px;background:var(--warning);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:900;}
-.btn{padding:11px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+.btn{padding:11px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-weight:800;font-size:14px;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
 .btn:disabled{opacity:0.5;cursor:not-allowed;}
 .btn-primary{background:var(--black);color:var(--white);}
-.btn-primary:hover:not(:disabled){background:#333;transform:translateY(-1px);}
+.btn-primary:hover:not(:disabled){background:var(--hover);transform:translateY(-1px);}
 .btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black);}
 .btn-secondary:hover:not(:disabled){background:var(--black);color:var(--white);}
 .btn-success{background:var(--success);color:var(--white);}
@@ -41,7 +46,7 @@ nav{background:var(--black);color:var(--white);padding:12px 20px;display:flex;al
 .btn-full{width:100%;}
 .form-group{margin-bottom:16px;}
 .form-group label{display:block;font-weight:800;font-size:12px;margin-bottom:5px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
-.form-control{width:100%;padding:11px 14px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Nunito',sans-serif;font-size:14px;background:var(--white);color:var(--black);transition:border-color 0.2s;}
+.form-control{width:100%;padding:11px 14px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Inter',system-ui,sans-serif;font-size:14px;background:var(--white);color:var(--black);transition:border-color 0.2s;}
 .form-control:focus{outline:none;border-color:var(--black);}
 select.form-control{cursor:pointer;}
 textarea.form-control{resize:vertical;min-height:80px;}
@@ -56,14 +61,14 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .hero p{font-size:14px;color:var(--gray-300);max-width:460px;margin:0 auto 24px;line-height:1.6;}
 .trust-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:7px 16px;border-radius:100px;font-size:12px;color:var(--gray-300);margin-bottom:24px;}
 .search-bar{display:flex;max-width:540px;margin:0 auto;background:var(--white);border-radius:10px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.3);}
-.search-bar input{flex:1;padding:13px 16px;border:none;font-family:'Nunito',sans-serif;font-size:14px;background:transparent;color:var(--black);}
+.search-bar input{flex:1;padding:13px 16px;border:none;font-family:'Inter',system-ui,sans-serif;font-size:14px;background:transparent;color:var(--black);}
 .search-bar input:focus{outline:none;}
-.search-bar button{padding:13px 18px;background:var(--black);border:none;color:var(--white);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;}
+.search-bar button{padding:13px 18px;background:var(--black);border:none;color:var(--white);cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-weight:800;font-size:13px;}
 .home-tabs{display:flex;border-bottom:2px solid var(--gray-200);background:var(--white);}
 .home-tab{flex:1;padding:13px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
 .home-tab.active{color:var(--black);border-bottom-color:var(--black);}
 .filters{display:flex;gap:8px;padding:10px 16px;background:var(--white);border-bottom:1px solid var(--gray-200);flex-wrap:wrap;align-items:center;}
-.filter-select{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-family:'Nunito',sans-serif;font-size:12px;cursor:pointer;background:var(--white);color:var(--black);font-weight:700;}
+.filter-select{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-family:'Inter',system-ui,sans-serif;font-size:12px;cursor:pointer;background:var(--white);color:var(--black);font-weight:700;}
 .books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:16px;}
 .book-card{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;transition:all 0.25s;cursor:pointer;position:relative;}
 .book-card:hover{box-shadow:0 8px 40px rgba(0,0,0,0.15);transform:translateY(-3px);}
@@ -75,11 +80,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .book-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
 .price{font-size:17px;font-weight:900;}
 .badge-pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;}
-.condition-new{background:#d8f3dc;color:#2d6a4f;}
-.condition-good{background:#fff3e0;color:#e76f51;}
+.condition-new{background:var(--tint);color:var(--success);}
+.condition-good{background:var(--tint);color:var(--warning);}
 .condition-used{background:var(--gray-100);color:var(--gray-500);}
-.type-digital{background:#e8f4fd;color:#1a6fa8;}
-.featured-badge{position:absolute;top:8px;left:8px;background:#f59e0b;color:white;font-size:9px;font-weight:900;padding:3px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;z-index:1;}
+.type-digital{background:var(--tint);color:var(--info);}
+.featured-badge{position:absolute;top:8px;left:8px;background:var(--warning);color:white;font-size:9px;font-weight:900;padding:3px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;z-index:1;}
 .section-header{padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;}
 .section-title{font-size:18px;font-weight:900;}
 .section-count{font-size:12px;color:var(--gray-400);}
@@ -94,12 +99,12 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
 .meta-tag{padding:4px 10px;background:var(--gray-100);border-radius:20px;font-size:12px;font-weight:700;}
 .detail-price{font-size:30px;font-weight:900;margin-bottom:6px;}
-.price-breakdown{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:16px;line-height:1.8;}
+.price-breakdown{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--success);margin-bottom:16px;line-height:1.8;}
 .price-breakdown-row{display:flex;justify-content:space-between;font-size:12px;}
-.price-breakdown-row.total{font-weight:900;font-size:14px;border-top:1px solid #86efac;padding-top:6px;margin-top:4px;}
+.price-breakdown-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;}
 .seller-card{background:var(--gray-100);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .seller-avatar{width:40px;height:40px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;}
-.rating-stars{color:#f59e0b;font-size:13px;}
+.rating-stars{color:var(--warning);font-size:13px;}
 .delivery-options{margin-bottom:16px;}
 .delivery-option{border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;margin-bottom:8px;transition:all 0.2s;}
 .delivery-option:hover,.delivery-option.selected{border-color:var(--black);background:var(--gray-100);}
@@ -116,22 +121,22 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .photo-slot .slot-label{font-size:11px;font-weight:800;color:var(--gray-400);margin-top:6px;text-align:center;}
 .photo-slot .slot-icon{font-size:24px;}
 .upload-type-toggle{display:flex;border:2px solid var(--black);border-radius:8px;overflow:hidden;margin-bottom:16px;}
-.upload-type-btn{flex:1;padding:10px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all 0.2s;background:transparent;border:none;font-family:'Nunito',sans-serif;}
+.upload-type-btn{flex:1;padding:10px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all 0.2s;background:transparent;border:none;font-family:'Inter',system-ui,sans-serif;}
 .upload-type-btn.active{background:var(--black);color:var(--white);}
-.price-rec-box{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:12px;display:none;}
-.seller-earnings-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none;}
-.seller-earnings-box .earnings-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:#1e40af;}
-.seller-earnings-box .earnings-total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:#1e3a8a;border-top:1px solid #bfdbfe;padding-top:6px;margin-top:4px;}
-.licence-note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.5;margin-bottom:14px;}
+.price-rec-box{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--success);margin-bottom:12px;display:none;}
+.seller-earnings-box{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none;}
+.seller-earnings-box .earnings-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:var(--info);}
+.seller-earnings-box .earnings-total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:var(--info);border-top:1px solid var(--tint);padding-top:6px;margin-top:4px;}
+.licence-note{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--warning);line-height:1.5;margin-bottom:14px;}
 .pdf-upload-area{border:2px dashed var(--gray-300);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
 .pdf-upload-area:hover{border-color:var(--black);background:var(--gray-100);}
-.reader-container{flex:1;display:flex;flex-direction:column;background:#1a1a2e;position:relative;}
-.reader-toolbar{background:#16213e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.reader-container{flex:1;display:flex;flex-direction:column;background:var(--ink);position:relative;}
+.reader-toolbar{background:var(--ink);color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
 .reader-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
 #readerCanvas{max-width:100%;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
 .reader-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;}
 .screenshot-warn{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:white;padding:20px 28px;border-radius:12px;font-size:14px;font-weight:800;z-index:9999;display:none;text-align:center;}
-.reader-nav{background:#16213e;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.reader-nav{background:var(--ink);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
 .reader-page-num{color:rgba(255,255,255,0.6);font-size:12px;}
 .transaction-container{flex:1;padding:16px;max-width:480px;margin:0 auto;width:100%;}
 .code-display{background:var(--black);color:var(--white);border-radius:16px;padding:24px;text-align:center;margin:16px 0;}
@@ -147,7 +152,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .chat-item{padding:13px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s;}
 .chat-item:hover{background:var(--gray-100);}
 .chat-avatar{width:40px;height:40px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0;}
-.chat-warning{background:#fff7ed;border-bottom:1px solid #fed7aa;padding:10px 16px;font-size:12px;color:#9a3412;font-weight:700;display:flex;align-items:center;gap:6px;}
+.chat-warning{background:var(--tint);border-bottom:1px solid var(--tint);padding:10px 16px;font-size:12px;color:var(--warning);font-weight:700;display:flex;align-items:center;gap:6px;}
 .chat-room{flex:1;display:flex;flex-direction:column;}
 .chat-room-header{padding:12px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:10px;}
 .chat-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:300px;}
@@ -155,14 +160,14 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .message.sent{background:var(--black);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px;}
 .message.received{background:var(--gray-100);color:var(--black);align-self:flex-start;border-bottom-left-radius:4px;}
 .chat-input-area{padding:12px 16px;border-top:1px solid var(--gray-200);display:flex;gap:8px;align-items:center;}
-.chat-input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:100px;font-family:'Nunito',sans-serif;font-size:13px;background:var(--white);}
+.chat-input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:100px;font-family:'Inter',system-ui,sans-serif;font-size:13px;background:var(--white);}
 .chat-input:focus{outline:none;border-color:var(--black);}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.active{display:flex;}
 .modal{background:var(--white);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
 .modal h3{font-size:18px;font-weight:900;margin-bottom:16px;}
 .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);}
-.dispute-banner{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;color:#9a3412;margin:14px 0;}
+.dispute-banner{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);margin:14px 0;}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--black);color:var(--white);padding:10px 20px;border-radius:100px;font-size:13px;font-weight:800;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 .toast.success{background:var(--success);}
@@ -183,10 +188,10 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .wanted-card{border:1px solid var(--gray-200);border-radius:10px;padding:12px;margin-bottom:8px;}
 .wanted-card h4{font-size:13px;font-weight:800;margin-bottom:4px;}
 .wanted-card p{font-size:12px;color:var(--gray-400);}
-.payout-info-box{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;margin-bottom:16px;}
-.payout-info-box h4{font-size:13px;font-weight:900;color:#166534;margin-bottom:4px;}
-.payout-info-box p{font-size:12px;color:#166534;}
-.seller-pending-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;margin-bottom:12px;}
+.payout-info-box{background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;}
+.payout-info-box h4{font-size:13px;font-weight:900;color:var(--success);margin-bottom:4px;}
+.payout-info-box p{font-size:12px;color:var(--success);}
+.seller-pending-box{background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px;margin-bottom:12px;}
 /* Notifications */
 .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);position:absolute;top:6px;right:6px;}
 /* Bottom nav */
@@ -195,9 +200,13 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .bottom-nav-item.active{color:var(--black);}
 .bottom-nav-item span:first-child{font-size:20px;}
 /* Promo */
-.promo-banner{background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:center;gap:10px;}
+.promo-banner{background:linear-gradient(135deg,var(--warning),var(--error));color:white;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:center;gap:10px;}
 .promo-banner h4{font-size:14px;font-weight:900;}
 .promo-banner p{font-size:11px;opacity:0.9;}
+
+/* bugu surfaces (DESIGN.md section 3) */
+body{-webkit-font-smoothing:antialiased}
+.book-card,.auth-card,.form-control,.filter-select{background:var(--surf)}
 </style>
 </head>
 <body>
@@ -442,7 +451,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
         <div style="font-weight:900;font-size:14px;margin-bottom:4px;">📷 Point camera at the barcode</div>
         <div style="font-size:12px;color:var(--gray-400);">Hold steady over the ISBN barcode on the back cover</div>
       </div>
-      <div style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
+      <div style="background:var(--ink);border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
         <video id="scannerVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
       </div>
       <div style="display:flex;gap:8px;">
@@ -451,8 +460,8 @@ textarea.form-control{resize:vertical;min-height:80px;}
       </div>
     </div>
     <!-- ISBN found box -->
-    <div id="isbnFoundBox" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:8px;">✅ Book found! Details auto-filled.</div>
+    <div id="isbnFoundBox" style="display:none;background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:var(--success);margin-bottom:8px;">✅ Book found! Details auto-filled.</div>
       <div id="isbnFoundDetails"></div>
       <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">🔄 Clear & re-scan</button>
     </div>
@@ -486,11 +495,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
         <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250" oninput="updateSellerEarnings()"/>
       </div>
       <div class="seller-earnings-box" id="sellerEarningsBox">
-        <div style="font-weight:900;font-size:12px;color:#1e40af;margin-bottom:8px;">💰 Your Earnings Breakdown</div>
+        <div style="font-weight:900;font-size:12px;color:var(--info);margin-bottom:8px;">💰 Your Earnings Breakdown</div>
         <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
         <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
         <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
-        <div style="font-size:11px;color:#3b82f6;margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
+        <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
       </div>
     </div>
     <div id="digitalFields" style="display:none;">
@@ -766,7 +775,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
   <div class="modal">
     <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
     <h3>💳 Confirm Purchase</h3>
-    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;color:#9a3412;font-weight:700;margin-bottom:14px;">⚠️ <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
+    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;">⚠️ <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
@@ -1117,7 +1126,7 @@ window.filterBooks=function(){
         <div class="book-card-title">${b.title}</div>
         <div class="book-card-footer">
           <div class="price">R${b.price||b.subPrice||0}${b.bookType==="digital"?"/yr":""}</div>
-          ${b.status==="pending"?`<span class="badge-pill" style="background:#fff3e0;color:#e76f51;">⏳ Pending</span>`:b.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${b.condition?.toLowerCase()}">${b.condition}</span>`}
+          ${b.status==="pending"?`<span class="badge-pill" style="background:var(--tint);color:var(--warning);">⏳ Pending</span>`:b.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${b.condition?.toLowerCase()}">${b.condition}</span>`}
         </div>
       </div>
     </div>`).join("");
@@ -1134,7 +1143,7 @@ async function renderWantedListings(){
         return`<div class="wanted-card" style="margin:0 16px 8px;${found?"opacity:0.55;":""}">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
             <h4>${found?"✅":"🔍"} ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
-            ${found?`<span style="font-size:10px;font-weight:900;padding:2px 8px;background:#d8f3dc;color:#2d6a4f;border-radius:20px;white-space:nowrap;">Found!</span>`:""}
+            ${found?`<span style="font-size:10px;font-weight:900;padding:2px 8px;background:var(--tint);color:var(--success);border-radius:20px;white-space:nowrap;">Found!</span>`:""}
           </div>
           <p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>
           ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
@@ -1228,7 +1237,7 @@ window.showDetail=async function(id){
     ${book.edition?`<div class="meta-tag">📖 ${book.edition}</div>`:""}
     <div class="meta-tag">🎓 ${book.university||"Unknown"}</div>
     ${book.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${book.condition?.toLowerCase()}">${book.condition}</span>`}
-    ${book.featured?`<span class="badge-pill" style="background:#fef3c7;color:#92400e;">⭐ Featured</span>`:""}`;
+    ${book.featured?`<span class="badge-pill" style="background:var(--tint);color:var(--warning);">⭐ Featured</span>`:""}`;
   document.getElementById("detailDescription").textContent=book.description||"";
   // Seller info + rating
   const sellerRating=book.sellerRating||0;
@@ -1249,7 +1258,7 @@ window.showDetail=async function(id){
         <div class="price-breakdown-row"><span>Book Price</span><span>R${p}</span></div>
         <div class="price-breakdown-row"><span>Pargo Delivery Fee</span><span>R${deliveryFeeAmount}</span></div>
         <div class="price-breakdown-row total"><span>Total You Pay</span><span>R${total}</span></div>
-        <div style="font-size:11px;margin-top:6px;color:#166534;">Or choose hand delivery — pay R${p} only.</div>
+        <div style="font-size:11px;margin-top:6px;color:var(--success);">Or choose hand delivery — pay R${p} only.</div>
       </div>`;
   }else{
     document.getElementById("detailPriceBreakdown").innerHTML="";
@@ -1318,7 +1327,7 @@ window.showDetail=async function(id){
           <p>Delivered to your nearest Pargo pickup point (Clicks, PnP, etc). Total: R${book.price+deliveryFeeAmount}.</p>
           <div class="courier-form" id="courierForm">
             <button class="btn btn-info btn-sm btn-full" style="margin-top:8px;" onclick="openPargoMap(event)">🗺️ Find My Nearest Pargo Point</button>
-            <div id="selectedPargoDisplay" style="display:none;margin-top:8px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;font-weight:800;color:#1d4ed8;"></div>
+            <div id="selectedPargoDisplay" style="display:none;margin-top:8px;padding:10px;background:var(--tint);border:1px solid var(--tint);border-radius:8px;font-size:12px;font-weight:800;color:var(--info);"></div>
           </div>
         </div>
         <div class="delivery-coming-soon">
@@ -1326,7 +1335,7 @@ window.showDetail=async function(id){
           <p>Collect from a partner bookshop near you.</p>
         </div>
       </div>
-      ${isSold||isPending?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-weight:800;color:#166534;">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
+      ${isSold||isPending?`<div style="background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;font-weight:800;color:var(--success);">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" onclick="openMessageFromDetail('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message</button>
         <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
@@ -2248,7 +2257,7 @@ async function loadNotifications(){
       else if(n.type==="message"){icon="💬";text=`New message from <strong>${n.fromName}</strong>`;}
       else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${n.bookTitle}"</em> has been purchased!`;}
       else{text=n.message||"New notification";}
-      return`<div onclick="markNotifRead('${d.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"#eff6ff"};transition:background 0.2s;">
+      return`<div onclick="markNotifRead('${d.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"var(--tint)"};transition:background 0.2s;">
         <div style="font-size:22px;flex-shrink:0;">${icon}</div>
         <div style="flex:1;">
           <div style="font-size:13px;line-height:1.5;${read?"":"font-weight:700;"}">${text}</div>
@@ -2324,16 +2333,16 @@ async function loadProfile(){
   if(bankingEl){
     if(currentUserData.banking&&currentUserData.banking.bankName){
       bankingEl.innerHTML=`
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;">
-          <div style="font-weight:800;font-size:13px;color:#166534;">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
-          <div style="font-size:11px;color:#166534;margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
+        <div style="background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="font-weight:800;font-size:13px;color:var(--success);">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
         </div>
         <button class="btn btn-secondary btn-full btn-sm" onclick="openBankingModal()">✏️ Update Banking Details</button>`;
     }else{
       bankingEl.innerHTML=`
-        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:8px;">
-          <div style="font-weight:800;font-size:13px;color:#9a3412;">⚠️ No banking details yet</div>
-          <div style="font-size:11px;color:#9a3412;margin-top:2px;">Add them to receive payments when your books sell.</div>
+        <div style="background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="font-weight:800;font-size:13px;color:var(--warning);">⚠️ No banking details yet</div>
+          <div style="font-size:11px;color:var(--warning);margin-top:2px;">Add them to receive payments when your books sell.</div>
         </div>
         <button class="btn btn-primary btn-full btn-sm" onclick="openBankingModal()">💰 Add Banking Details</button>`;
     }
@@ -2341,7 +2350,7 @@ async function loadProfile(){
   // Pending payouts
   const payouts=await getDocs(query(collection(db,"payouts"),where("sellerId","==",currentUser.uid),where("status","==","pending")));
   document.getElementById("pendingPayouts").innerHTML=payouts.empty?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No pending payouts.</div>`:
-    payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:#166534;">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:#166534;">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
+    payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid var(--line);background:var(--tint);border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:var(--success);">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:var(--success);">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
   // My listings
   document.getElementById("myListings").innerHTML=myBooks.length===0?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No listings yet.</div>`:
     myBooks.map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="showDetail('${b.id}')">
@@ -2360,7 +2369,7 @@ async function loadProfile(){
       <div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}`:"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
       ${t.status==="completed"?`<div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-sm btn-secondary" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:1px solid var(--gray-200);" onclick="openRefundModal('${d.id}','${(t.bookTitle||"").replace(/'/g,"\\'")}')">↩ Request Refund</button></div>`:""}
     </div>`;}),
-    ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
+    ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid var(--tint);border-radius:10px;margin-bottom:8px;background:var(--tint);cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:var(--info);">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
   ].join("");
 }
 
@@ -2577,9 +2586,9 @@ window.addEventListener("load",()=>{
       <div style="font-weight:900;font-size:15px;">📦 Find Your Nearest Pargo Point</div>
       <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);">✕</button>
     </div>
-    <div style="padding:10px 16px;background:#eff6ff;font-size:12px;color:#1d4ed8;flex-shrink:0;line-height:1.6;">
+    <div style="padding:10px 16px;background:var(--tint);font-size:12px;color:var(--info);flex-shrink:0;line-height:1.6;">
       📍 <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
-      <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:#1d4ed8;font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
+      <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:var(--info);font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
     </div>
     <iframe id="pargoIframe" src="" style="flex:1;border:none;width:100%;" allow="geolocation" title="Pargo Pickup Points"></iframe>
     <div style="padding:12px 16px;border-top:1px solid var(--gray-200);flex-shrink:0;background:white;">
