@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>bugu – Student textbooks</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--c1:#2b2b2b;--c1t:#e2e2e0;--c2:#f3f3f2;--c2t:#222;--c2l:#b9b9b7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--c1:#333;--c1t:#e2e2e0;--c2:#cfcfcd;--c2t:#1f1f1f;--c2l:#cfcfcd}}
+:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--c1:#333;--c1t:#e2e2e0;--c2:#cfcfcd;--c2t:#1f1f1f;--c2l:#cfcfcd}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.45 'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:560px;margin:0 auto;padding:0 18px}
+header{display:flex;justify-content:space-between;align-items:center;height:60px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:23px;letter-spacing:-.035em}
+.mark{width:18px;height:23px;border:2px solid var(--ink);border-radius:2px;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.ib{background:none;border:0;color:var(--ink);width:40px;height:40px;display:grid;place-items:center;cursor:pointer}
+h1{font-weight:600;font-size:28px;line-height:1.15;letter-spacing:-.02em;margin-top:10px}
+.sub{color:var(--mute);margin-top:6px;font-size:14px}
+.search{margin-top:18px;display:flex;align-items:center;gap:10px;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:0 14px;height:48px}
+.search:focus-within{border-color:var(--ink)}
+.search input{flex:1;min-width:0;border:0;background:none;font:400 15px 'Inter',sans-serif;color:var(--ink);outline:none}
+.search input::placeholder{color:var(--mute)}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:14px -18px 0;padding:0 18px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:none;color:var(--ink);padding:7px 13px;border-radius:8px;font:500 13px 'Inter',sans-serif;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+.safe{display:flex;gap:10px;align-items:center;margin-top:16px;padding:11px 14px;background:var(--surf);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--mute)}
+.safe svg{width:18px;height:18px;flex:none;color:var(--ink)}
+.safe b{color:var(--ink);font-weight:600}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin-top:20px}
+.tab{flex:1;background:none;border:0;padding:12px 0;font:500 14px 'Inter',sans-serif;color:var(--mute);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--ink);border-color:var(--ink)}
+.cnt{font-size:13px;color:var(--mute);padding:14px 0 4px}
+.row{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.cv{flex:none;width:72px;height:96px;border-radius:2px 5px 5px 2px;padding:9px 7px 8px 12px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:0 3px 8px -3px rgba(0,0,0,.35)}
+.cv::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,.22)}
+.cv.a{background:var(--c1);color:var(--c1t)}
+.cv.b{background:var(--c2);color:var(--c2t);border:1px solid var(--c2l)}
+.cv i{display:block;height:1px;background:currentColor;opacity:.35}
+.cv span{font:600 9.5px/1.1 'Source Serif 4',Georgia,serif}
+.cv em{font:normal 7px 'Inter',sans-serif;opacity:.6;letter-spacing:.06em}
+.inf{flex:1;min-width:0;display:flex;flex-direction:column}
+.code{font:500 11px 'IBM Plex Mono',monospace;color:var(--mute);letter-spacing:.04em}
+.ti{font-weight:600;font-size:15px;line-height:1.25;margin-top:2px}
+.wh{font-size:13px;color:var(--mute);margin-top:3px}
+.bt{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px}
+.pr{font-weight:600;font-size:18px;letter-spacing:-.01em}
+.pr s{font-weight:400;font-size:12px;color:var(--mute);margin-left:6px}
+.tag{font-size:11.5px;font-weight:500;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--mute)}
+.hr{position:absolute;top:10px;right:0;background:none;border:0;color:var(--mute);cursor:pointer;width:32px;height:32px;display:grid;place-items:center}
+.hr svg{width:18px;height:18px}.hr.on{color:var(--ink)}.hr.on svg{fill:currentColor}
+.empty{text-align:center;color:var(--mute);padding:44px 0;font-size:14px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surf);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav div{display:flex;width:100%;max-width:560px}
+nav button{flex:1;background:none;border:0;color:var(--mute);padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font:500 11px 'Inter',sans-serif;cursor:pointer}
+nav button.on{color:var(--ink)}
+
+.screen{display:none}.screen.on{display:block}
+.top{display:flex;align-items:center;justify-content:space-between;height:56px;margin:0 -10px}
+.ttl{font-weight:600;font-size:16px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:var(--inv);font:600 15px 'Inter',sans-serif;cursor:pointer}
+.btn.o{background:none;color:var(--ink)}
+.lbl{font-size:12px;font-weight:600;color:var(--mute);margin:18px 0 7px;letter-spacing:.05em;text-transform:uppercase}
+.in{width:100%;height:46px;border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:10px;padding:0 14px;font:400 15px 'Inter',sans-serif;outline:none}
+.in:focus{border-color:var(--ink)}textarea.in{height:92px;padding:12px;resize:none}
+.seg{display:flex;gap:8px}.seg .chip{flex:1;text-align:center}
+.kv{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}.kv span:first-child{color:var(--mute)}
+.av{width:42px;height:42px;border-radius:50%;background:var(--ink);color:var(--inv);display:grid;place-items:center;font-weight:600;flex:none}
+.flex{display:flex;align-items:center;gap:12px}.grow{flex:1;min-width:0}
+.mut{color:var(--mute);font-size:13px}
+.cv.big{width:150px;height:200px;margin:6px auto 18px;padding:16px 12px 14px 22px}.cv.big span{font-size:19px;line-height:1.1}.cv.big em{font-size:10px}
+.big-t{font-size:23px;font-weight:600;letter-spacing:-.02em;line-height:1.2;margin-top:2px}
+.big-p{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.how div{font-size:12px;color:var(--mute);line-height:1.35}.how b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:2px}
+.bar{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);padding:10px 18px;z-index:4;display:none}
+.bar.on{display:block}.bar>div{max-width:560px;margin:0 auto;display:flex;gap:10px}
+.bar .btn.o{width:52px;flex:none}
+.tl{border-left:1.5px solid var(--line);margin:14px 0 0 7px}
+.st{position:relative;padding:0 0 22px 22px}.st b{display:block;font-size:14.5px}.st span{font-size:13px;color:var(--mute)}
+.st::before{content:"";position:absolute;left:-8px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.st.d::before{background:var(--ink);border-color:var(--ink)}.st.n::before{border-color:var(--ink);box-shadow:0 0 0 4px var(--line)}
+.bub{max-width:78%;padding:9px 13px;border-radius:14px;font-size:14px;margin:7px 0;line-height:1.4}
+.me{margin-left:auto;background:var(--ink);color:var(--inv);border-bottom-right-radius:4px}
+.th{background:var(--surf);border:1px solid var(--line);border-bottom-left-radius:4px}
+.mr{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:15px}
+.mr svg{width:18px;height:18px;color:var(--mute)}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.tri div{text-align:center;padding:12px 4px}.tri b{display:block;font-size:20px;font-weight:600}.tri span{font-size:12px;color:var(--mute)}
+.drop{border:1.5px dashed var(--line);border-radius:12px;height:120px;display:grid;place-items:center;color:var(--mute);font-size:14px;text-align:center;cursor:pointer}
+.sw{width:46px;height:28px;border-radius:99px;border:1px solid var(--line);background:var(--surf);position:relative;cursor:pointer}.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);transition:.2s}.sw.on::after{left:21px}
+</style>
+</head>
+<body>
+<div class="wrap screen on" id="s-home">
+<header>
+  <div class="logo"><span class="mark"></span>bugu</div>
+  <button class="ib" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg></button>
+</header>
+<h1>Find your course books.</h1>
+<p class="sub">Second-hand textbooks from students on your campus.</p>
+<label class="search"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input id="q" placeholder="Module code or title, e.g. ACCN101" autocomplete="off"/></label>
+<div class="chips" id="chips"></div>
+<div class="safe"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span><b>Pay safely.</b> Money is held until you confirm the book.</span></div>
+<div class="tabs"><button class="tab on" data-t="physical">Physical</button><button class="tab" data-t="digital">Digital</button><button class="tab" data-t="wanted">Wanted</button></div>
+<div class="cnt" id="cnt"></div>
+<div id="list"></div>
+</div>
+
+<div class="wrap screen" id="s-detail"></div>
+<div class="wrap screen" id="s-sell">
+<header><div class="logo" style="font-size:20px">Sell a book</div></header>
+<p class="sub" style="margin-top:0">It takes about a minute.</p>
+<div class="lbl">Photo of the cover</div><div class="drop"><div><svg viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/></svg><br/>Tap to add a photo</div></div>
+<div class="lbl">Title</div><input class="in" placeholder="e.g. Principles of Accounting"/>
+<div class="lbl">Module code</div><input class="in" placeholder="e.g. ACCN101"/>
+<div class="lbl">Campus</div><select class="in"><option>University of Limpopo (UL)</option><option>University of Pretoria (UP)</option><option>Wits</option><option>UCT</option><option>TUT</option></select>
+<div class="lbl">Condition</div><div class="seg" id="cond"><button class="chip">New</button><button class="chip on">Good</button><button class="chip">Used</button></div>
+<div class="lbl">Price (R)</div><input class="in" inputmode="numeric" placeholder="180"/><p class="mut" style="margin-top:6px">Similar books are listed between R150 and R220.</p>
+<div class="lbl">Notes (optional)</div><textarea class="in" placeholder="Highlighting, missing pages, edition…"></textarea>
+<div style="margin:22px 0 10px"><button class="btn" onclick="this.textContent='Listed';setTimeout(function(){go('s-home',0)},700)">List my book</button></div>
+<p class="mut" style="text-align:center">You get paid after the buyer confirms the book.</p></div>
+<div class="wrap screen" id="s-escrow"></div>
+<div class="wrap screen" id="s-chats"><header><div class="logo" style="font-size:20px">Chats</div></header><div id="cl"></div></div>
+<div class="wrap screen" id="s-room"><div class="top"><button class="ib" aria-label="Back" onclick="back()"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button><span class="ttl"><span id="rn">Thabo</span></span><span style="width:40px;display:grid;place-items:center"></span></div>
+<div class="card flex" style="padding:10px 12px"><div class="cv a" style="width:34px;height:46px;padding:0;flex:none"></div><div class="grow"><div style="font-weight:600;font-size:14px">Principles of Accounting</div><div class="mut">ACCN101 · R180</div></div></div>
+<div id="msgs" style="padding:8px 0 130px"><div class="bub th">Hi! Is the book still available?</div><div class="bub me">Yes it is. Good condition, a bit of highlighting in chapters 1 to 3.</div><div class="bub th">Great. Can we meet at the library tomorrow?</div></div></div>
+<div class="wrap screen" id="s-profile"><header><div class="logo" style="font-size:20px">Profile</div></header>
+<div class="flex"><div class="av" style="width:56px;height:56px;font-size:20px">N</div><div><div style="font-weight:600;font-size:18px">Nandi M.</div><div class="mut">Wits · Joined 2026</div></div></div>
+<div class="tri"><div class="card"><b>8</b><span>Listed</span></div><div class="card"><b>5</b><span>Sold</span></div><div class="card"><b>4.9</b><span>Rating</span></div></div>
+<div style="margin-top:18px"><div class="mr">My listings<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></div><div class="mr">Saved books<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></div><div class="mr">Wanted requests<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></div><div class="mr">Payout details<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></div><div class="mr">Help and support<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></div><div class="mr">Dark mode<span class="sw" id="sw" onclick="tg()"></span></div></div></div>
+<div class="bar" id="b-buy"><div><button class="btn o" aria-label="Message seller" onclick="go('s-room')"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></button><button class="btn" id="buy" onclick="go('s-escrow')"></button></div></div>
+<div class="bar" id="b-chat"><div><input class="in" id="mi" placeholder="Message" style="flex:1"/><button class="btn" style="width:52px" aria-label="Send" onclick="snd()"><svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></div>
+<nav><div>
+<button data-n="0" class="on" onclick="go('s-home',0)"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+<button data-n="1" onclick="go('s-sell',0)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Sell</button>
+<button data-n="2" onclick="go('s-chats',0)"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chats</button>
+<button data-n="3" onclick="go('s-profile',0)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Profile</button>
+</div></nav>
+<script>
+// Sample listings for the design preview only
+var B=[
+{t:"Principles of Accounting",c:"ACCN101",u:"UL",p:180,o:420,k:"Good",e:"11th ed.",w:"Thabo",f:"physical"},
+{t:"Introduction to Psychology",c:"PSYC111",u:"UP",p:240,o:560,k:"New",e:"5th ed.",w:"Lerato",f:"physical"},
+{t:"Calculus: Early Transcendentals",c:"MATH151",u:"Wits",p:320,o:780,k:"Used",e:"9th ed.",w:"Sipho",f:"physical"},
+{t:"Organic Chemistry",c:"CHEM201",u:"UCT",p:410,o:950,k:"Good",e:"8th ed.",w:"Naledi",f:"physical"},
+{t:"Business Law in SA",c:"BLAW102",u:"UL",p:150,o:360,k:"Used",e:"4th ed.",w:"Kagiso",f:"physical"},
+{t:"Anatomy & Physiology",c:"ANAT110",u:"UJ",p:290,o:690,k:"Good",e:"3rd ed.",w:"Zinhle",f:"physical"},
+{t:"Microeconomics",c:"ECON111",u:"UL",p:95,k:"PDF",e:"2024",w:"Mpho",f:"digital"},
+{t:"Engineering Statics",c:"ENGS201",u:"TUT",p:120,k:"PDF",e:"2023",w:"Tumi",f:"digital"},
+{t:"Financial Management",c:"FINM201",u:"UL",p:200,k:"Budget",e:"any ed.",w:"Ayanda",f:"wanted"}];
+var U=["All","UL","UP","UJ","Wits","UCT","UKZN","UNISA","SU","TUT","CPUT"],s={t:"physical",u:"All",q:"",h:{}};
+var ch=document.getElementById("chips"),ls=document.getElementById("list");
+U.forEach(function(u){var b=document.createElement("button");b.className="chip"+(u=="All"?" on":"");b.textContent=u=="All"?"All campuses":u;b.onclick=function(){s.u=u;[].forEach.call(ch.children,function(c){c.classList.toggle("on",c==b)});draw()};ch.appendChild(b)});
+document.getElementById("q").oninput=function(e){s.q=e.target.value.toLowerCase();draw()};
+[].forEach.call(document.querySelectorAll(".tab"),function(b){b.onclick=function(){s.t=b.dataset.t;[].forEach.call(document.querySelectorAll(".tab"),function(x){x.classList.toggle("on",x==b)});draw()}});
+function draw(){
+var L=B.filter(function(b){return b.f==s.t&&(s.u=="All"||b.u==s.u)&&(!s.q||(b.t+b.c).toLowerCase().indexOf(s.q)>-1)});
+document.getElementById("cnt").textContent=L.length+(L.length==1?" listing":" listings");
+ls.innerHTML=L.length?"":'<div class="empty">Nothing here yet. Be the first to list it.</div>';
+L.forEach(function(b,i){var d=document.createElement("div");d.className="row";d.onclick=function(){openBook(b)};
+var h=b.f=="wanted"?"":'<button class="hr'+(s.h[b.c]?" on":"")+'" aria-label="Save"><svg viewBox="0 0 24 24"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/></svg></button>';
+d.innerHTML='<div class="cv '+(i%2?"b":"a")+'"><em>'+b.c+'</em><span>'+b.t+'</span><i></i></div><div class="inf"><span class="code">'+b.c+' · '+b.u+'</span><span class="ti">'+b.t+'</span><span class="wh">'+b.e+' · '+b.w+'</span><div class="bt"><span class="pr">R'+b.p+(b.o?'<s>R'+b.o+'</s>':'')+'</span><span class="tag">'+b.k+'</span></div></div>'+h;
+var x=d.querySelector(".hr");if(x)x.onclick=function(e){e.stopPropagation();s.h[b.c]=!s.h[b.c];x.classList.toggle("on")};
+ls.appendChild(d)})}
+draw();
+var I={"l": "<svg viewBox=\"0 0 24 24\"><path d=\"m15 5-7 7 7 7\"/></svg>", "r": "<svg viewBox=\"0 0 24 24\"><path d=\"m9 5 7 7-7 7\"/></svg>", "h": "<svg viewBox=\"0 0 24 24\"><path d=\"M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z\"/></svg>", "s": "<svg viewBox=\"0 0 24 24\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg>"},hist=[],cur="s-home",cb=null,SC=["s-home","s-detail","s-sell","s-escrow","s-chats","s-room","s-profile"],NV={"s-home":0,"s-detail":0,"s-escrow":0,"s-sell":1,"s-chats":2,"s-room":2,"s-profile":3};
+function show(id){cur=id;SC.forEach(function(s){document.getElementById(s).classList.toggle("on",s==id)});
+[].forEach.call(document.querySelectorAll("nav button"),function(b){b.classList.toggle("on",+b.dataset.n==NV[id])});
+document.getElementById("b-buy").classList.toggle("on",id=="s-detail");document.getElementById("b-chat").classList.toggle("on",id=="s-room");window.scrollTo(0,0)}
+function go(id,push){if(push!==0)hist.push(cur);else hist=[];show(id)}
+function back(){show(hist.pop()||"s-home")}
+function top(t,r){return '<div class="top"><button class="ib" aria-label="Back" onclick="back()">'+I.l+'</button><span class="ttl">'+t+'</span><span style="width:40px;display:grid;place-items:center">'+(r||"")+'</span></div>'}
+function openBook(b){cb=b;var sv=b.o?Math.round((1-b.p/b.o)*100):0;
+document.getElementById("s-detail").innerHTML=top("Listing",'<button class="ib" aria-label="Save">'+I.h+'</button>')+
+'<div class="cv big a"><em>'+b.c+'</em><span>'+b.t+'</span><i></i></div><div class="code">'+b.c+' · '+b.u+'</div><div class="big-t">'+b.t+'</div><div class="mut" style="margin-top:4px">'+b.e+'</div>'+
+'<div class="flex" style="margin-top:14px;align-items:baseline"><span class="big-p">R'+b.p+'</span>'+(b.o?'<span class="mut"><s>R'+b.o+'</s> · '+sv+'% below new</span>':'')+'</div>'+
+'<div class="lbl">Details</div><div class="kv"><span>Condition</span><span>'+b.k+'</span></div><div class="kv"><span>Module</span><span>'+b.c+'</span></div><div class="kv"><span>Campus</span><span>'+b.u+'</span></div><div class="kv"><span>Edition</span><span>'+b.e+'</span></div>'+
+'<div class="lbl">Seller</div><div class="card flex"><div class="av">'+b.w[0]+'</div><div class="grow"><div style="font-weight:600">'+b.w+'</div><div class="mut">'+b.u+' · 4.8 rating · 12 sales</div></div></div>'+
+'<div class="lbl">How paying works</div><div class="how"><div><b>1. Pay</b>We hold your money.</div><div><b>2. Meet</b>Check the book.</div><div><b>3. Confirm</b>Seller gets paid.</div></div><div style="height:96px"></div>';
+document.getElementById("buy").textContent="Buy securely · R"+b.p;go("s-detail")}
+document.getElementById("s-escrow").innerHTML=top("Your order")+
+'<div class="card flex"><div class="cv a" style="width:44px;height:58px;padding:0;flex:none"></div><div class="grow"><div style="font-weight:600">Principles of Accounting</div><div class="mut">Seller: Thabo · UL</div></div><b>R180</b></div>'+
+'<div class="lbl">Where things stand</div><div class="tl"><div class="st d"><b>Payment held securely</b><span>Thabo can’t access it yet.</span></div><div class="st n"><b>Meet and check the book</b><span>Agree a safe place on campus in chat.</span></div><div class="st"><b>Confirm you’re happy</b><span>Only then is the seller paid.</span></div><div class="st"><b>Done</b><span>Rate your seller.</span></div></div>'+
+'<div style="display:grid;gap:10px;margin-top:6px"><button class="btn">I have the book, release payment</button><button class="btn o">Something is wrong</button></div><p class="mut" style="margin-top:14px;text-align:center">If there’s a problem, our team steps in before any money moves.</p>';
+var CH=[["Thabo","Great. Can we meet at the library tomorrow?","ACCN101","10:42"],["Lerato","Is the 5th edition still available?","PSYC111","Tue"],["Sipho","Thanks, got it!","MATH151","Mon"]];
+document.getElementById("cl").innerHTML=CH.map(function(c){return '<div class="row" onclick="document.getElementById(\'rn\').textContent=\''+c[0]+'\';go(\'s-room\')"><div class="av">'+c[0][0]+'</div><div class="grow"><div style="display:flex;justify-content:space-between"><b style="font-weight:600">'+c[0]+'</b><span class="mut">'+c[3]+'</span></div><div class="code">'+c[2]+'</div><div class="mut" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c[1]+'</div></div></div>'}).join("");
+function snd(){var i=document.getElementById("mi");if(!i.value.trim())return;var d=document.createElement("div");d.className="bub me";d.textContent=i.value;document.getElementById("msgs").appendChild(d);i.value="";window.scrollTo(0,document.body.scrollHeight)}
+function tg(){var d=document.documentElement,on=!(d.dataset.theme=="dark"||(!d.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches));d.dataset.theme=on?"dark":"light";document.getElementById("sw").classList.toggle("on",on)}
+[].forEach.call(document.querySelectorAll("#cond .chip"),function(b){b.onclick=function(){[].forEach.call(document.querySelectorAll("#cond .chip"),function(x){x.classList.toggle("on",x==b)})}});
+document.getElementById("sw").classList.toggle("on",matchMedia("(prefers-color-scheme:dark)").matches);
+
+</script>
+</body>
+</html>
