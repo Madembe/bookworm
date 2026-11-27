@@ -207,6 +207,23 @@ textarea.form-control{resize:vertical;min-height:80px;}
 /* bugu surfaces (DESIGN.md section 3) */
 body{-webkit-font-smoothing:antialiased}
 .book-card,.auth-card,.form-control,.filter-select{background:var(--surf)}
+
+/* shell: header and bottom tab bar (DESIGN.md sections 5 and 6) */
+.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
+.nav-logo{color:var(--ink);font-weight:500;gap:6px}
+.nav-logo .ic{width:20px;height:20px}
+.nav-logo-text{color:var(--ink);font-size:16px;font-weight:600}
+.bugu-mark{display:inline-block;width:16px;height:21px;border:2px solid var(--ink);border-radius:2px;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.bugu-word{font-size:23px;font-weight:600;letter-spacing:-.035em;line-height:1;color:var(--ink);margin-left:3px}
+.nav-btn{border:1px solid var(--line);color:var(--ink);border-radius:8px;font-weight:500}
+.nav-btn:hover{background:var(--tint)}
+.nav-btn.primary{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+.nav-icon-btn{color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
+.badge{background:var(--ink);color:var(--inv)}
+.bottom-nav{background:var(--surf);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bottom-nav-item{font-size:11px;font-weight:500;text-transform:none;letter-spacing:0}
+.bottom-nav-item span:first-child{line-height:0}
 </style>
 </head>
 <body>
@@ -353,14 +370,14 @@ body{-webkit-font-smoothing:antialiased}
 <!-- HOME -->
 <div class="screen" id="screen-home">
   <nav>
-    <div class="nav-logo" onclick="showScreen('screen-home')">
-      <img src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+    <div class="nav-logo" onclick="showScreen('screen-home')" aria-label="bugu">
+      <span class="bugu-mark"></span><span class="bugu-word">bugu</span>
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
-      <button class="nav-icon-btn" id="notifBell" onclick="requireAuth('screen-notifications')" title="Notifications">🔔<span class="badge" id="notifBadge" style="display:none;">0</span></button>
-      <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
-      <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
+      <button class="nav-icon-btn" id="notifBell" onclick="requireAuth('screen-notifications')" title="Notifications"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg><span class="badge" id="notifBadge" style="display:none;">0</span></button>
+      <button class="nav-icon-btn" aria-label="Chats" onclick="requireAuth('screen-chat')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></button>
+      <button class="nav-icon-btn" aria-label="Profile" onclick="requireAuth('screen-profile')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></button>
     </div>
   </nav>
   <div class="hero">
@@ -400,18 +417,18 @@ body{-webkit-font-smoothing:antialiased}
   </div>
   <div class="books-grid" id="booksGrid"></div>
   <div class="bottom-nav">
-    <div class="bottom-nav-item active" onclick="showScreen('screen-home')"><span>🏠</span><span>Home</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-upload')"><span>➕</span><span>List</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-chat')"><span>💬</span><span>Chat</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-profile')"><span>👤</span><span>Profile</span></div>
+    <div class="bottom-nav-item active" onclick="showScreen('screen-home')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><span>Home</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-upload')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></svg></span><span>List</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-chat')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><span>Chat</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-profile')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span><span>Profile</span></div>
   </div>
 </div>
 
 <!-- BOOK DETAIL -->
 <div class="screen" id="screen-detail">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-actions"><button class="nav-btn" onclick="requireAuth('screen-chat')">💬 Chats</button></div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
+    <div class="nav-actions"><button class="nav-btn" onclick="requireAuth('screen-chat')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg> Chats</button></div>
   </nav>
   <div class="detail-container">
     <div id="detailPhotos"></div>
@@ -430,7 +447,7 @@ body{-webkit-font-smoothing:antialiased}
 <!-- UPLOAD -->
 <div class="screen" id="screen-upload">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">List a Book</div>
   </nav>
   <div class="upload-container">
@@ -610,7 +627,7 @@ body{-webkit-font-smoothing:antialiased}
 <!-- TRANSACTION (Buyer view) -->
 <div class="screen" id="screen-transaction">
   <nav>
-    <div class="nav-logo" onclick="showScreen('screen-home')">🏠 Home</div>
+    <div class="nav-logo" onclick="showScreen('screen-home')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Home</div>
     <div class="nav-logo-text">My Purchase</div>
   </nav>
   <div class="transaction-container" id="transactionContent"></div>
@@ -619,7 +636,7 @@ body{-webkit-font-smoothing:antialiased}
 <!-- CHAT LIST -->
 <div class="screen" id="screen-chat">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Messages</div>
   </nav>
   <div class="chat-warning">🔒 Chats may be reviewed by BookWorm Support for safety and dispute resolution purposes.</div>
@@ -632,10 +649,10 @@ body{-webkit-font-smoothing:antialiased}
 <!-- CHAT ROOM -->
 <div class="screen" id="screen-chatroom">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="chat-avatar" id="chatroomAvatar" style="width:32px;height:32px;font-size:12px;"></div>
-      <div><div style="font-size:14px;font-weight:900;color:white;" id="chatroomName"></div><div style="font-size:11px;color:var(--gray-300);" id="chatroomBook"></div></div>
+      <div><div style="font-size:14px;font-weight:600;color:var(--ink);" id="chatroomName"></div><div style="font-size:11px;color:var(--gray-300);" id="chatroomBook"></div></div>
     </div>
   </nav>
   <div class="chat-warning">🔒 Safety reminder: Meet in public places. Never share personal banking details in chat.</div>
@@ -649,7 +666,7 @@ body{-webkit-font-smoothing:antialiased}
 <!-- PROFILE -->
 <div class="screen" id="screen-profile">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-actions"><button class="nav-btn" onclick="handleLogout()">Sign Out</button></div>
   </nav>
   <div class="profile-header">
@@ -698,7 +715,7 @@ body{-webkit-font-smoothing:antialiased}
 <!-- WANTED LISTING SCREEN -->
 <div class="screen" id="screen-wanted">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Post a Wanted</div>
   </nav>
   <div class="upload-container">
@@ -737,8 +754,8 @@ body{-webkit-font-smoothing:antialiased}
 <!-- NOTIFICATIONS SCREEN -->
 <div class="screen" id="screen-notifications">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-logo-text">🔔 Notifications</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
+    <div class="nav-logo-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg> Notifications</div>
     <div class="nav-actions"><button class="nav-btn btn-sm" onclick="markAllNotifsRead()">Mark all read</button></div>
   </nav>
   <div id="notifList" style="padding:16px;flex:1;overflow-y:auto;">
