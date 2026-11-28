@@ -774,15 +774,156 @@ body{font-family:'Nunito',sans-serif;background:#f0efec;color:var(--black);min-h
 </div>
 
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,setDoc,serverTimestamp,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+const SUPABASE_URL="https://xbhflzwsqnumsjfrrqbb.supabase.co";
+const SUPABASE_KEY="sb_publishable_tvvpHcHYVbfKdi1shbMjaA_6o1UdYKk"; // public (publishable) key
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const auth={currentUser:null};
+const db={};
 
-const FC={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a"};
-const app=initializeApp(FC);
-const auth=getAuth(app);
-const db=getFirestore(app);
-const ADMIN_EMAIL="madembemaano@africakai.co.za";
+// ───────── Firestore-style adapter over Supabase (keeps the portal's screens unchanged) ─────────
+const camel=k=>k.replace(/_([a-z])/g,(_,c)=>c.toUpperCase());
+const snake=k=>k.replace(/[A-Z]/g,c=>"_"+c.toLowerCase());
+const fts=v=>{if(!v)return null;const d=new Date(v);d.toDate=()=>d;d.seconds=Math.floor(d.getTime()/1000);return d;};
+const isUuid=v=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const DATEKEY=/(_at|_date)$/;
+const C={
+  users:{t:"profiles",sel:"*, priv:profile_private(email,whatsapp,banking)",drop:["priv"],ex:r=>({uid:r.id,email:r.priv?.email,whatsapp:r.priv?.whatsapp||"",banking:r.priv?.banking||null,idVerified:r.id_verified}),blocked:true},
+  books:{t:"books",sel:"*, seller:profiles!books_seller_id_fkey(name)",drop:["seller"],ex:r=>({sellerName:r.seller?.name||"-"}),blocked:true},
+  transactions:{t:"transactions",sel:"*, book:books(title), buyer:profiles!transactions_buyer_id_fkey(name,priv:profile_private(email)), seller:profiles!transactions_seller_id_fkey(name)",drop:["book","buyer","seller","meetup"],blocked:true,
+    ex:r=>({bookTitle:r.book?.title||"",buyerName:r.buyer?.name||"",buyerEmail:r.buyer?.priv?.email||"",sellerName:r.seller?.name||"",commission:r.commission_rate,payStatus:r.status,status:(r.status==="awaiting_payment"||r.status==="paid")?"pending":r.status,...(r.meetup||{})})},
+  disputes:{t:"disputes",sel:"*, u:profiles!disputes_user_id_fkey(name)",drop:["u"],ex:r=>({userName:r.u?.name||""}),w:[]},
+  payouts:{t:"payouts",sel:"*, s:profiles!payouts_seller_id_fkey(name)",drop:["s"],ex:r=>({sellerName:r.s?.name||""}),w:["status","paid_at","failed_at","pending_approval","requested_by","requested_at","approved_by"]},
+  promotions:{t:"promotions",sel:"*, book:books(title)",drop:["book"],ex:r=>({bookTitle:r.book?.title||""}),w:["status"]},
+  wanted:{t:"wanted",sel:"*, p:profiles!wanted_poster_id_fkey(name)",drop:["p"],ex:r=>({posterName:r.p?.name||""}),w:[]},
+  chats:{t:"chats",sel:"*, b:profiles!chats_buyer_id_fkey(name), s:profiles!chats_seller_id_fkey(name)",drop:["b","s"],w:[],
+    ex:r=>({participants:[r.buyer_id,r.seller_id||"support"],participantNames:{[r.buyer_id]:r.b?.name||"Student",...(r.seller_id?{[r.seller_id]:r.s?.name||"Seller"}:{}),support:"BookWorm Support"}}),map:{isSupport:"is_support"}},
+  messages:{t:"messages",sel:"*, chat:chats(buyer_id)",drop:["chat"],w:["chat_id","text"],
+    ex:r=>({senderId:(r.sender_id&&r.sender_id===r.chat?.buyer_id)?r.sender_id:(r.is_bot?"support":"support_reply"),senderName:r.is_bot?"BookWorm Bot 🤖":"BookWorm Support"})},
+  notifications:{t:"notifications",sel:"*",w:["to_user_id","from_user_id","type","message","title","data"]},
+  flaggedContent:{t:"flagged_content",sel:"*, rb:profiles!flagged_content_reported_by_fkey(name)",drop:["rb"],ex:r=>({reportedByName:r.rb?.name||""}),w:["status","reviewed_by","reviewed_at","action"]},
+  escalations:{t:"escalations",sel:"*, u:profiles!escalations_user_id_fkey(name)",drop:["u"],ex:r=>({userName:r.u?.name||""}),w:["status","assigned_to","claimed_at","resolved_by","resolved_at","resolution_note","notes","note_by","note_at"]},
+  faqs:{t:"faqs",sel:"*",w:["question","answer","category"]},
+  appFeedback:{t:"app_feedback",sel:"*, u:profiles!app_feedback_user_id_fkey(name,university)",drop:["u"],ex:r=>({userName:r.u?.name||"User",university:r.u?.university||"",comment:r.message||""}),w:[]},
+  ambassadors:{t:"ambassadors",sel:"*",w:["name","email","whatsapp","student_number","university","commission_rate","start_date","end_date","status","notes","total_earned","activated_at","terminated_at","last_paid_at"]},
+  ambassadorPayments:{t:"ambassador_payments",sel:"*",w:["ambassador_id","ambassador_name","university","amount","paid_at"]},
+  bookshopPartners:{t:"bookshop_partners",sel:"*",w:["name","address","phone","province"]},
+  auditLog:{t:"audit_log",sel:"*",ex:r=>({timestamp:fts(r.created_at)}),w:["action","category","detail","performed_by","performed_by_email","role","user_id"],map:{timestamp:"created_at"}},
+  systemStatus:{t:"system_status",sel:"*",w:["name","category","status","notes","updated_at","updated_by"]},
+  teamMembers:{t:"team_members",sel:"*",ex:r=>({id:r.user_id,uid:r.user_id}),idcol:"user_id",w:["user_id","name","email","role","notes","active","created_by","deactivated_at","reactivated_at"]},
+  settings:{t:"settings",special:"settings"}
+};
+function fromRow(cfg,r){
+  const o={};
+  for(const[k,v]of Object.entries(r)){
+    if(cfg.drop&&cfg.drop.includes(k))continue;
+    o[camel(k)]=(DATEKEY.test(k)&&v)?fts(v):v;
+  }
+  return Object.assign(o,cfg.ex?cfg.ex(r):{});
+}
+function toRow(name,data){
+  const cfg=C[name];
+  if(cfg.blocked)throw new Error(`Direct edits to ${name} are not allowed - use an admin action`);
+  const row={};const extra={};
+  for(const[k,v]of Object.entries(data)){
+    let val=v instanceof Date?v.toISOString():v;
+    let col=(cfg.map&&cfg.map[k])||snake(k);
+    if(name==="notifications"){
+      if(k==="toUserId"||k==="userId"){row.to_user_id=val;continue;}
+      if(["type","message","title"].includes(k)){row[k]=val;continue;}
+      if(!["read","createdAt","fromUserId"].includes(k))extra[k]=val;
+      continue;
+    }
+    if(name==="teamMembers"&&k==="uid")col="user_id";
+    if((cfg.w||[]).includes(col))row[col]=val;
+  }
+  if(name==="notifications"){if(!isUuid(row.to_user_id))return null;row.from_user_id=auth.currentUser?.id||null;row.data=extra;}
+  if(name==="auditLog")row.user_id=auth.currentUser?.id||null;
+  return row;
+}
+const collection=(_db,name,parent,sub)=>sub?{coll:sub,parent,kind:"coll"}:{coll:name,kind:"coll"};
+const doc=(_db,name,id,sub,id2)=>sub?{coll:sub,parent:id,id:id2,kind:"doc"}:{coll:name,id,kind:"doc"};
+const where=(f,op,v)=>({k:"where",f,op,v});
+const orderBy=(f,dir="asc")=>({k:"order",f,dir});
+const limit=n=>({k:"limit",n});
+const query=(ref,...cs)=>({...ref,cons:cs});
+const serverTimestamp=()=>new Date().toISOString();
+const snapOf=(cfg,rows)=>({empty:!rows.length,size:rows.length,docs:rows.map(r=>{const d=fromRow(cfg,r);const id=d.id;return{id,data:()=>d};})});
+function colFor(cfg,f){return(cfg.map&&cfg.map[f])||(f==="uid"?"id":snake(f));}
+async function runQuery(q){
+  const cfg=C[q.coll];if(!cfg)throw new Error("Unknown collection "+q.coll);
+  let b=sb.from(cfg.t).select(cfg.sel||"*");
+  if(q.coll==="messages"&&q.parent)b=b.eq("chat_id",q.parent);
+  for(const c of(q.cons||[])){
+    if(c.k==="where"){
+      const col=colFor(cfg,c.f);
+      if(c.f==="participants")continue;
+      const v=c.v instanceof Date?c.v.toISOString():c.v;
+      if(c.op==="==")b=(v===null)?b.is(col,null):b.eq(col,v);
+      else if(c.op==="!=")b=b.neq(col,v);
+      else if(c.op==="in")b=b.in(col,v);
+      else if(c.op===">")b=b.gt(col,v);else if(c.op===">=")b=b.gte(col,v);
+      else if(c.op==="<")b=b.lt(col,v);else if(c.op==="<=")b=b.lte(col,v);
+    }else if(c.k==="order")b=b.order(colFor(cfg,c.f),{ascending:c.dir!=="desc"});
+    else if(c.k==="limit")b=b.limit(c.n);
+  }
+  const r=await b;if(r.error)throw r.error;
+  return snapOf(cfg,r.data||[]);
+}
+async function getDocs(q){return runQuery(q);}
+async function getDoc(ref){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings"){
+    const r=await sb.from("settings").select("value").eq("key",ref.id).maybeSingle();
+    if(r.error)throw r.error;
+    return{exists:()=>!!r.data,id:ref.id,data:()=>r.data?r.data.value:undefined};
+  }
+  const r=await sb.from(cfg.t).select(cfg.sel||"*").eq(cfg.idcol||"id",ref.id).maybeSingle();
+  if(r.error)throw r.error;
+  const d=r.data?fromRow(cfg,r.data):undefined;
+  return{exists:()=>!!r.data,id:ref.id,data:()=>d};
+}
+async function writeSettings(key,data,merge){
+  let value=data;
+  if(merge){const cur=await sb.from("settings").select("value").eq("key",key).maybeSingle();value={...(cur.data?.value||{}),...data};}
+  const r=await sb.from("settings").upsert({key,value:JSON.parse(JSON.stringify(value)),updated_at:new Date().toISOString()});
+  if(r.error)throw r.error;
+}
+async function setDoc(ref,data,opts){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings")return writeSettings(ref.id,data,opts&&opts.merge);
+  const row=toRow(ref.coll,data);if(!row)return;
+  row[cfg.idcol||"id"]=ref.id;
+  const r=await sb.from(cfg.t).upsert(row);if(r.error)throw r.error;
+}
+async function updateDoc(ref,data){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings")return writeSettings(ref.id,data,true);
+  const row=toRow(ref.coll,data);
+  if(!row||!Object.keys(row).length)return;
+  const r=await sb.from(cfg.t).update(row).eq(cfg.idcol||"id",ref.id);if(r.error)throw r.error;
+}
+async function addDoc(ref,data){
+  const cfg=C[ref.coll];
+  const row=toRow(ref.coll,data);if(!row)return{id:null};
+  if(ref.coll==="messages"){row.chat_id=ref.parent;row.sender_id=auth.currentUser?.id;}
+  const r=await sb.from(cfg.t).insert(row).select("id").maybeSingle();if(r.error)throw r.error;
+  return{id:r.data?.id};
+}
+async function deleteDoc(ref){
+  const cfg=C[ref.coll];
+  if(cfg.blocked)throw new Error(`Direct deletes on ${ref.coll} are not allowed - use an admin action`);
+  const r=await sb.from(cfg.t).delete().eq(cfg.idcol||"id",ref.id);if(r.error)throw r.error;
+}
+function onSnapshot(target,cb,errcb){
+  const cfg=C[target.coll];
+  const run=async()=>{try{cb(await runQuery(target));}catch(e){(errcb||console.error)(e);}};
+  run();
+  const f=(target.coll==="messages"&&target.parent)?{filter:`chat_id=eq.${target.parent}`}:{};
+  const ch=sb.channel("adm-"+target.coll+"-"+Math.random().toString(36).slice(2)).on("postgres_changes",{event:"*",schema:"public",table:cfg.t,...f},run).subscribe();
+  return()=>{sb.removeChannel(ch);};
+}
+const admRpc=async(fn,args)=>{const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data;};
 let currentUserRole="admin";
 let currentUserName="Admin";
 let auditLogData=[];
@@ -812,24 +953,20 @@ let commissionRate=5,deliveryFee=79;
 let lTab="all",txTab="all",delTab="all",poTab="pending";
 let supChatId=null,unsubSup=null,unsubView=null;
 
-onAuthStateChanged(auth,async u=>{
+let bootedFor=null;
+sb.auth.onAuthStateChange((event,session)=>{setTimeout(()=>handleSession(session),0);});
+async function handleSession(session){
+  const u=session&&session.user;
   if(u){
-    // Check if super admin
-    if(u.email===ADMIN_EMAIL){
-      currentUserRole="admin";currentUserName="Maano";
-    } else {
-      // Check if registered team member
-      const tmSnap=await getDocs(query(collection(db,"teamMembers"),where("email","==",u.email),where("active","==",true)));
-      if(!tmSnap.empty){
-        const tm=tmSnap.docs[0].data();
-        currentUserRole=tm.role;
-        currentUserName=tm.name;
-      } else {
-        await signOut(auth);
-        toast("Access denied. Authorised personnel only.","error");
-        return;
-      }
+    if(bootedFor===u.id)return;
+    bootedFor=u.id;auth.currentUser=u;
+    const pr=await sb.from("profiles").select("name,role,suspended").eq("id",u.id).single();
+    if(pr.error||!pr.data||pr.data.role==="user"||pr.data.suspended){
+      bootedFor=null;await sb.auth.signOut();
+      toast("Access denied. Authorised personnel only.","error");
+      return;
     }
+    currentUserRole=pr.data.role;currentUserName=pr.data.name||"Admin";
     document.getElementById("adminLogin").style.display="none";
     document.getElementById("adminApp").style.display="block";
     document.getElementById("adminEmailDisplay").textContent=`${currentUserName} (${currentUserRole})`;
@@ -840,10 +977,11 @@ onAuthStateChanged(auth,async u=>{
     await loadSettings();
     await checkEscalationBadge();
   }else{
+    bootedFor=null;auth.currentUser=null;
     document.getElementById("adminLogin").style.display="flex";
     document.getElementById("adminApp").style.display="none";
   }
-});
+}
 
 function applyRoleRestrictions(role){
   const roleMap={
@@ -866,10 +1004,10 @@ window.adminLogin=async function(){
   const e=document.getElementById("loginEmail").value.trim();
   const p=document.getElementById("loginPassword").value;
   if(!e||!p)return toast("Please fill in all fields","error");
-  try{await signInWithEmailAndPassword(auth,e,p);}
+  try{const{error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)throw error;}
   catch(e){toast("Invalid email or password","error");}
 };
-window.adminLogout=async function(){await logAction("Signed out","login",`${currentUserName} signed out`);await signOut(auth);};
+window.adminLogout=async function(){await logAction("Signed out","login",`${currentUserName} signed out`);await sb.auth.signOut();};
 
 window.loadAll=async function(){
   try{
@@ -889,6 +1027,7 @@ window.loadAll=async function(){
     D.payouts=p.docs.map(d=>({id:d.id,...d.data()}));
     D.promotions=pr.docs.map(d=>({id:d.id,...d.data()}));
     D.wanted=w.docs.map(d=>({id:d.id,...d.data()}));
+    try{const rr=await sb.from("refund_requests").select("*");const m=Object.fromEntries((rr.data||[]).map(x=>[x.tx_id,x]));D.transactions.forEach(t=>{const r=m[t.id];if(r){t.refundRequested=true;t.refundReason=r.reason;t.refundDetails=r.details;t.refundStatus=r.status;t.refundRequestId=r.id;}});}catch(_){}
     const ob=D.disputes.filter(x=>x.status==="open").length;
     const badge=document.getElementById("disputeBadge");
     if(ob>0){badge.textContent=ob;badge.style.display="inline";}else{badge.style.display="none";}
@@ -971,7 +1110,7 @@ function renderListings(){
 window.delBook=async function(id){
   if(!confirm("Remove this listing?"))return;
   const b=D.books.find(x=>x.id===id);
-  await deleteDoc(doc(db,"books",id));
+  await admRpc("admin_set_book",{p_book:id,p_status:"removed"});
   await logAction("Removed listing","listing",`Removed "${b?.title||id}"`);
   D.books=D.books.filter(b=>b.id!==id);
   renderListings();renderDashboard();toast("Listing removed","success");
@@ -1027,7 +1166,7 @@ window.viewUser=function(id){
 };
 window.suspendUser=async function(id,name){
   if(!confirm(`Suspend ${name}? They will not be able to log in.`))return;
-  await updateDoc(doc(db,"users",id),{suspended:true,suspendedAt:serverTimestamp()});
+  await admRpc("admin_set_suspended",{p_user:id,p_val:true});
   await logAction("Suspended user","user",`Suspended ${name}`);
   toast(`${name} suspended`,"warning");
   await loadAll();renderUsers();
@@ -1076,13 +1215,13 @@ window.viewTx=function(id){
   document.getElementById("txModal").classList.add("active");
 };
 window.adminCompleteTx=async function(id){
-  await updateDoc(doc(db,"transactions",id),{status:"completed",completedAt:serverTimestamp(),adminOverride:true});
+  await admRpc("admin_complete_transaction",{p_tx:id});
   await logAction("Completed transaction","transaction",`Admin marked transaction ${id} complete`);
   closeModal("txModal");await loadAll();renderTransactions();toast("Marked complete","success");
 };
 window.adminCancelTx=async function(id){
   if(!confirm("Cancel this transaction?"))return;
-  await updateDoc(doc(db,"transactions",id),{status:"cancelled",cancelledAt:serverTimestamp()});
+  await admRpc("admin_cancel_transaction",{p_tx:id});
   await logAction("Cancelled transaction","transaction",`Cancelled transaction ${id}`);
   closeModal("txModal");await loadAll();renderTransactions();toast("Transaction cancelled","warning");
 };
@@ -1117,7 +1256,7 @@ function renderDeliveries(){
 window.addTracking=async function(id){
   const tr=prompt("Enter tracking number:");
   if(!tr)return;
-  await updateDoc(doc(db,"transactions",id),{trackingNumber:tr,trackingAddedAt:serverTimestamp(),trackingAddedBy:"admin"});
+  await admRpc("admin_add_tracking",{p_tx:id,p_tracking:tr});
   await loadAll();renderDeliveries();toast("Tracking number added","success");
 };
 
@@ -1183,8 +1322,7 @@ function renderDisputes(){
 }
 window.resolveDispute=async function(did,tid,winner){
   const outcome=winner==="seller"?"completed":"refunded";
-  await updateDoc(doc(db,"disputes",did),{status:"resolved",resolvedAt:serverTimestamp(),winner});
-  await updateDoc(doc(db,"transactions",tid),{status:outcome,resolvedAt:serverTimestamp()});
+  await admRpc("admin_resolve_dispute",{p_dispute:did,p_winner:winner});
   await logAction("Resolved dispute","dispute",`Dispute ${did} resolved — ${winner} wins`);
   await loadAll();renderDisputes();renderDashboard();
   toast(`Dispute resolved — ${winner} wins`,"success");
@@ -1301,7 +1439,7 @@ function renderPromotions(){
 
 window.toggleFeature=async function(bookId,currentlyFeatured){
   try{
-    await updateDoc(doc(db,"books",bookId),{featured:!currentlyFeatured});
+    {const bk=D.books.find(x=>x.id===bookId);await admRpc("admin_set_book",{p_book:bookId,p_status:bk?.status||"available",p_featured:!currentlyFeatured});}
     await logAction("Promotion","promotions",`${currentlyFeatured?"Unfeatured":"Featured"} book ${bookId} manually`);
     toast(currentlyFeatured?"Book unfeatured":"Book featured ⭐","success");
     await loadAll();renderPromotions();
@@ -1311,7 +1449,7 @@ window.expirePromo=async function(promoId,bookId){
   if(!confirm("Expire this promotion and unfeature the book?"))return;
   try{
     await updateDoc(doc(db,"promotions",promoId),{status:"expired",expiredAt:serverTimestamp()});
-    if(bookId)await updateDoc(doc(db,"books",bookId),{featured:false});
+    if(bookId){const bk=D.books.find(x=>x.id===bookId);await admRpc("admin_set_book",{p_book:bookId,p_status:bk?.status||"available",p_featured:false});}
     await logAction("Promotion","promotions",`Manually expired promo ${promoId}`);
     toast("Promotion expired","warning");
     await loadAll();renderPromotions();
@@ -1562,17 +1700,12 @@ window.sendAmbassadorMessage=async function(){
   if(!text)return toast("Please type a message","error");
   const a=ambassadors.find(x=>x.id===currentAmbassadorId);if(!a)return;
   try{
-    const userSnap=await getDocs(query(collection(db,"users"),where("email","==",a.email)));
-    if(!userSnap.empty){
-      const uid=userSnap.docs[0].data().uid;
-      const chatId=`admin_${uid}`;
-      const chatRef=doc(db,"chats",chatId);
-      const chatDoc=await getDoc(chatRef);
-      if(!chatDoc.exists()){
-        await setDoc(chatRef,{participants:[uid,"admin"],participantNames:{admin:"BookWorm Team 📢"},bookId:"admin",bookTitle:"BookWorm Team",isAdminChat:true,lastMessage:text,updatedAt:serverTimestamp()});
-      }else{await updateDoc(chatRef,{lastMessage:text,updatedAt:serverTimestamp()});}
-      await addDoc(collection(db,"chats",chatId,"messages"),{text,senderId:"admin",senderName:"BookWorm Team",createdAt:serverTimestamp()});
-      await addDoc(collection(db,"notifications"),{userId:uid,type:"admin_message",title:"📢 Message from BookWorm Team",message:text,read:false,createdAt:serverTimestamp()});
+    const ur=await sb.from("profile_private").select("user_id").eq("email",a.email).maybeSingle();
+    if(ur.data){
+      const uid=ur.data.user_id;
+      const chatId=await admRpc("admin_get_support_chat",{p_user:uid});
+      await sb.from("messages").insert({chat_id:chatId,sender_id:auth.currentUser.id,text});
+      await admRpc("admin_notify",{p_user:uid,p_type:"admin_message",p_title:"📢 Message from BookWorm Team",p_message:text,p_data:{}});
     }
     closeModal("messageAmbModal");
     toast("Message sent!","success");
@@ -1777,26 +1910,21 @@ window.addTeamMember=async function(){
   const notes=document.getElementById("tmNotes").value.trim();
   if(!name||!email||!password)return toast("Please fill in name, email and password","error");
   if(password.length<8)return toast("Password must be at least 8 characters","error");
-  if(email===ADMIN_EMAIL)return toast("Cannot add the super admin account here","error");
+  
   const existing=teamMembers.find(t=>t.email===email&&t.active!==false);
   if(existing)return toast("This email is already an active team member","error");
   try{
-    // Create Firebase Auth account for the team member
-    const secondaryAuth=getAuth();
-    const cred=await createUserWithEmailAndPassword(secondaryAuth,email,password);
-    const newUid=cred.user.uid;
-    // Use the UID as the Firestore document ID so isTeamMember() rule works correctly
-    await setDoc(doc(db,"teamMembers",newUid),{
-      name,email,role,notes,uid:newUid,
-      active:true,createdAt:serverTimestamp(),createdBy:currentUserName
-    });
+    const{data:{session}}=await sb.auth.getSession();
+    const res=await fetch("/api/admin-create-user",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({name,email,password,role,notes})});
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok){const er=new Error(j.error||"Failed to create account");er.code=j.code;throw er;}
     await logAction("Added team member","team",`Added ${name} (${role}) — ${email}`);
     closeModal("addTeamModal");
     ["tmName","tmEmail","tmPassword","tmNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
     toast(`${name} added and account created successfully! ✅`,"success");
     await loadTeamMembers();
   }catch(e){
-    if(e.code==="auth/email-already-in-use"){
+    if(e.code==="auth/email-already-in-use"||/already/i.test(e.message||"")){
       toast("A Firebase Auth account already exists for this email. Ask them to log in directly.","error");
     }else{
       toast("Failed to add team member: "+e.message,"error");
@@ -1807,7 +1935,7 @@ window.addTeamMember=async function(){
 
 window.deactivateTeamMember=async function(id,name){
   if(!confirm(`Deactivate ${name}? They will no longer be able to access the portal.`))return;
-  await updateDoc(doc(db,"teamMembers",id),{active:false,deactivatedAt:serverTimestamp()});
+  {const tm=teamMembers.find(x=>x.id===id);await admRpc("admin_set_team_member",{p_user:id,p_role:tm?.role||"support",p_active:false});}
   await logAction("Deactivated team member","team",`Deactivated ${name}`);
   toast(`${name} deactivated`,"warning");
   await loadTeamMembers();
@@ -1815,7 +1943,7 @@ window.deactivateTeamMember=async function(id,name){
 
 window.reactivateTeamMember=async function(id,name){
   if(!confirm(`Reactivate ${name}?`))return;
-  await updateDoc(doc(db,"teamMembers",id),{active:true,reactivatedAt:serverTimestamp()});
+  {const tm=teamMembers.find(x=>x.id===id);await admRpc("admin_set_team_member",{p_user:id,p_role:tm?.role||"support",p_active:true});}
   await logAction("Reactivated team member","team",`Reactivated ${name}`);
   toast(`${name} reactivated`,"success");
   await loadTeamMembers();
@@ -1963,7 +2091,7 @@ window.exportAuditLog=function(){
 window.setUserTab=function(tab,el){userTab=tab;document.querySelectorAll("#page-users .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderUsers();};
 window.verifyUser=async function(id,name){
   if(!confirm(`Mark ${name} as ID-verified?`))return;
-  await updateDoc(doc(db,"users",id),{idVerified:true,verifiedAt:serverTimestamp(),verifiedBy:currentUserName});
+  await admRpc("admin_set_verified",{p_user:id,p_val:true});
   await logAction("Verified user ID","user",`Verified ID for ${name}`);
   toast(`${name} verified`,"success");
   await loadAll();renderUsers();
@@ -1989,7 +2117,7 @@ window.bulkRemoveSold=async function(){
   const old=D.books.filter(b=>b.status==="sold"&&ts(b.createdAt)<d90);
   if(!old.length)return toast("No old sold listings to remove","warning");
   if(!confirm(`Remove ${old.length} sold listings older than 90 days?`))return;
-  for(const b of old)await deleteDoc(doc(db,"books",b.id));
+  for(const b of old)await admRpc("admin_set_book",{p_book:b.id,p_status:"removed"});
   await logAction("Bulk remove sold","listing",`Removed ${old.length} sold listings 90d+`);
   await loadAll();renderListings();toast(`${old.length} listings removed`,"success");
 };
@@ -2044,7 +2172,8 @@ window.renderRefunds=function(){
 };
 window.processRefund=async function(id){
   if(!confirm("Process this refund?"))return;
-  await updateDoc(doc(db,"transactions",id),{status:"refunded",refundedAt:serverTimestamp(),refundedBy:currentUserName});
+  await admRpc("admin_cancel_transaction",{p_tx:id});
+  {const t=D.transactions.find(x=>x.id===id);if(t?.refundRequestId)await sb.from("refund_requests").update({status:"refunded"}).eq("id",t.refundRequestId);}
   await logAction("Processed refund","payout",`Refund processed for transaction ${id}`);
   toast("Refund processed","success");
   await loadAll();renderPayouts();
@@ -2064,7 +2193,7 @@ window.markPaid=async function(id){
   const p=D.payouts.find(x=>x.id===id);
   if((p?.amount||0)>500&&currentUserRole!=="admin"){
     toast("Payouts over R500 require admin approval","error");
-    await addDoc(collection(db,"notifications"),{toUserId:ADMIN_EMAIL,type:"payout_approval",message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,payoutId:id,read:false,createdAt:serverTimestamp()});
+    {const ad=await sb.from("profiles").select("id").eq("role","admin");for(const a of(ad.data||[]))await admRpc("admin_notify",{p_user:a.id,p_type:"payout_approval",p_title:"Payout approval needed",p_message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,p_data:{payoutId:id}});}
     await updateDoc(doc(db,"payouts",id),{pendingApproval:true,requestedBy:currentUserName,requestedAt:serverTimestamp()});
     toast("Approval request sent to admin","warning");
     return;
