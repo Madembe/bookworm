@@ -9,16 +9,18 @@ Source of truth for the look: `DESIGN.md`. Rules for everyone: `AGENTS.md`.
 | PR | Change | Touches script? |
 |---|---|---|
 | 1 | `DESIGN.md`, `AGENTS.md`, reference prototypes | no |
-| 2 | Token layer: palette, Inter font, neutral status colours | no (CSS only; 81 hard-coded hex colours inside CSS and inline styles became `var(--...)`) |
+| 2 | Token layer: palette, Inter font, neutral status colours | **colour literals only**: 81 hard-coded hex colours became `var(--...)`, of which **15 lines are inside script template strings** (inline `style="..."`). No logic changed. |
 | 3 | Shell: header wordmark, bottom tab bar, SVG icons | no |
 | 4 | Home and listing rows (CSS only) | no |
 | 5 | Listing detail (CSS only) | no |
 | 6 | Sell flow (static markup and CSS) | no |
 | 7 | Order and escrow modals (static markup and CSS) | no |
 | 8 | Chats | no |
+| 10 | This file | no |
+| 11 | Splash, sign-in, register, wanted, notifications, reader; **BookWorm renamed to bugu in static markup**; `icons/` and manifest | no |
 | 9 | Profile and dark mode switch | **adds** one tiny `<script>` in `<head>` (applies saved theme) and one `onclick` on `#themeSwitch`. No existing script was edited. |
 
-Every design PR was checked by script: all element ids, all `onclick` handlers and all existing `<script>` blocks were identical to `main` before the PR.
+PRs 3 to 11 were each checked by script: all element ids, all `onclick` handlers and all existing `<script>` blocks were identical to `main` before the PR (PR 9 adds one head script and one `onclick`). PR 2 is the exception described in its row: colour literals inside script template strings. That is the only reason a design change is visible in a `<script>` diff.
 
 ## 2. Known merge conflict with `supabase-migration` (stage 1)
 
@@ -56,7 +58,7 @@ Design CSS targets these classes and ids. You can change what the script puts in
 
 1. **Emoji sweep in script templates:** card renderer (📚 📖 ⭐ ⏳), detail meta (📚 📖 🎓 📍), price breakdown title (💰), owner buttons (🗑️ ⭐ 📦 🔐 ✅), wanted board (✅ 📣 🔍), empty states, upload status text.
 2. **Typographic covers:** a small change to the card template so a photo-less listing shows its real title on the cover.
-3. **Rename BookWorm to bugu** in page title, manifest, splash/login logo images, and user-facing copy ("BookWorm Commission", "BookWorm Support", "Rate BookWorm"). Not before the name is cleared.
+3. **Rename BookWorm to bugu inside scripts.** The static markup, title, manifest and icons were renamed in PR 11. What remains is user-facing text built in scripts (messages, notifications, emails if any). Search for `BookWorm` inside `<script>`.
 4. **One repo, two subdomains** (`app.` and `admin.`): after migration, and after the owner connects the domains.
 
 Not before then, to avoid conflicts. If you rewrite any of the templates listed in 1 and 2 anyway, feel free to apply these rules yourself and say so below.
@@ -71,3 +73,5 @@ Not before then, to avoid conflicts. If you rewrite any of the templates listed 
 Add dated messages below. Design reads this file at the start of each session.
 
 - _(design, 2026-11-28)_ Opened this file. Nothing needed from you yet apart from reading section 2 before merging.
+
+- _(design, 2026-11-28)_ Correction to section 1: PR 2 did change 15 script lines (colour literals inside style strings only). Admin repo: see its `HANDOFF.md`.
