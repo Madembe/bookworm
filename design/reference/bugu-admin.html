@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>bugu admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--hov:#e9e9e8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--hov:#252525}}
+:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--hov:#252525}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+aside{position:fixed;top:0;bottom:0;left:0;width:236px;background:var(--surf);border-right:1px solid var(--line);padding:18px 12px;overflow-y:auto;z-index:20;transition:transform .2s}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:22px;letter-spacing:-.035em;padding:0 8px 16px}
+.mark{width:16px;height:21px;border:2px solid var(--ink);border-radius:2px;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.grp{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);padding:16px 8px 6px}
+.nv{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;color:var(--mute);padding:8px;border-radius:8px;font:500 14px 'Inter',sans-serif;cursor:pointer;text-align:left}
+.nv:hover{background:var(--hov);color:var(--ink)}.nv.on{background:var(--ink);color:var(--inv)}
+.nv i{font:normal 600 11px 'Inter';background:var(--line);color:var(--ink);padding:1px 7px;border-radius:99px}.nv.on i{background:var(--inv);color:var(--ink)}
+main{margin-left:236px;padding:0 28px 60px;max-width:1180px}
+.tb{display:flex;align-items:center;gap:12px;height:64px}
+.menu{display:none;background:none;border:0;color:var(--ink);cursor:pointer}
+.sr{flex:1;display:flex;align-items:center;gap:10px;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:0 12px;height:40px;max-width:460px}
+.sr input{flex:1;min-width:0;border:0;background:none;font:400 14px 'Inter';color:var(--ink);outline:none}
+.sr kbd{font:500 11px 'IBM Plex Mono',monospace;color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--inv);display:grid;place-items:center;font-weight:600;font-size:13px;margin-left:auto}
+h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-top:6px}.sub{color:var(--mute);margin:2px 0 20px}
+h2{font-size:15px;font-weight:600}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px}
+.att{cursor:pointer;transition:.15s}.att:hover{border-color:var(--ink)}
+.att b{font-size:30px;font-weight:600;letter-spacing:-.02em;display:block;line-height:1.1;margin-top:6px}
+.k{font-size:12px;color:var(--mute)}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:12px}
+.sec{margin-top:26px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.tw{background:var(--surf);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:11px 16px;border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}tbody tr{cursor:pointer}tbody tr:hover{background:var(--hov)}
+.m{font:500 12px 'IBM Plex Mono',monospace;color:var(--mute)}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:2px 10px;border-radius:99px;border:1px solid var(--line)}
+.pill.h{border-color:var(--ink)}.pill.d{background:var(--ink);color:var(--inv);border-color:var(--ink)}.pill.r{color:var(--mute)}
+.btn{height:38px;padding:0 16px;border-radius:9px;border:1px solid var(--ink);background:var(--ink);color:var(--inv);font:600 13px 'Inter';cursor:pointer}
+.btn.o{background:none;color:var(--ink)}
+.li{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.li:last-child{border:0}
+.tl{border-left:1.5px solid var(--line);margin:10px 0 0 6px}.tl div{position:relative;padding:0 0 14px 18px;font-size:13px}
+.tl div::before{content:"";position:absolute;left:-7px;top:4px;width:11px;height:11px;border-radius:50%;background:var(--ink)}
+.tl span{color:var(--mute);display:block;font-size:12px}
+.empty{padding:60px 20px;text-align:center;color:var(--mute)}
+@media (max-width:900px){aside{transform:translateX(-100%)}aside.o{transform:none;box-shadow:0 0 60px rgba(0,0,0,.4)}main{margin-left:0;padding:0 16px 60px}.menu{display:block}.g4{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.sr kbd{display:none}}
+</style></head><body>
+<aside id="sb"></aside>
+<main>
+<div class="tb"><button class="menu" aria-label="Menu" onclick="document.getElementById('sb').classList.toggle('o')"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<label class="sr"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search users, orders, listings…"/><kbd>Ctrl K</kbd></label><div class="av">A</div></div>
+<div id="pg"></div>
+</main>
+<script>
+// Sample data for the design preview only
+var NAV=[["Overview",[["Dashboard","dash"]]],["Money",[["Transactions","tx"],["Disputes","dp",7],["Payouts","po",12],["Deliveries","dl"]]],["Marketplace",[["Listings","ls"],["Digital books","dg"],["Wanted","wn"],["Flagged","fl",5],["Chats","ch"]]],["People",[["Users","us"],["Ambassadors","am"],["Team","tm"]]],["Support",[["Support","sp",9],["AI support","ai"],["Feedback","fb"],["Escalations","es"]]],["Growth",[["Promotions","pr"],["Reports","rp"]]],["System",[["Health","hl"],["Audit log","au"],["Settings","st"]]]];
+var TX=[["#4821","Principles of Accounting","Lerato","Thabo",180,"Held"],["#4820","Calculus Early Transc.","Sipho","Naledi",320,"Released"],["#4819","Organic Chemistry","Zinhle","Kagiso",410,"Disputed"],["#4818","Business Law in SA","Mpho","Tumi",150,"Released"],["#4817","Anatomy & Physiology","Ayanda","Lerato",290,"Refunded"],["#4816","Introduction to Psychology","Thabo","Sipho",240,"Held"]];
+var DP=[["#4819","Book not as described","Zinhle vs Kagiso","R410","2 days"],["#4803","Seller no-show","Mpho vs Tumi","R150","3 days"],["#4797","Missing pages","Ayanda vs Naledi","R290","5 days"]];
+var US=[["Thabo M.","UL","8 listed","5 sold","Verified"],["Lerato K.","UP","3 listed","2 sold","Verified"],["Sipho D.","Wits","11 listed","9 sold","Verified"],["Naledi P.","UCT","1 listed","0 sold","Pending"]];
+function pill(s){return '<span class="pill '+({Held:"h",Disputed:"d",Refunded:"r",Verified:"",Pending:"r"}[s]||"")+'">'+s+'</span>'}
+function tbl(h,rows,f){return '<div class="tw"><table><thead><tr>'+h.map(function(x){return '<th>'+x+'</th>'}).join("")+'</tr></thead><tbody>'+rows.map(f).join("")+'</tbody></table></div>'}
+function txr(r){return '<tr><td class="m">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+' → '+r[3]+'</td><td>R'+r[4]+'</td><td>'+pill(r[5])+'</td></tr>'}
+var TH=["Order","Book","Buyer → Seller","Amount","Status"];
+function bars(){var v=[14,19,12,22,26,18,15,24,30,27,21,33,29,36],m=Math.max.apply(null,v);return '<svg viewBox="0 0 280 90" style="width:100%;height:auto;display:block;margin-top:14px">'+v.map(function(x,i){var h=x/m*76;return '<rect x="'+(i*20+2)+'" y="'+(86-h)+'" width="14" height="'+h+'" rx="2" fill="currentColor" opacity="'+(i==13?1:.28)+'"/>'}).join("")+'</svg>'}
+var P={
+dash:function(){return '<h1>Overview</h1><p class="sub">Friday · sample data</p>'+
+'<div class="g4"><div class="card att" onclick="go(\'dp\')"><span class="k">Open disputes</span><b>7</b><span class="k">Oldest 5 days</span></div><div class="card att" onclick="go(\'po\')"><span class="k">Payouts to approve</span><b>12</b><span class="k">R 8 460 total</span></div><div class="card att" onclick="go(\'fl\')"><span class="k">Flagged listings</span><b>5</b><span class="k">Oldest 1 day</span></div><div class="card att" onclick="go(\'sp\')"><span class="k">Support tickets</span><b>9</b><span class="k">Oldest 4 hours</span></div></div>'+
+'<div class="two"><div class="card"><h2>Orders, last 14 days</h2><div class="k">412 completed · R 184 320 value</div>'+bars()+'</div><div class="card"><h2>This month</h2><div class="li"><span class="k">New users</span><b>186</b></div><div class="li"><span class="k">Listings added</span><b>531</b></div><div class="li"><span class="k">Avg. time to payout</span><b>1.8 days</b></div><div class="li"><span class="k">Dispute rate</span><b>1.7%</b></div></div></div>'+
+'<div class="sec"><h2>Recent transactions</h2><button class="btn o" onclick="go(\'tx\')">View all</button></div>'+tbl(TH,TX.slice(0,4),txr)},
+tx:function(){return '<h1>Transactions</h1><p class="sub">Every order and where its money is.</p>'+tbl(TH,TX,txr)},
+dp:function(){return '<h1>Disputes</h1><p class="sub">Oldest first. Decide with the evidence in front of you.</p>'+tbl(["Order","Reason","Parties","Amount","Open"],DP,function(r,i){return '<tr onclick="dd('+i+')"><td class="m">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>'})+'<div id="dd"></div>'},
+us:function(){return '<h1>Users</h1><p class="sub">Students on the platform.</p>'+tbl(["Name","Campus","Listings","Sales","Status"],US,function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+pill(r[4])+'</td></tr>'})}
+};
+function dd(i){var r=DP[i];document.getElementById("dd").innerHTML='<div class="card" style="margin-top:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h2>'+r[0]+' · '+r[1]+'</h2><div class="k">'+r[2]+' · '+r[3]+' held in escrow</div></div></div><div class="tl"><div>Buyer paid<span>Money held</span></div><div>Meetup agreed in chat<span>Photos attached</span></div><div>Buyer opened dispute<span>“Several chapters are missing.”</span></div></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"><button class="btn">Refund buyer</button><button class="btn o">Pay seller</button><button class="btn o">Ask for evidence</button></div></div>'}
+var cur="dash";
+function go(id){cur=id;nav();var f=P[id];document.getElementById("pg").innerHTML=f?f():'<h1>'+lab(id)+'</h1><div class="empty card" style="margin-top:20px">This page will use the same table layout as Transactions.</div>';document.getElementById("sb").classList.remove("o");window.scrollTo(0,0)}
+function lab(id){var l="";NAV.forEach(function(g){g[1].forEach(function(n){if(n[1]==id)l=n[0]})});return l}
+function nav(){document.getElementById("sb").innerHTML='<div class="logo"><span class="mark"></span>bugu</div>'+NAV.map(function(g){return '<div class="grp">'+g[0]+'</div>'+g[1].map(function(n){return '<button class="nv'+(n[1]==cur?" on":"")+'" onclick="go(\''+n[1]+'\')">'+n[0]+(n[2]?'<i>'+n[2]+'</i>':'')+'</button>'}).join("")}).join("")}
+go("dash");
+</script></body></html>
