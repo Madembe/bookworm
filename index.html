@@ -909,6 +909,8 @@ const TX_SELECT="*, book:books(title), buyer:profiles!transactions_buyer_id_fkey
 function mapTx(t){
   return{id:t.id,bookId:t.book_id,bookTitle:t.book?.title||"",buyerId:t.buyer_id,sellerId:t.seller_id,buyerName:t.buyer?.name||"Buyer",sellerName:t.seller?.name||"Seller",amount:num(t.amount),deliveryFee:num(t.delivery_fee),totalAmount:num(t.total_amount),commission:num(t.commission_rate),status:t.status,deliveryMethod:t.delivery_method,...(t.meetup||{}),pargoAddress:t.pargo_address,trackingNumber:t.tracking_number,courierName:t.courier_name,createdAt:fts(t.created_at),paidAt:fts(t.paid_at),completedAt:fts(t.completed_at),disputeDeadline:fts(t.dispute_deadline)};
 }
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mapNotif=n=>({id:n.id,type:n.type,message:n.message,read:n.read,createdAt:fts(n.created_at),...(n.data||{})});
 async function getOrCreateChat({buyerId,sellerId,bookId=null,wantedId=null,title}){
   let q=sb.from("chats").select("id").eq("buyer_id",buyerId).eq("seller_id",sellerId);
   q=bookId?q.eq("book_id",bookId):q.eq("wanted_id",wantedId);
@@ -2101,20 +2103,8 @@ window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
   if(!sellerId||sellerId==="undefined"){return toast("Cannot start chat — seller info missing","error");}
   if(currentUser.uid===sellerId)return toast("You can't chat with yourself!","error");
   if(!currentUserData)await loadUserData();
-  const chatId=[currentUser.uid,sellerId].sort().join("_")+"_"+bookId;
   try{
-    const ref=doc(db,"chats",chatId);
-    const s=await getDoc(ref);
-    if(!s.exists()){
-      await setDoc(ref,{
-        participants:[currentUser.uid,sellerId],
-        participantNames:{[currentUser.uid]:currentUserData?.name||"Buyer",[sellerId]:sellerName||"Seller"},
-        bookId,
-        bookTitle:bookTitle||"Book",
-        lastMessage:"",
-        updatedAt:serverTimestamp()
-      });
-    }
+    const chatId=await getOrCreateChat({buyerId:currentUser.uid,sellerId,bookId,title:bookTitle||"Book"});
     openChatRoom(chatId,sellerName||"Seller",bookTitle||"Book");
   }catch(e){
     console.error("startChat error:",e);
@@ -2124,27 +2114,16 @@ window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
 window.openSupportChat=async function(){
   if(!currentUser){toast("Please sign in to contact support","error");switchScreen("screen-login");return;}
   if(!currentUserData)await loadUserData();
-  const chatId="support_"+currentUser.uid;
   try{
-    const ref=doc(db,"chats",chatId);
-    const s=await getDoc(ref);
-    if(!s.exists()){
-      await setDoc(ref,{
-        participants:[currentUser.uid,"support"],
-        participantNames:{[currentUser.uid]:currentUserData?.name||"Student","support":"BookWorm Support"},
-        bookId:"support",
-        bookTitle:"BookWorm Support Chat",
-        isSupport:true,
-        lastMessage:"Hi, I need help!",
-        updatedAt:serverTimestamp()
-      });
-      // Send an opening message automatically
-      await addDoc(collection(db,"chats",chatId,"messages"),{
-        text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`,
-        senderId:currentUser.uid,
-        senderName:currentUserData?.name||"Student",
-        createdAt:serverTimestamp()
-      });
+    let chatId;
+    const ex=await sb.from("chats").select("id").eq("buyer_id",currentUser.uid).eq("is_support",true).maybeSingle();
+    if(ex.error)throw ex.error;
+    if(ex.data)chatId=ex.data.id;
+    else{
+      const ins=await sb.from("chats").insert({buyer_id:currentUser.uid,seller_id:null,is_support:true,book_title:"BookWorm Support Chat"}).select("id").single();
+      if(ins.error)throw ins.error;
+      chatId=ins.data.id;
+      await sb.from("messages").insert({chat_id:chatId,sender_id:currentUser.uid,text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`});
     }
     openChatRoom(chatId,"BookWorm Support 🛟","We typically reply within 24 hours.");
   }catch(e){
@@ -2152,6 +2131,7 @@ window.openSupportChat=async function(){
     toast("Could not open support chat. Please email support@bookworm.co.za","error");
   }
 };
+window.openChatById=function(id){const c=(window._chats||{})[id];if(c)openChatRoom(id,c.name,c.title);};
 window.openChatRoom=function(chatId,otherName,bookTitle){
   if(!currentUser){toast("Please sign in","error");return;}
   currentChatId=chatId;
@@ -2162,26 +2142,36 @@ window.openChatRoom=function(chatId,otherName,bookTitle){
   if(nameEl)nameEl.textContent=otherName||"Chat";
   if(bookEl)bookEl.textContent=bookTitle||"";
   if(unsubChat)unsubChat();
-  const msgCol=collection(db,"chats",chatId,"messages");
-  unsubChat=onSnapshot(query(msgCol,orderBy("createdAt")),snap=>{
+  const msgs=[];
+  const draw=()=>{
     const c=document.getElementById("chatMessages");
     if(!c)return;
-    if(snap.empty){c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:13px;">No messages yet. Say hello! 👋</div>`;return;}
-    c.innerHTML=snap.docs.map(d=>{
-      const m=d.data();
-      const sent=m.senderId===currentUser?.uid;
-      const time=m.createdAt?.toDate?.()?.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})||"";
+    if(!msgs.length){c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:13px;">No messages yet. Say hello! 👋</div>`;return;}
+    c.innerHTML=msgs.map(m=>{
+      const sent=m.sender_id===currentUser?.uid;
+      const time=m.created_at?new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"";
       return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"};margin-bottom:10px;">
-        <div class="message ${sent?"sent":"received"}" style="max-width:80%;word-break:break-word;">${m.text}</div>
+        <div class="message ${sent?"sent":"received"}" style="max-width:80%;word-break:break-word;">${esc(m.text)}</div>
         <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${time}</div>
       </div>`;
     }).join("");
     c.scrollTop=c.scrollHeight;
-  },e=>{
-    console.error("Chat listener error:",e);
-    const c=document.getElementById("chatMessages");
-    if(c)c.innerHTML=`<div style="padding:20px;color:var(--error);text-align:center;font-size:13px;">Could not load messages. Check your connection.</div>`;
+  };
+  sb.from("messages").select("*").eq("chat_id",chatId).order("created_at").then(r=>{
+    if(r.error){
+      console.error("Chat load error:",r.error);
+      const c=document.getElementById("chatMessages");
+      if(c)c.innerHTML=`<div style="padding:20px;color:var(--error);text-align:center;font-size:13px;">Could not load messages. Check your connection.</div>`;
+      return;
+    }
+    r.data.forEach(m=>{if(!msgs.some(x=>x.id===m.id))msgs.push(m);});
+    msgs.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    draw();
   });
+  const ch=sb.channel("chat-"+chatId).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:`chat_id=eq.${chatId}`},pl=>{
+    if(!msgs.some(m=>m.id===pl.new.id)){msgs.push(pl.new);draw();}
+  }).subscribe();
+  unsubChat=()=>{sb.removeChannel(ch);};
   previousScreen="screen-chat";
   switchScreen("screen-chatroom");
 };
@@ -2190,22 +2180,23 @@ window.sendMessage=async function(){
   const text=input.value.trim();if(!text||!currentChatId)return;
   input.value="";
   try{
-    await addDoc(collection(db,"chats",currentChatId,"messages"),{text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()});
-    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
-  }catch(e){console.error(e);}
+    const mr=await sb.from("messages").insert({chat_id:currentChatId,sender_id:currentUser.uid,text});
+    if(mr.error)throw mr.error;
+  }catch(e){console.error(e);toast("Message not sent","error");}
 };
 async function loadChatList(){
   if(!currentUser)return;
-  const q=query(collection(db,"chats"),where("participants","array-contains",currentUser.uid));
-  const snap=await getDocs(q);
   const cl=document.getElementById("chatList");
-  if(snap.empty){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
-  cl.innerHTML=snap.docs.map(d=>{
-    const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);
-    const name=c.isSupport?"BookWorm Support 🛟":(c.participantNames?.[otherId]||"User");
-    return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${c.bookTitle||""}')">
-      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name[0]?.toUpperCase()}</div>
-      <div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div>
+  const r=await sb.from("chats").select("*, buyer:profiles!chats_buyer_id_fkey(name), seller:profiles!chats_seller_id_fkey(name)").or(`buyer_id.eq.${currentUser.uid},seller_id.eq.${currentUser.uid}`).order("updated_at",{ascending:false});
+  if(r.error||!r.data.length){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
+  window._chats={};
+  cl.innerHTML=r.data.map(c=>{
+    const mine=c.buyer_id===currentUser.uid;
+    const name=c.is_support?"BookWorm Support 🛟":((mine?c.seller?.name:c.buyer?.name)||"User");
+    window._chats[c.id]={name,title:c.book_title||""};
+    return`<div class="chat-item" onclick="openChatById('${c.id}')">
+      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":esc(name[0]?.toUpperCase())}</div>
+      <div><div style="font-weight:800;font-size:14px;">${esc(name)}</div><div style="font-size:12px;color:var(--gray-400);">${esc(c.last_message)||"Start the conversation..."}</div></div>
     </div>`;
   }).join("");
 }
@@ -2213,29 +2204,32 @@ async function loadChatList(){
 // NOTIFICATIONS
 function startNotifListener(){
   if(!currentUser||unsubNotif)return;
-  const q=query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc"));
-  unsubNotif=onSnapshot(q,snap=>{
-    const unread=snap.docs.filter(d=>!d.data().read).length;
+  const upd=async()=>{
+    const r=await sb.from("notifications").select("id",{count:"exact",head:true}).eq("to_user_id",currentUser.uid).eq("read",false);
+    const unread=r.count||0;
     const badge=document.getElementById("notifBadge");
     if(badge){badge.textContent=unread>9?"9+":unread;badge.style.display=unread>0?"flex":"none";}
-  },e=>console.error("notif listener:",e));
+  };
+  upd();
+  const ch=sb.channel("notif-"+currentUser.uid).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:`to_user_id=eq.${currentUser.uid}`},upd).subscribe();
+  unsubNotif=()=>{sb.removeChannel(ch);};
 }
 async function loadNotifications(){
   if(!currentUser)return;
   const container=document.getElementById("notifList");
   container.innerHTML=`<div style="text-align:center;padding:30px;color:var(--gray-400);">Loading...</div>`;
   try{
-    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc")));
-    if(snap.empty){container.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll notify you about wanted matches, messages, and more.</p></div>`;return;}
-    container.innerHTML=snap.docs.map(d=>{
-      const n=d.data();const read=n.read;
+    const nr=await sb.from("notifications").select("*").eq("to_user_id",currentUser.uid).order("created_at",{ascending:false});if(nr.error)throw nr.error;const nList=nr.data.map(mapNotif);
+    if(!nList.length){container.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll notify you about wanted matches, messages, and more.</p></div>`;return;}
+    container.innerHTML=nList.map(n=>{
+      const read=n.read;
       const time=n.createdAt?.toDate?.()?.toLocaleDateString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})||"";
       let icon="🔔",text="";
-      if(n.type==="wanted_match"){icon="📚";text=`<strong>${n.fromName}</strong> says they have a book matching your wanted post: <em>"${n.bookTitle||n.wantedTitle||""}"</em>`;}
-      else if(n.type==="message"){icon="💬";text=`New message from <strong>${n.fromName}</strong>`;}
-      else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${n.bookTitle}"</em> has been purchased!`;}
+      if(n.type==="wanted_match"){icon="📚";text=`<strong>${esc(n.fromName)}</strong> says they have a book matching your wanted post: <em>"${esc(n.bookTitle||n.wantedTitle||"")}"</em>`;}
+      else if(n.type==="message"){icon="💬";text=`New message from <strong>${esc(n.fromName)}</strong>`;}
+      else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${esc(n.bookTitle)}"</em> has been purchased!`;}
       else{text=n.message||"New notification";}
-      return`<div onclick="markNotifRead('${d.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"#eff6ff"};transition:background 0.2s;">
+      return`<div onclick="markNotifRead('${n.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"#eff6ff"};transition:background 0.2s;">
         <div style="font-size:22px;flex-shrink:0;">${icon}</div>
         <div style="flex:1;">
           <div style="font-size:13px;line-height:1.5;${read?"":"font-weight:700;"}">${text}</div>
@@ -2247,7 +2241,7 @@ async function loadNotifications(){
   }catch(e){container.innerHTML=`<div style="padding:16px;color:var(--error);">Could not load notifications.</div>`;}
 }
 window.markNotifRead=async function(notifId,type,wantedId,chatId){
-  try{await updateDoc(doc(db,"notifications",notifId),{read:true});}catch(e){}
+  try{await sb.from("notifications").update({read:true}).eq("id",notifId);}catch(e){}
   // Navigate based on type
   if(type==="wanted_match"&&wantedId)switchHomeTab_wanted();
   else if(type==="message"&&chatId)openChatRoom(chatId,"","");
@@ -2263,9 +2257,8 @@ function switchHomeTab_wanted(){
 window.markAllNotifsRead=async function(){
   if(!currentUser)return;
   try{
-    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),where("read","==",false)));
-    const batch=snap.docs.map(d=>updateDoc(doc(db,"notifications",d.id),{read:true}));
-    await Promise.all(batch);
+    const mr=await sb.from("notifications").update({read:true}).eq("to_user_id",currentUser.uid).eq("read",false);if(mr.error)throw mr.error;
+
     toast("All notifications marked as read","success");
     loadNotifications();
   }catch(e){toast("Could not update notifications","error");}
