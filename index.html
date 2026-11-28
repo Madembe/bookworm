@@ -1990,7 +1990,7 @@ function showTransactionScreen(code,book,txId){
   document.getElementById("transactionContent").innerHTML=`
     <h2 style="font-size:22px;font-weight:900;margin-bottom:6px;">🔐 Secure Transaction</h2>
     <p style="color:var(--gray-400);font-size:13px;margin-bottom:10px;">Your payment is protected. Release funds only when satisfied.</p>
-    <div id="payStatusBanner" style="border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;margin-bottom:12px;background:#fff7ed;color:#9a3412;">⏳ Waiting for PayFast to confirm your payment…</div>
+    <div id="payStatusBanner" style="border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;margin-bottom:12px;background:var(--tint);color:var(--warning);">⏳ Waiting for PayFast to confirm your payment…</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:12px;margin-bottom:14px;">
       <div style="font-weight:800;font-size:14px;">📚 ${book.title}</div>
       <div style="font-size:12px;color:var(--gray-400);">R${book.price} • Secured in escrow</div>
@@ -2019,9 +2019,9 @@ function showTransactionScreen(code,book,txId){
     const tx=t?mapTx(t):null;
     const bn=document.getElementById("payStatusBanner");
     if(bn&&tx){
-      if(tx.status==="awaiting_payment"){bn.style.background="#fff7ed";bn.style.color="#9a3412";bn.textContent="⏳ Waiting for PayFast to confirm your payment…";}
-      else if(tx.status==="cancelled"){bn.style.background="#fef2f2";bn.style.color="#991b1b";bn.textContent="This order was cancelled because payment was not completed.";}
-      else{bn.style.background="#f0fdf4";bn.style.color="#166534";bn.textContent=tx.status==="completed"?"✅ Completed — funds released to the seller.":tx.status==="disputed"?"⚠️ Dispute open — our team is reviewing.":"✅ Payment secured in escrow.";}
+      if(tx.status==="awaiting_payment"){bn.style.background="var(--tint)";bn.style.color="var(--warning)";bn.textContent="⏳ Waiting for PayFast to confirm your payment…";}
+      else if(tx.status==="cancelled"){bn.style.background="var(--tint)";bn.style.color="var(--error)";bn.textContent="This order was cancelled because payment was not completed.";}
+      else{bn.style.background="var(--tint)";bn.style.color="var(--success)";bn.textContent=tx.status==="completed"?"✅ Completed — funds released to the seller.":tx.status==="disputed"?"⚠️ Dispute open — our team is reviewing.":"✅ Payment secured in escrow.";}
     }
     {
       if(tx?.trackingNumber){
