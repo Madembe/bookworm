@@ -284,6 +284,22 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 .btn-full{min-height:48px;justify-content:center}
 .btn-secondary{border-width:1px}
 .btn-danger,.btn-warning{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+
+/* sell flow (DESIGN.md sections 4 to 6): form restyle plus emoji removed from the static upload markup; ids, handlers and scripts unchanged */
+.upload-container{padding:8px 18px 28px}
+.form-group label,label{font-weight:600;font-size:12px;letter-spacing:.05em;color:var(--mute)}
+.form-control{border:1px solid var(--line);background:var(--surf);border-radius:10px;min-height:46px;font-weight:400}
+.form-control:focus{border-color:var(--ink)}
+.upload-type-toggle{border:1px solid var(--line);border-radius:10px}
+.upload-type-btn{font-weight:500;font-size:14px;padding:11px}
+.upload-type-btn.active{font-weight:600}
+.photo-slot{border:1.5px dashed var(--line);border-radius:12px;color:var(--mute)}
+.photo-slot:hover{border-color:var(--ink);background:var(--surf)}
+.photo-slot .slot-label{font-size:11.5px;font-weight:500;color:var(--mute)}
+.photo-slot .slot-icon{display:grid;place-items:center;line-height:0}
+.price-rec-box,.licence-note{background:var(--surf);border:1px solid var(--line);color:var(--ink)}
+.seller-earnings-box{border-radius:12px}
+.pdf-upload-area{border:1.5px dashed var(--line);border-radius:12px;background:transparent;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -518,43 +534,43 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
         <div style="font-size:12px;color:var(--gray-400);margin-bottom:20px;">Scan the barcode for instant auto-fill, or enter details manually.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-        <button class="btn btn-primary btn-full" onclick="startScanner()">📷 Scan Barcode (Auto-fill)</button>
-        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Details Manually</button>
+        <button class="btn btn-primary btn-full" onclick="startScanner()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg> Scan barcode (auto-fill)</button>
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Enter details manually</button>
       </div>
     </div>
     <!-- STEP 2: Camera scanner -->
     <div id="uploadStep2" style="display:none;">
       <div style="text-align:center;margin-bottom:12px;">
-        <div style="font-weight:900;font-size:14px;margin-bottom:4px;">📷 Point camera at the barcode</div>
+        <div style="font-weight:900;font-size:14px;margin-bottom:4px;">Point your camera at the barcode</div>
         <div style="font-size:12px;color:var(--gray-400);">Hold steady over the ISBN barcode on the back cover</div>
       </div>
       <div style="background:var(--ink);border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
         <video id="scannerVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Manually Instead</button>
-        <button class="btn btn-danger btn-sm" onclick="stopScanner();document.getElementById('uploadStep2').style.display='none';document.getElementById('uploadStep1').style.display='block';">✕</button>
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Enter manually instead</button>
+        <button class="btn btn-danger btn-sm" onclick="stopScanner();document.getElementById('uploadStep2').style.display='none';document.getElementById('uploadStep1').style.display='block';"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
     </div>
     <!-- ISBN found box -->
     <div id="isbnFoundBox" style="display:none;background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:800;color:var(--success);margin-bottom:8px;">✅ Book found! Details auto-filled.</div>
+      <div style="font-size:11px;font-weight:800;color:var(--success);margin-bottom:8px;">Book found. Details auto-filled.</div>
       <div id="isbnFoundDetails"></div>
-      <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">🔄 Clear & re-scan</button>
+      <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">Clear and re-scan</button>
     </div>
     <!-- STEP 3: Main form -->
     <div id="uploadStep3" style="display:none;">
     <div class="upload-type-toggle">
-      <button class="upload-type-btn active" onclick="setBookType('physical',this)">📚 Physical Book</button>
-      <button class="upload-type-btn" onclick="setBookType('digital',this)">📖 Digital Book</button>
+      <button class="upload-type-btn active" onclick="setBookType('physical',this)">Physical book</button>
+      <button class="upload-type-btn" onclick="setBookType('digital',this)">Digital book</button>
     </div>
     <div id="physicalFields">
       <div class="form-group">
-        <label>Book Photos — Front Cover Required ⭐</label>
+        <label>Book photos (front cover required)</label>
         <div class="photo-upload-grid">
-          <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon">📷</span><span class="slot-label">Front Cover ⭐</span><img id="prev0" style="display:none"/></div>
-          <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon">📷</span><span class="slot-label">Back Cover</span><img id="prev1" style="display:none"/></div>
-          <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon">📷</span><span class="slot-label">Inside Page</span><img id="prev2" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Front cover</span><img id="prev0" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Back cover</span><img id="prev1" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Inside page</span><img id="prev2" style="display:none"/></div>
         </div>
         <input type="file" id="photoInput0" accept="image/*" style="display:none" onchange="previewPhoto(event,0)"/>
         <input type="file" id="photoInput1" accept="image/*" style="display:none" onchange="previewPhoto(event,1)"/>
@@ -568,11 +584,11 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       </div>
       <div class="form-group">
         <label>Price (ZAR)</label>
-        <div class="price-rec-box" id="priceRecBox">💡 <span id="priceRecText"></span></div>
+        <div class="price-rec-box" id="priceRecBox"> <span id="priceRecText"></span></div>
         <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250" oninput="updateSellerEarnings()"/>
       </div>
       <div class="seller-earnings-box" id="sellerEarningsBox">
-        <div style="font-weight:900;font-size:12px;color:var(--info);margin-bottom:8px;">💰 Your Earnings Breakdown</div>
+        <div style="font-weight:900;font-size:12px;color:var(--info);margin-bottom:8px;"> Your earnings</div>
         <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
         <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
         <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
@@ -580,13 +596,13 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       </div>
     </div>
     <div id="digitalFields" style="display:none;">
-      <div class="licence-note">⚖️ <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
+      <div class="licence-note"> <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
       <div class="form-group">
         <label>Licence / Rights Reference</label>
         <input class="form-control" id="uploadLicenceRef" placeholder="ISBN or publisher licence ref"/>
       </div>
       <div class="pdf-upload-area" onclick="document.getElementById('pdfInput').click()">
-        <div style="font-size:32px;margin-bottom:8px;">📄</div>
+        <div style="margin-bottom:8px;color:var(--mute)"><svg class="ic" style="width:30px;height:30px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></div>
         <p style="font-size:13px;color:var(--gray-400);" id="pdfLabel">Click to upload PDF file</p>
       </div>
       <input type="file" id="pdfInput" accept="application/pdf" style="display:none" onchange="handlePDFSelect(event)"/>
@@ -679,7 +695,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       <label>Campus / Area (for hand delivery)</label>
       <input class="form-control" id="uploadCampus" placeholder="e.g. Main Campus, Hatfield"/>
     </div>
-    <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()">📤 List My Book</button>
+    <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()"> List My Book</button>
     </div><!-- end uploadStep3 -->
   </div>
 </div>
