@@ -4,17 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>bugu – Student textbook marketplace</title>
+<link rel="manifest" href="manifest.json"/>
 <link rel="icon" href="icons/icon-192.png"/>
 <link rel="apple-touch-icon" href="icons/icon-180.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="/shared/tokens.css"/>
 <style>
-/* bugu design tokens: see DESIGN.md. Legacy names (--black, --white, --gray-*) are aliases so old rules keep working. */
-:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--tint:#e4e4e3;--hover:#3a3a3a;
---black:var(--ink);--white:var(--bg);--gray-100:#e9e9e8;--gray-200:var(--line);--gray-300:#b8b8b6;--gray-400:var(--mute);--gray-500:#555555;
---success:var(--ink);--error:var(--ink);--warning:var(--ink);--info:var(--ink)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}}
-:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}
+/* design tokens live in /shared/tokens.css */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--white);color:var(--black);min-height:100vh;user-select:none;-webkit-user-select:none;}
 .screen{display:none;min-height:100vh;flex-direction:column;}

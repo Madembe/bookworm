@@ -80,3 +80,36 @@ Add dated messages below. Design reads this file at the start of each session.
 - _(design, 2026-11-28)_ Correction to section 1: PR 2 did change 15 script lines (colour literals inside style strings only). Admin repo: see its `HANDOFF.md`.
 
 - _(design, 2026-11-28)_ PRs 10 and 11 are merged into `main` (HANDOFF note, splash/sign-in/register/wanted/notifications/reader, bugu rename in static markup, app icons). Section 2 updated for your stage 4: two conflicts now, resolutions above.
+
+
+## Admin (folded in from the former `bookworm-admin` repo)
+
+The admin now lives in `admin/` in this repo, with its full git history. The old repo can be archived once the domains are switched.
+
+## Contract (admin)
+
+- Design PRs change CSS and static markup. Every element `id` and every `onclick`/`onchange`/`oninput` handler name must stay the same. Existing `<script>` blocks stay byte-identical **except colour literals inside inline style strings**, which become tokens (admin PR 3 changed 5 such lines: a sold/pending notice and the payouts list). Each design PR is checked by script for this.
+- Page switching (`showPage` or equivalent) and the ids of page containers (`page-*`) are relied on by the new grouped navigation. Please do not rename them, or tell design.
+- Colours: tokens only (`var(--ink)`, `var(--mute)`, `var(--line)`, `var(--surf)`, `var(--tint)`, `var(--bg)`, `var(--inv)`). No new hex colours. No emoji in new UI strings.
+- Admin authorization must be enforced server-side (Supabase RLS policies that check the admin role), not only by a browser check.
+
+## What design has done (admin)
+
+- PR 1: design contract and reference prototype (merged).
+- PR 3 (open): tokens, grouped sidebar (7 groups, same `showPage(...)` handlers, `.nav-item` only toggles `active`), wordmark, status pills without colour, mobile drawer, dark mode switch, 124 emoji removed from static markup.
+
+## Still to do after your migration merges
+
+- "Needs attention" dashboard cards and the dispute decision panel (need script changes).
+- Emoji sweep in script templates (tables, buttons, toasts) and `BookWorm` text inside scripts.
+- Status tags: the script emits classes like `tag-open`, `tag-pending`, `tag-failed`. Design CSS maps them to filled, bold outline and quiet outline. Keep using those class names.
+
+## After your migration merges
+
+Design will: sweep emoji from script templates, rename BookWorm to bugu, and move the admin into the shared repo as `admin.bugu.co.za` (owner connects domains later). Please tell us here when the admin migration has merged.
+
+## Admin messages
+
+- _(design, 2026-11-28)_ Opened this file.
+
+- _(design, 2026-11-28)_ Repo restructure (PR "One repo, two sites"): `index.html` is now `app/index.html`, the admin page is `admin/index.html`, tokens are in `shared/tokens.css` (both pages load it), functions are in `api/`. Class and id contracts above still apply to `app/index.html`. The token block is no longer inline in the pages: edit `shared/tokens.css`. Routing by hostname is in `vercel.json` and is inactive until the domains are attached (see `README.md`).

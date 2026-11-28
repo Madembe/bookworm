@@ -1,0 +1,6 @@
+/* bugu design tokens: shared by app/ and admin/. Source of truth is DESIGN.md. Legacy names (--black, --white, --gray-*) are aliases so old rules keep working. */
+:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--tint:#e4e4e3;--hover:#3a3a3a;
+--black:var(--ink);--white:var(--bg);--gray-100:#e9e9e8;--gray-200:var(--line);--gray-300:#b8b8b6;--gray-400:var(--mute);--gray-500:#555555;
+--success:var(--ink);--error:var(--ink);--warning:var(--ink);--info:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}}
+:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}

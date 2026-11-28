@@ -93,6 +93,10 @@ Plain, calm, short. Say what happens to the money. No hype, no exclamation marks
 5. Keep PRs small: one screen or one concern each, and describe what changed.
 6. If something here conflicts with a request, flag it in the PR rather than overriding it.
 
+## 10b. Repo structure
+
+One repo, one Vercel project: `app/` is `app.bugu.co.za`, `admin/` is `admin.bugu.co.za`, tokens are shared from `shared/tokens.css`. Change a colour or radius token there once, not in each page. See `README.md`.
+
 ## 11. Rollout (one PR per step)
 
 1. Design contract and reference prototypes (this PR).
