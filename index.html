@@ -3,13 +3,20 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BookWorm – Student Textbook Marketplace</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<title>bugu – Student textbook marketplace</title>
+<link rel="icon" href="icons/icon-192.png"/>
+<link rel="apple-touch-icon" href="icons/icon-180.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-:root{--black:#0a0a0a;--white:#f8f7f4;--gray-100:#f0efec;--gray-200:#e0deda;--gray-300:#c8c5bf;--gray-400:#9a9690;--gray-500:#6b6660;--success:#2d6a4f;--error:#c1121f;--warning:#e76f51;--info:#1a6fa8;}
+/* bugu design tokens: see DESIGN.md. Legacy names (--black, --white, --gray-*) are aliases so old rules keep working. */
+:root{--bg:#e6e6e5;--surf:#efefee;--ink:#222222;--mute:#6b6b6b;--line:#cfcfcd;--inv:#e6e6e5;--tint:#e4e4e3;--hover:#3a3a3a;
+--black:var(--ink);--white:var(--bg);--gray-100:#e9e9e8;--gray-200:var(--line);--gray-300:#b8b8b6;--gray-400:var(--mute);--gray-500:#555555;
+--success:var(--ink);--error:var(--ink);--warning:var(--ink);--info:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}}
+:root[data-theme="dark"]{--bg:#171717;--surf:#1f1f1f;--ink:#d6d6d4;--mute:#8b8b8a;--line:#2d2d2d;--inv:#171717;--tint:#262626;--hover:#e8e8e6;--gray-100:#232323;--gray-300:#444444;--gray-500:#a0a0a0}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:var(--white);color:var(--black);min-height:100vh;user-select:none;-webkit-user-select:none;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--white);color:var(--black);min-height:100vh;user-select:none;-webkit-user-select:none;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
 .screen.active{display:flex;}
 #screen-splash{background:var(--black);align-items:center;justify-content:center;gap:16px;}
@@ -22,15 +29,15 @@ nav{background:var(--black);color:var(--white);padding:12px 20px;display:flex;al
 .nav-logo img{height:34px;width:auto;}
 .nav-logo-text{font-size:18px;font-weight:900;color:var(--white);}
 .nav-actions{display:flex;gap:8px;align-items:center;}
-.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;transition:all 0.2s;}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:700;transition:all 0.2s;}
 .nav-btn:hover{background:rgba(255,255,255,0.1);}
 .nav-btn.primary{background:var(--white);color:var(--black);}
 .nav-icon-btn{background:transparent;border:none;color:var(--white);cursor:pointer;padding:8px;border-radius:6px;font-size:18px;position:relative;}
 .badge{position:absolute;top:2px;right:2px;background:var(--warning);color:white;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:900;}
-.btn{padding:11px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+.btn{padding:11px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-weight:800;font-size:14px;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
 .btn:disabled{opacity:0.5;cursor:not-allowed;}
 .btn-primary{background:var(--black);color:var(--white);}
-.btn-primary:hover:not(:disabled){background:#333;transform:translateY(-1px);}
+.btn-primary:hover:not(:disabled){background:var(--hover);transform:translateY(-1px);}
 .btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black);}
 .btn-secondary:hover:not(:disabled){background:var(--black);color:var(--white);}
 .btn-success{background:var(--success);color:var(--white);}
@@ -41,7 +48,7 @@ nav{background:var(--black);color:var(--white);padding:12px 20px;display:flex;al
 .btn-full{width:100%;}
 .form-group{margin-bottom:16px;}
 .form-group label{display:block;font-weight:800;font-size:12px;margin-bottom:5px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
-.form-control{width:100%;padding:11px 14px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Nunito',sans-serif;font-size:14px;background:var(--white);color:var(--black);transition:border-color 0.2s;}
+.form-control{width:100%;padding:11px 14px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Inter',system-ui,sans-serif;font-size:14px;background:var(--white);color:var(--black);transition:border-color 0.2s;}
 .form-control:focus{outline:none;border-color:var(--black);}
 select.form-control{cursor:pointer;}
 textarea.form-control{resize:vertical;min-height:80px;}
@@ -56,14 +63,14 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .hero p{font-size:14px;color:var(--gray-300);max-width:460px;margin:0 auto 24px;line-height:1.6;}
 .trust-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:7px 16px;border-radius:100px;font-size:12px;color:var(--gray-300);margin-bottom:24px;}
 .search-bar{display:flex;max-width:540px;margin:0 auto;background:var(--white);border-radius:10px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.3);}
-.search-bar input{flex:1;padding:13px 16px;border:none;font-family:'Nunito',sans-serif;font-size:14px;background:transparent;color:var(--black);}
+.search-bar input{flex:1;padding:13px 16px;border:none;font-family:'Inter',system-ui,sans-serif;font-size:14px;background:transparent;color:var(--black);}
 .search-bar input:focus{outline:none;}
-.search-bar button{padding:13px 18px;background:var(--black);border:none;color:var(--white);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;}
+.search-bar button{padding:13px 18px;background:var(--black);border:none;color:var(--white);cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-weight:800;font-size:13px;}
 .home-tabs{display:flex;border-bottom:2px solid var(--gray-200);background:var(--white);}
 .home-tab{flex:1;padding:13px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
 .home-tab.active{color:var(--black);border-bottom-color:var(--black);}
 .filters{display:flex;gap:8px;padding:10px 16px;background:var(--white);border-bottom:1px solid var(--gray-200);flex-wrap:wrap;align-items:center;}
-.filter-select{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-family:'Nunito',sans-serif;font-size:12px;cursor:pointer;background:var(--white);color:var(--black);font-weight:700;}
+.filter-select{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-family:'Inter',system-ui,sans-serif;font-size:12px;cursor:pointer;background:var(--white);color:var(--black);font-weight:700;}
 .books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:16px;}
 .book-card{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;transition:all 0.25s;cursor:pointer;position:relative;}
 .book-card:hover{box-shadow:0 8px 40px rgba(0,0,0,0.15);transform:translateY(-3px);}
@@ -75,11 +82,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .book-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
 .price{font-size:17px;font-weight:900;}
 .badge-pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;}
-.condition-new{background:#d8f3dc;color:#2d6a4f;}
-.condition-good{background:#fff3e0;color:#e76f51;}
+.condition-new{background:var(--tint);color:var(--success);}
+.condition-good{background:var(--tint);color:var(--warning);}
 .condition-used{background:var(--gray-100);color:var(--gray-500);}
-.type-digital{background:#e8f4fd;color:#1a6fa8;}
-.featured-badge{position:absolute;top:8px;left:8px;background:#f59e0b;color:white;font-size:9px;font-weight:900;padding:3px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;z-index:1;}
+.type-digital{background:var(--tint);color:var(--info);}
+.featured-badge{position:absolute;top:8px;left:8px;background:var(--warning);color:white;font-size:9px;font-weight:900;padding:3px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;z-index:1;}
 .section-header{padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;}
 .section-title{font-size:18px;font-weight:900;}
 .section-count{font-size:12px;color:var(--gray-400);}
@@ -94,12 +101,12 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
 .meta-tag{padding:4px 10px;background:var(--gray-100);border-radius:20px;font-size:12px;font-weight:700;}
 .detail-price{font-size:30px;font-weight:900;margin-bottom:6px;}
-.price-breakdown{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:16px;line-height:1.8;}
+.price-breakdown{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--success);margin-bottom:16px;line-height:1.8;}
 .price-breakdown-row{display:flex;justify-content:space-between;font-size:12px;}
-.price-breakdown-row.total{font-weight:900;font-size:14px;border-top:1px solid #86efac;padding-top:6px;margin-top:4px;}
+.price-breakdown-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;}
 .seller-card{background:var(--gray-100);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .seller-avatar{width:40px;height:40px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;}
-.rating-stars{color:#f59e0b;font-size:13px;}
+.rating-stars{color:var(--warning);font-size:13px;}
 .delivery-options{margin-bottom:16px;}
 .delivery-option{border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;margin-bottom:8px;transition:all 0.2s;}
 .delivery-option:hover,.delivery-option.selected{border-color:var(--black);background:var(--gray-100);}
@@ -116,22 +123,22 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .photo-slot .slot-label{font-size:11px;font-weight:800;color:var(--gray-400);margin-top:6px;text-align:center;}
 .photo-slot .slot-icon{font-size:24px;}
 .upload-type-toggle{display:flex;border:2px solid var(--black);border-radius:8px;overflow:hidden;margin-bottom:16px;}
-.upload-type-btn{flex:1;padding:10px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all 0.2s;background:transparent;border:none;font-family:'Nunito',sans-serif;}
+.upload-type-btn{flex:1;padding:10px;text-align:center;cursor:pointer;font-weight:800;font-size:13px;transition:all 0.2s;background:transparent;border:none;font-family:'Inter',system-ui,sans-serif;}
 .upload-type-btn.active{background:var(--black);color:var(--white);}
-.price-rec-box{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;margin-bottom:12px;display:none;}
-.seller-earnings-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none;}
-.seller-earnings-box .earnings-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:#1e40af;}
-.seller-earnings-box .earnings-total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:#1e3a8a;border-top:1px solid #bfdbfe;padding-top:6px;margin-top:4px;}
-.licence-note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.5;margin-bottom:14px;}
+.price-rec-box{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--success);margin-bottom:12px;display:none;}
+.seller-earnings-box{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none;}
+.seller-earnings-box .earnings-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:var(--info);}
+.seller-earnings-box .earnings-total{display:flex;justify-content:space-between;font-size:14px;font-weight:900;color:var(--info);border-top:1px solid var(--tint);padding-top:6px;margin-top:4px;}
+.licence-note{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--warning);line-height:1.5;margin-bottom:14px;}
 .pdf-upload-area{border:2px dashed var(--gray-300);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
 .pdf-upload-area:hover{border-color:var(--black);background:var(--gray-100);}
-.reader-container{flex:1;display:flex;flex-direction:column;background:#1a1a2e;position:relative;}
-.reader-toolbar{background:#16213e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.reader-container{flex:1;display:flex;flex-direction:column;background:var(--ink);position:relative;}
+.reader-toolbar{background:var(--ink);color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
 .reader-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
 #readerCanvas{max-width:100%;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
 .reader-overlay{position:absolute;inset:0;z-index:5;pointer-events:none;}
 .screenshot-warn{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:white;padding:20px 28px;border-radius:12px;font-size:14px;font-weight:800;z-index:9999;display:none;text-align:center;}
-.reader-nav{background:#16213e;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.reader-nav{background:var(--ink);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
 .reader-page-num{color:rgba(255,255,255,0.6);font-size:12px;}
 .transaction-container{flex:1;padding:16px;max-width:480px;margin:0 auto;width:100%;}
 .code-display{background:var(--black);color:var(--white);border-radius:16px;padding:24px;text-align:center;margin:16px 0;}
@@ -147,7 +154,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .chat-item{padding:13px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s;}
 .chat-item:hover{background:var(--gray-100);}
 .chat-avatar{width:40px;height:40px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0;}
-.chat-warning{background:#fff7ed;border-bottom:1px solid #fed7aa;padding:10px 16px;font-size:12px;color:#9a3412;font-weight:700;display:flex;align-items:center;gap:6px;}
+.chat-warning{background:var(--tint);border-bottom:1px solid var(--tint);padding:10px 16px;font-size:12px;color:var(--warning);font-weight:700;display:flex;align-items:center;gap:6px;}
 .chat-room{flex:1;display:flex;flex-direction:column;}
 .chat-room-header{padding:12px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:10px;}
 .chat-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:300px;}
@@ -155,14 +162,14 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .message.sent{background:var(--black);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px;}
 .message.received{background:var(--gray-100);color:var(--black);align-self:flex-start;border-bottom-left-radius:4px;}
 .chat-input-area{padding:12px 16px;border-top:1px solid var(--gray-200);display:flex;gap:8px;align-items:center;}
-.chat-input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:100px;font-family:'Nunito',sans-serif;font-size:13px;background:var(--white);}
+.chat-input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:100px;font-family:'Inter',system-ui,sans-serif;font-size:13px;background:var(--white);}
 .chat-input:focus{outline:none;border-color:var(--black);}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.active{display:flex;}
 .modal{background:var(--white);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
 .modal h3{font-size:18px;font-weight:900;margin-bottom:16px;}
 .modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);}
-.dispute-banner{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;color:#9a3412;margin:14px 0;}
+.dispute-banner{background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);margin:14px 0;}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--black);color:var(--white);padding:10px 20px;border-radius:100px;font-size:13px;font-weight:800;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 .toast.success{background:var(--success);}
@@ -183,10 +190,10 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .wanted-card{border:1px solid var(--gray-200);border-radius:10px;padding:12px;margin-bottom:8px;}
 .wanted-card h4{font-size:13px;font-weight:800;margin-bottom:4px;}
 .wanted-card p{font-size:12px;color:var(--gray-400);}
-.payout-info-box{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;margin-bottom:16px;}
-.payout-info-box h4{font-size:13px;font-weight:900;color:#166534;margin-bottom:4px;}
-.payout-info-box p{font-size:12px;color:#166534;}
-.seller-pending-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;margin-bottom:12px;}
+.payout-info-box{background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;}
+.payout-info-box h4{font-size:13px;font-weight:900;color:var(--success);margin-bottom:4px;}
+.payout-info-box p{font-size:12px;color:var(--success);}
+.seller-pending-box{background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px;margin-bottom:12px;}
 /* Notifications */
 .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);position:absolute;top:6px;right:6px;}
 /* Bottom nav */
@@ -195,10 +202,178 @@ textarea.form-control{resize:vertical;min-height:80px;}
 .bottom-nav-item.active{color:var(--black);}
 .bottom-nav-item span:first-child{font-size:20px;}
 /* Promo */
-.promo-banner{background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:center;gap:10px;}
+.promo-banner{background:linear-gradient(135deg,var(--warning),var(--error));color:white;border-radius:12px;padding:14px 16px;margin:12px 16px;display:flex;align-items:center;gap:10px;}
 .promo-banner h4{font-size:14px;font-weight:900;}
 .promo-banner p{font-size:11px;opacity:0.9;}
+
+/* bugu surfaces (DESIGN.md section 3) */
+body{-webkit-font-smoothing:antialiased}
+.book-card,.auth-card,.form-control,.filter-select{background:var(--surf)}
+
+/* shell: header and bottom tab bar (DESIGN.md sections 5 and 6) */
+.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
+.nav-logo{color:var(--ink);font-weight:500;gap:6px}
+.nav-logo .ic{width:20px;height:20px}
+.nav-logo-text{color:var(--ink);font-size:16px;font-weight:600}
+.bugu-mark{display:inline-block;width:16px;height:21px;border:2px solid var(--ink);border-radius:2px;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.bugu-word{font-size:23px;font-weight:600;letter-spacing:-.035em;line-height:1;color:var(--ink);margin-left:3px}
+.nav-btn{border:1px solid var(--line);color:var(--ink);border-radius:8px;font-weight:500}
+.nav-btn:hover{background:var(--tint)}
+.nav-btn.primary{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+.nav-icon-btn{color:var(--ink);display:inline-flex;align-items:center;justify-content:center}
+.badge{background:var(--ink);color:var(--inv)}
+.bottom-nav{background:var(--surf);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bottom-nav-item{font-size:11px;font-weight:500;text-transform:none;letter-spacing:0}
+.bottom-nav-item span:first-child{line-height:0}
+
+/* home and listings (DESIGN.md sections 4 to 6): catalogue rows, CSS only so the card renderer script is untouched */
+.hero{background:transparent;color:var(--ink);padding:18px 18px 6px;text-align:left}
+.hero h1{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin:0}
+.hero h1 em{font-style:normal;color:inherit}
+.hero p{font-size:14px;color:var(--mute);max-width:none;margin:6px 0 16px;line-height:1.5}
+.search-bar{max-width:none;margin:0;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:none}
+.search-bar:focus-within{border-color:var(--ink)}
+.search-bar input{padding:12px 14px;font-weight:400}
+.search-bar button{background:var(--ink);color:var(--inv);margin:5px;border-radius:7px;padding:8px 14px;font-weight:500}
+.trust-badge{display:flex;align-items:center;gap:10px;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin:14px 0 0;font-size:13px;color:var(--mute)}
+.trust-badge b{color:var(--ink);font-weight:600}
+.home-tabs{background:transparent;border-bottom:1px solid var(--line);margin-top:14px}
+.home-tab{font-weight:500;font-size:14px;margin-bottom:-1px}
+.home-tab.active{font-weight:600}
+.filters{background:transparent;border-bottom:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.filter-select{border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;flex:none}
+.section-title{font-size:16px;font-weight:600}
+.books-grid{display:block;padding:0 16px 24px}
+.book-card{display:flex;gap:14px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:14px 0;overflow:visible}
+.book-card:hover{box-shadow:none;transform:none}
+.book-card:active{opacity:.7}
+.book-card-img{flex:none;width:72px;height:96px;border-radius:2px 5px 5px 2px;background:var(--ink);font-size:0;box-shadow:0 3px 8px -3px rgba(0,0,0,.35)}
+.book-card-img::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,.25);z-index:1}
+.book-card-img::after{content:"";position:absolute;inset:0;margin:auto;width:26px;height:26px;background:var(--inv);opacity:.7;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat}
+.book-card-img:has(img)::after{display:none}
+.book-card-body{flex:1;min-width:0;display:flex;flex-direction:column;padding:0}
+.book-card-meta{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.04em;color:var(--mute);margin-bottom:2px}
+.book-card-title{font-size:15px;font-weight:600;line-height:1.25}
+.book-card-footer{margin-top:auto;padding-top:8px;align-items:flex-end}
+.price{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.badge-pill{border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:500;text-transform:none;color:var(--mute);background:transparent}
+.condition-new,.condition-good,.condition-used,.type-digital{background:transparent;color:var(--mute)}
+.featured-badge{background:var(--ink);color:var(--inv);font-weight:600;border-radius:4px;letter-spacing:.04em;top:18px;left:4px}
+.empty-state h3{font-weight:600}
+
+/* listing detail (DESIGN.md sections 4 to 6): CSS only, the detail renderer script is untouched */
+.detail-container{padding:8px 18px 0;max-width:560px}
+.detail-photo-main{position:relative;max-width:220px;height:290px;margin:6px auto 14px;border-radius:2px 8px 8px 2px;background:var(--ink);font-size:0;box-shadow:0 14px 24px -14px rgba(0,0,0,.45)}
+.detail-photo-main::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:rgba(0,0,0,.25);z-index:1}
+.detail-photo-main::after{content:"";position:absolute;inset:0;margin:auto;width:40px;height:40px;background:var(--inv);opacity:.7;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat}
+.detail-photo-main:has(img)::after{display:none}
+#detailPhotos [style*="margin-top:8px"]{justify-content:center}
+.detail-photo-thumb{width:56px;height:56px;border-radius:4px;border-color:var(--line)}
+.detail-photo-thumb.active{border-color:var(--ink)}
+.detail-title{font-size:23px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.meta-tag{background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--ink);font-weight:500;font-size:12px;padding:3px 9px}
+.detail-price{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.price-breakdown{background:var(--surf);color:var(--ink);border-radius:12px;padding:14px;line-height:1.9}
+.price-breakdown-row{font-size:13px;color:var(--mute)}
+.price-breakdown-row.total{color:var(--ink);font-weight:600;border-top:1px solid var(--line);margin-top:4px;padding-top:4px}
+.seller-card{background:var(--surf);border:1px solid var(--line)}
+.seller-avatar{font-weight:600}
+.seller-pending-box,.seller-earnings-box{background:var(--surf);border-color:var(--line);color:var(--ink)}
+#detailActions{position:sticky;bottom:0;z-index:3;background:var(--bg);border-top:1px solid var(--line);margin:0 -18px;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));max-height:55vh;overflow-y:auto}
+#detailActions:empty{display:none}
+.btn{font-weight:600;border-radius:10px}
+.btn-full{min-height:48px;justify-content:center}
+.btn-secondary{border-width:1px}
+.btn-danger,.btn-warning{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+
+/* sell flow (DESIGN.md sections 4 to 6): form restyle plus emoji removed from the static upload markup; ids, handlers and scripts unchanged */
+.upload-container{padding:8px 18px 28px}
+.form-group label,label{font-weight:600;font-size:12px;letter-spacing:.05em;color:var(--mute)}
+.form-control{border:1px solid var(--line);background:var(--surf);border-radius:10px;min-height:46px;font-weight:400}
+.form-control:focus{border-color:var(--ink)}
+.upload-type-toggle{border:1px solid var(--line);border-radius:10px}
+.upload-type-btn{font-weight:500;font-size:14px;padding:11px}
+.upload-type-btn.active{font-weight:600}
+.photo-slot{border:1.5px dashed var(--line);border-radius:12px;color:var(--mute)}
+.photo-slot:hover{border-color:var(--ink);background:var(--surf)}
+.photo-slot .slot-label{font-size:11.5px;font-weight:500;color:var(--mute)}
+.photo-slot .slot-icon{display:grid;place-items:center;line-height:0}
+.price-rec-box,.licence-note{background:var(--surf);border:1px solid var(--line);color:var(--ink)}
+.seller-earnings-box{border-radius:12px}
+.pdf-upload-area{border:1.5px dashed var(--line);border-radius:12px;background:transparent;color:var(--mute)}
+
+/* order and escrow (DESIGN.md sections 5 and 6): modals, release code, delivery options, tracking */
+.transaction-container{padding:8px 18px 28px;max-width:560px;margin:0 auto}
+.modal-overlay{background:rgba(0,0,0,.45)}
+.modal{background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.modal h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin-bottom:12px}
+.modal h4{font-weight:600}
+.modal-close{width:36px;height:36px;margin:-6px -8px 0 0;display:grid;place-items:center;color:var(--ink);line-height:0}
+.delivery-option{border:1px solid var(--line);background:var(--surf);border-radius:12px}
+.delivery-coming-soon{border:1px dashed var(--line);border-radius:12px}
+.code-display{background:var(--ink);color:var(--inv);border-radius:12px}
+.code-number{font-family:'IBM Plex Mono',monospace;font-weight:500;letter-spacing:.35em}
+.step-item{border-bottom:1px solid var(--line)}
+.step-num{font-weight:600}
+.step-text{color:var(--mute)}
+.tracking-card{background:var(--surf);border:1px solid var(--line);border-radius:12px}
+.tracking-number-display{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.payout-info-box{background:var(--surf);border:1px solid var(--line);border-radius:12px;color:var(--ink)}
+
+/* chats (DESIGN.md sections 5 and 6): list, room, bubbles, composer; scripts untouched */
+.chat-warning{background:var(--surf);border-bottom:1px solid var(--line);color:var(--mute);font-weight:500;padding:10px 18px}
+.chat-warning .ic{color:var(--ink)}
+.chat-item{padding:14px 18px;border-bottom:1px solid var(--line)}
+.chat-item:hover{background:var(--tint)}
+.chat-avatar{font-weight:600}
+.chat-room-header{border-bottom:1px solid var(--line)}
+.chat-messages{padding:14px 18px;gap:6px}
+.message{font-size:14px;max-width:78%}
+.message.sent{background:var(--ink);color:var(--inv)}
+.message.received{background:var(--surf);color:var(--ink);border:1px solid var(--line)}
+.chat-input-area{padding:10px 18px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
+.chat-input{border:1px solid var(--line);border-radius:10px;min-height:44px;background:var(--surf);color:var(--ink);font-size:14px}
+.chat-input::placeholder{color:var(--mute)}
+.chat-input:focus{border-color:var(--ink)}
+.chat-send{width:44px;height:44px;padding:0;border-radius:10px;justify-content:center;flex:none}
+
+/* profile (DESIGN.md sections 5 and 6): static markup; includes the dark mode switch, pure CSS state */
+.profile-header{background:transparent;color:var(--ink);padding:18px 18px 4px;text-align:left}
+.profile-avatar-lg{width:56px;height:56px;font-size:20px;font-weight:600;background:var(--ink);color:var(--inv);margin:0 0 12px}
+.profile-note{margin-top:12px;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--mute);line-height:1.5}
+.profile-note strong{color:var(--ink);font-weight:600}
+.stat-cards{padding:16px 18px}
+.stat-card{background:var(--surf)}
+.stat-card .num{font-size:22px;font-weight:600}
+.stat-card .lbl{font-size:12px;font-weight:500;color:var(--mute);text-transform:none;letter-spacing:0}
+#screen-profile .section-block{padding:16px 18px;border-top:1px solid var(--line)}
+#screen-profile .section-block h3{font-size:15px;font-weight:600;margin-bottom:10px}
+.pref-row{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.sw{flex:none;width:46px;height:28px;border-radius:99px;border:1px solid var(--line);background:var(--surf);position:relative;cursor:pointer;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);transition:left .2s}
+:root[data-theme="dark"] .sw::after{left:21px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sw::after{left:21px}}
+
+/* remaining screens (DESIGN.md sections 2 to 6): splash, sign-in, register, wanted, notifications, reader */
+:root{--reader:#1c1c1c;--reader-ink:#e6e6e5;--reader-soft:#9a9a98;--reader-btn:#2c2c2c}
+#screen-splash{background:var(--ink);color:var(--inv)}
+.splash-word{display:flex;align-items:center;gap:14px;animation:popIn 0.7s cubic-bezier(.34,1.56,.64,1) forwards}
+.splash-word .bugu-mark{width:30px;height:39px;border:3px solid var(--inv);background:linear-gradient(90deg,var(--inv) 50%,transparent 50%)}
+.splash-word .bugu-word{font-size:64px;color:var(--inv);margin-left:0}
+.splash-sub{color:var(--inv);opacity:.75;font-weight:500;letter-spacing:0}
+.splash-note{color:var(--inv);opacity:.5;font-size:12px;animation:fadeUp 0.6s 0.9s both}
+.auth-container{background:var(--bg)}
+.auth-card{background:var(--surf);border:1px solid var(--line);box-shadow:none;border-radius:14px}
+.auth-wordmark{display:flex;align-items:center;justify-content:center;gap:9px;margin:0 auto 22px}
+.auth-wordmark .bugu-mark{width:20px;height:26px}
+.auth-wordmark .bugu-word{font-size:34px}
+.auth-switch a{font-weight:600}
+.empty-state .icon{display:grid;place-items:center;color:var(--mute);font-size:0;margin-bottom:10px}
+.reader-container,.reader-toolbar,.reader-nav{background:var(--reader);color:var(--reader-ink)}
+.reader-page-num{color:var(--reader-soft)}
 </style>
+<script>try{var t=localStorage.getItem("bugu-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body>
 
@@ -207,15 +382,16 @@ textarea.form-control{resize:vertical;min-height:80px;}
 
 <!-- SPLASH -->
 <div class="screen active" id="screen-splash">
-  <img class="splash-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
-  <div class="splash-sub">Student Textbook Marketplace</div>
+  <div class="splash-word" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
+  <div class="splash-sub">Student textbook marketplace</div>
+  <div class="splash-note">bugu is Tshivenda for “book”</div>
 </div>
 
 <!-- LOGIN -->
 <div class="screen" id="screen-login">
   <div class="auth-container">
     <div class="auth-card">
-      <img class="auth-logo-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+      <div class="auth-wordmark" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
       <div class="form-group">
         <label>Email Address</label>
         <input class="form-control" id="loginEmail" type="email" placeholder="your@email.com"/>
@@ -228,7 +404,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
       <div style="text-align:center;margin-top:10px;">
         <a style="font-size:12px;color:var(--gray-400);cursor:pointer;font-weight:700;" onclick="showForgotPassword()">Forgot password?</a>
       </div>
-      <div class="auth-switch">New to BookWorm? <a onclick="showScreen('screen-register')">Create Account</a></div>
+      <div class="auth-switch">New to bugu? <a onclick="showScreen('screen-register')">Create Account</a></div>
     </div>
   </div>
 </div>
@@ -237,7 +413,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <div class="screen" id="screen-register">
   <div class="auth-container">
     <div class="auth-card">
-      <img class="auth-logo-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+      <div class="auth-wordmark" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
       <div class="form-group">
         <label>Account Type</label>
         <select class="form-control" id="regAccountType" onchange="toggleAccountFields()">
@@ -344,29 +520,29 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- HOME -->
 <div class="screen" id="screen-home">
   <nav>
-    <div class="nav-logo" onclick="showScreen('screen-home')">
-      <img src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+    <div class="nav-logo" onclick="showScreen('screen-home')" aria-label="bugu">
+      <span class="bugu-mark"></span><span class="bugu-word">bugu</span>
     </div>
     <div class="nav-actions">
       <button class="nav-btn" onclick="requireAuth('screen-upload')">+ List Book</button>
-      <button class="nav-icon-btn" id="notifBell" onclick="requireAuth('screen-notifications')" title="Notifications">🔔<span class="badge" id="notifBadge" style="display:none;">0</span></button>
-      <button class="nav-icon-btn" onclick="requireAuth('screen-chat')">💬</button>
-      <button class="nav-icon-btn" onclick="requireAuth('screen-profile')">👤</button>
+      <button class="nav-icon-btn" id="notifBell" onclick="requireAuth('screen-notifications')" title="Notifications"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg><span class="badge" id="notifBadge" style="display:none;">0</span></button>
+      <button class="nav-icon-btn" aria-label="Chats" onclick="requireAuth('screen-chat')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></button>
+      <button class="nav-icon-btn" aria-label="Profile" onclick="requireAuth('screen-profile')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></button>
     </div>
   </nav>
   <div class="hero">
-    <div class="trust-badge">🎓 South Africa's Student Marketplace</div>
-    <h1>Buy & Sell<br/><em>Textbooks</em> Safely</h1>
-    <p>Secure escrow payments. Release funds only when you're happy with your book.</p>
+    <h1>Find your course books.</h1>
+    <p>Second-hand textbooks from students on your campus.</p>
     <div class="search-bar">
-      <input id="searchInput" placeholder="Search by title, module code..." oninput="filterBooks()"/>
+      <input id="searchInput" placeholder="Module code or title, e.g. ACCN101" oninput="filterBooks()"/>
       <button onclick="filterBooks()">Search</button>
     </div>
+    <div class="trust-badge"><svg class="ic" style="width:18px;height:18px;color:var(--ink)" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span><b>Pay safely.</b> Money is held until you confirm the book.</span></div>
   </div>
   <div class="home-tabs">
-    <div class="home-tab active" onclick="switchHomeTab('physical',this)">📚 Physical Books</div>
-    <div class="home-tab" onclick="switchHomeTab('digital',this)">📖 Digital Books</div>
-    <div class="home-tab" onclick="switchHomeTab('wanted',this)">🔍 Wanted</div>
+    <div class="home-tab active" onclick="switchHomeTab('physical',this)">Physical</div>
+    <div class="home-tab" onclick="switchHomeTab('digital',this)">Digital</div>
+    <div class="home-tab" onclick="switchHomeTab('wanted',this)">Wanted</div>
   </div>
   <div class="filters" id="homeFilters">
     <select class="filter-select" id="filterUniversity" onchange="filterBooks()">
@@ -391,18 +567,18 @@ textarea.form-control{resize:vertical;min-height:80px;}
   </div>
   <div class="books-grid" id="booksGrid"></div>
   <div class="bottom-nav">
-    <div class="bottom-nav-item active" onclick="showScreen('screen-home')"><span>🏠</span><span>Home</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-upload')"><span>➕</span><span>List</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-chat')"><span>💬</span><span>Chat</span></div>
-    <div class="bottom-nav-item" onclick="requireAuth('screen-profile')"><span>👤</span><span>Profile</span></div>
+    <div class="bottom-nav-item active" onclick="showScreen('screen-home')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><span>Home</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-upload')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></svg></span><span>List</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-chat')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><span>Chat</span></div>
+    <div class="bottom-nav-item" onclick="requireAuth('screen-profile')"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span><span>Profile</span></div>
   </div>
 </div>
 
 <!-- BOOK DETAIL -->
 <div class="screen" id="screen-detail">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-actions"><button class="nav-btn" onclick="requireAuth('screen-chat')">💬 Chats</button></div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
+    <div class="nav-actions"><button class="nav-btn" onclick="requireAuth('screen-chat')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg> Chats</button></div>
   </nav>
   <div class="detail-container">
     <div id="detailPhotos"></div>
@@ -421,7 +597,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- UPLOAD -->
 <div class="screen" id="screen-upload">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">List a Book</div>
   </nav>
   <div class="upload-container">
@@ -432,43 +608,43 @@ textarea.form-control{resize:vertical;min-height:80px;}
         <div style="font-size:12px;color:var(--gray-400);margin-bottom:20px;">Scan the barcode for instant auto-fill, or enter details manually.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-        <button class="btn btn-primary btn-full" onclick="startScanner()">📷 Scan Barcode (Auto-fill)</button>
-        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Details Manually</button>
+        <button class="btn btn-primary btn-full" onclick="startScanner()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg> Scan barcode (auto-fill)</button>
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Enter details manually</button>
       </div>
     </div>
     <!-- STEP 2: Camera scanner -->
     <div id="uploadStep2" style="display:none;">
       <div style="text-align:center;margin-bottom:12px;">
-        <div style="font-weight:900;font-size:14px;margin-bottom:4px;">📷 Point camera at the barcode</div>
+        <div style="font-weight:900;font-size:14px;margin-bottom:4px;">Point your camera at the barcode</div>
         <div style="font-size:12px;color:var(--gray-400);">Hold steady over the ISBN barcode on the back cover</div>
       </div>
-      <div style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
+      <div style="background:var(--ink);border-radius:12px;overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;">
         <video id="scannerVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary btn-full" onclick="showManualEntry()">✏️ Enter Manually Instead</button>
-        <button class="btn btn-danger btn-sm" onclick="stopScanner();document.getElementById('uploadStep2').style.display='none';document.getElementById('uploadStep1').style.display='block';">✕</button>
+        <button class="btn btn-secondary btn-full" onclick="showManualEntry()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Enter manually instead</button>
+        <button class="btn btn-danger btn-sm" onclick="stopScanner();document.getElementById('uploadStep2').style.display='none';document.getElementById('uploadStep1').style.display='block';"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
     </div>
     <!-- ISBN found box -->
-    <div id="isbnFoundBox" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:800;color:#166534;margin-bottom:8px;">✅ Book found! Details auto-filled.</div>
+    <div id="isbnFoundBox" style="display:none;background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:var(--success);margin-bottom:8px;">Book found. Details auto-filled.</div>
       <div id="isbnFoundDetails"></div>
-      <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">🔄 Clear & re-scan</button>
+      <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="clearScannedData()">Clear and re-scan</button>
     </div>
     <!-- STEP 3: Main form -->
     <div id="uploadStep3" style="display:none;">
     <div class="upload-type-toggle">
-      <button class="upload-type-btn active" onclick="setBookType('physical',this)">📚 Physical Book</button>
-      <button class="upload-type-btn" onclick="setBookType('digital',this)">📖 Digital Book</button>
+      <button class="upload-type-btn active" onclick="setBookType('physical',this)">Physical book</button>
+      <button class="upload-type-btn" onclick="setBookType('digital',this)">Digital book</button>
     </div>
     <div id="physicalFields">
       <div class="form-group">
-        <label>Book Photos — Front Cover Required ⭐</label>
+        <label>Book photos (front cover required)</label>
         <div class="photo-upload-grid">
-          <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon">📷</span><span class="slot-label">Front Cover ⭐</span><img id="prev0" style="display:none"/></div>
-          <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon">📷</span><span class="slot-label">Back Cover</span><img id="prev1" style="display:none"/></div>
-          <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon">📷</span><span class="slot-label">Inside Page</span><img id="prev2" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(0)" id="slot0"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Front cover</span><img id="prev0" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(1)" id="slot1"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Back cover</span><img id="prev1" style="display:none"/></div>
+          <div class="photo-slot" onclick="triggerPhotoUpload(2)" id="slot2"><span class="slot-icon"><svg class="ic" style="width:24px;height:24px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="slot-label">Inside page</span><img id="prev2" style="display:none"/></div>
         </div>
         <input type="file" id="photoInput0" accept="image/*" style="display:none" onchange="previewPhoto(event,0)"/>
         <input type="file" id="photoInput1" accept="image/*" style="display:none" onchange="previewPhoto(event,1)"/>
@@ -482,25 +658,25 @@ textarea.form-control{resize:vertical;min-height:80px;}
       </div>
       <div class="form-group">
         <label>Price (ZAR)</label>
-        <div class="price-rec-box" id="priceRecBox">💡 <span id="priceRecText"></span></div>
+        <div class="price-rec-box" id="priceRecBox"> <span id="priceRecText"></span></div>
         <input class="form-control" id="uploadPrice" type="number" placeholder="e.g. 250" oninput="updateSellerEarnings()"/>
       </div>
       <div class="seller-earnings-box" id="sellerEarningsBox">
-        <div style="font-weight:900;font-size:12px;color:#1e40af;margin-bottom:8px;">💰 Your Earnings Breakdown</div>
+        <div style="font-weight:900;font-size:12px;color:var(--info);margin-bottom:8px;"> Your earnings</div>
         <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
-        <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
+        <div class="earnings-row"><span>bugu Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
         <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
-        <div style="font-size:11px;color:#3b82f6;margin-top:6px;">Note: the delivery fee is paid by the buyer on top of the book price and is not part of your earnings.</div>
+        <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: the delivery fee is paid by the buyer on top of the book price and is not part of your earnings.</div>
       </div>
     </div>
     <div id="digitalFields" style="display:none;">
-      <div class="licence-note">⚖️ <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
+      <div class="licence-note"> <strong>SA Copyright Act 98 of 1978:</strong> You must hold valid digital distribution rights. Unlicensed uploads will be removed and accounts suspended.</div>
       <div class="form-group">
         <label>Licence / Rights Reference</label>
         <input class="form-control" id="uploadLicenceRef" placeholder="ISBN or publisher licence ref"/>
       </div>
       <div class="pdf-upload-area" onclick="document.getElementById('pdfInput').click()">
-        <div style="font-size:32px;margin-bottom:8px;">📄</div>
+        <div style="margin-bottom:8px;color:var(--mute)"><svg class="ic" style="width:30px;height:30px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></div>
         <p style="font-size:13px;color:var(--gray-400);" id="pdfLabel">Click to upload PDF file</p>
       </div>
       <input type="file" id="pdfInput" accept="application/pdf" style="display:none" onchange="handlePDFSelect(event)"/>
@@ -593,7 +769,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
       <label>Campus / Area (for hand delivery)</label>
       <input class="form-control" id="uploadCampus" placeholder="e.g. Main Campus, Hatfield"/>
     </div>
-    <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()">📤 List My Book</button>
+    <button class="btn btn-primary btn-full" id="listBtn" onclick="submitListing()"> List My Book</button>
     </div><!-- end uploadStep3 -->
   </div>
 </div>
@@ -601,7 +777,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- TRANSACTION (Buyer view) -->
 <div class="screen" id="screen-transaction">
   <nav>
-    <div class="nav-logo" onclick="showScreen('screen-home')">🏠 Home</div>
+    <div class="nav-logo" onclick="showScreen('screen-home')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg> Home</div>
     <div class="nav-logo-text">My Purchase</div>
   </nav>
   <div class="transaction-container" id="transactionContent"></div>
@@ -610,46 +786,46 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- CHAT LIST -->
 <div class="screen" id="screen-chat">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Messages</div>
   </nav>
-  <div class="chat-warning">🔒 Chats may be reviewed by BookWorm Support for safety and dispute resolution purposes.</div>
+  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Chats may be reviewed by bugu Support for safety and dispute resolution purposes.</div>
   <div class="chat-list" id="chatList"></div>
   <div style="padding:16px;border-top:1px solid var(--gray-200);">
-    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact BookWorm Support</button>
+    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact bugu Support</button>
   </div>
 </div>
 
 <!-- CHAT ROOM -->
 <div class="screen" id="screen-chatroom">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="chat-avatar" id="chatroomAvatar" style="width:32px;height:32px;font-size:12px;"></div>
-      <div><div style="font-size:14px;font-weight:900;color:white;" id="chatroomName"></div><div style="font-size:11px;color:var(--gray-300);" id="chatroomBook"></div></div>
+      <div><div style="font-size:14px;font-weight:600;color:var(--ink);" id="chatroomName"></div><div style="font-size:11px;color:var(--mute);" id="chatroomBook"></div></div>
     </div>
   </nav>
-  <div class="chat-warning">🔒 Safety reminder: Meet in public places. Never share personal banking details in chat.</div>
+  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Safety reminder: Meet in public places. Never share personal banking details in chat.</div>
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-input-area">
-    <input class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMessage()"/>
-    <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+    <input class="chat-input" id="chatInput" placeholder="Message" aria-label="Message" onkeypress="if(event.key==='Enter')sendMessage()"/>
+    <button class="btn btn-primary btn-sm chat-send" aria-label="Send" onclick="sendMessage()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
   </div>
 </div>
 
 <!-- PROFILE -->
 <div class="screen" id="screen-profile">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-actions"><button class="nav-btn" onclick="handleLogout()">Sign Out</button></div>
   </nav>
   <div class="profile-header">
     <div class="profile-avatar-lg" id="profileAvatar">U</div>
-    <div style="font-size:20px;font-weight:900;" id="profileName"></div>
-    <div style="font-size:13px;color:var(--gray-300);margin-top:4px;" id="profileUni"></div>
+    <div style="font-size:20px;font-weight:600;" id="profileName"></div>
+    <div style="font-size:13px;color:var(--mute);margin-top:4px;" id="profileUni"></div>
     <div style="font-size:11px;color:var(--gray-400);margin-top:4px;" id="profileEmail"></div>
-    <div style="margin-top:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--gray-300);line-height:1.5;">
-      🔐 <strong style="color:var(--white);">Identity Verified via Email</strong><br/>
+    <div class="profile-note">
+      <svg class="ic" style="width:16px;height:16px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> <strong>Identity verified via email</strong><br/>
       Your name above is the one you registered with. It appears on all your listings and transactions as proof of identity, so buyers and sellers know who they're dealing with.
     </div>
   </div>
@@ -659,41 +835,42 @@ textarea.form-control{resize:vertical;min-height:80px;}
     <div class="stat-card"><div class="num" id="statBought">0</div><div class="lbl">Bought</div></div>
   </div>
   <div class="section-block">
-    <h3>💰 Banking Details</h3>
+    <h3>Banking Details</h3>
     <div id="bankingStatus"></div>
-    <button class="btn btn-primary btn-full btn-sm" style="margin-top:8px;" onclick="openBankingModal()">💳 Add / Update Banking Details</button>
+    <button class="btn btn-primary btn-full btn-sm" style="margin-top:8px;" onclick="openBankingModal()">Add / Update Banking Details</button>
   </div>
   <div class="section-block">
-    <h3>💰 Pending Payouts</h3>
+    <h3>Pending Payouts</h3>
     <div id="pendingPayouts"><div class="empty-state" style="padding:10px"><p style="font-size:12px;">No pending payouts.</p></div></div>
   </div>
   <div class="section-block">
-    <h3>📚 My Listings</h3>
+    <h3>My Listings</h3>
     <div id="myListings"></div>
     <button class="btn btn-secondary btn-full btn-sm" onclick="requireAuth('screen-upload')">+ List Another Book</button>
   </div>
   <div class="section-block">
-    <h3>🛍️ My Purchases & Subscriptions</h3>
+    <h3>My Purchases & Subscriptions</h3>
     <div id="myPurchases"></div>
   </div>
   <div class="section-block">
-    <h3>⭐ My Reviews</h3>
+    <h3>My Reviews</h3>
     <div id="myReviews"><div class="empty-state" style="padding:10px"><p style="font-size:12px;">No reviews yet.</p></div></div>
   </div>
+  <div class="section-block"><div class="pref-row"><span>Dark mode</span><button class="sw" id="themeSwitch" role="switch" aria-label="Dark mode" onclick="var d=document.documentElement,on=!(d.dataset.theme==='dark'||(!d.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches));d.dataset.theme=on?'dark':'light';try{localStorage.setItem('bugu-theme',d.dataset.theme)}catch(e){}"></button></div></div>
   <div style="padding:16px;">
-    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact Support</button>
-    <button class="btn btn-secondary btn-full btn-sm" style="margin-top:8px;" onclick="document.getElementById('appFeedbackModal').classList.add('active')">💬 Rate BookWorm</button>
+    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact Support</button>
+    <button class="btn btn-secondary btn-full btn-sm" style="margin-top:8px;" onclick="document.getElementById('appFeedbackModal').classList.add('active')">Rate bugu</button>
   </div>
 </div>
 
 <!-- WANTED LISTING SCREEN -->
 <div class="screen" id="screen-wanted">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Post a Wanted</div>
   </nav>
   <div class="upload-container">
-    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">Can't find the book you need? Post a wanted listing and sellers will contact you!</p>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">Can't find the book you need? Post a wanted listing and sellers will contact you.</p>
     <div class="form-group">
       <label>Book Title</label>
       <input class="form-control" id="wantedTitle" placeholder="e.g. Principles of Marketing"/>
@@ -721,29 +898,29 @@ textarea.form-control{resize:vertical;min-height:80px;}
       <label>Additional Notes</label>
       <textarea class="form-control" id="wantedNotes" placeholder="Any extra details..."></textarea>
     </div>
-    <button class="btn btn-primary btn-full" onclick="submitWanted()">🔍 Post Wanted Listing</button>
+    <button class="btn btn-primary btn-full" onclick="submitWanted()">Post wanted listing</button>
   </div>
 </div>
 
 <!-- NOTIFICATIONS SCREEN -->
 <div class="screen" id="screen-notifications">
   <nav>
-    <div class="nav-logo" onclick="goBack()">← Back</div>
-    <div class="nav-logo-text">🔔 Notifications</div>
+    <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
+    <div class="nav-logo-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg> Notifications</div>
     <div class="nav-actions"><button class="nav-btn btn-sm" onclick="markAllNotifsRead()">Mark all read</button></div>
   </nav>
   <div id="notifList" style="padding:16px;flex:1;overflow-y:auto;">
-    <div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll let you know about wanted matches, messages and more.</p></div>
+    <div class="empty-state"><div class="icon"><svg class="ic" style="width:40px;height:40px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg></div><h3>No notifications yet</h3><p>We'll let you know about wanted matches, messages and more.</p></div>
   </div>
 </div>
 
 <!-- PDF READER -->
 <div class="screen" id="screen-reader">
   <div class="reader-toolbar">
-    <button onclick="goBack()" style="background:transparent;border:none;color:white;font-size:20px;cursor:pointer;">←</button>
+    <button onclick="goBack()" aria-label="Back" style="background:transparent;border:none;color:var(--reader-ink);cursor:pointer;line-height:0;"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
     <div style="flex:1;padding:0 12px;">
-      <div style="font-weight:800;font-size:13px;color:white;" id="readerTitle"></div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="readerExpiry"></div>
+      <div style="font-weight:600;font-size:13px;color:var(--reader-ink);" id="readerTitle"></div>
+      <div style="font-size:11px;color:var(--reader-soft);" id="readerExpiry"></div>
     </div>
   </div>
   <div class="reader-container">
@@ -753,20 +930,20 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
   </div>
   <div class="reader-nav">
-    <button onclick="readerPage(-1)" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:white;border:none;">← Prev</button>
+    <button onclick="readerPage(-1)" class="btn btn-sm" style="background:var(--reader-btn);color:var(--reader-ink);border:none;"><svg class="ic" style="width:16px;height:16px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Prev</button>
     <div class="reader-page-num" id="readerPageNum">Page 1</div>
-    <button onclick="readerPage(1)" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:white;border:none;">Next →</button>
+    <button onclick="readerPage(1)" class="btn btn-sm" style="background:var(--reader-btn);color:var(--reader-ink);border:none;">Next <svg class="ic" style="width:16px;height:16px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
   </div>
-  <div id="screenshotWarnReader" class="screenshot-warn">📵 Screenshots disabled for copyright protection</div>
+  <div id="screenshotWarnReader" class="screenshot-warn">Screenshots disabled for copyright protection</div>
 </div>
 
 <!-- MODALS -->
 <!-- Payment Modal -->
 <div class="modal-overlay" id="paymentModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
-    <h3>💳 Confirm Purchase</h3>
-    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:12px;color:#9a3412;font-weight:700;margin-bottom:14px;">⚠️ <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
+    <button class="modal-close" onclick="closeModal('paymentModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Confirm Purchase</h3>
+    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;"> <strong>Pay through bugu only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
@@ -775,17 +952,17 @@ textarea.form-control{resize:vertical;min-height:80px;}
     </div>
     <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Your payment is held securely in escrow. Funds are only released to the seller when you confirm receipt with a release code.</p>
     <p style="font-size:12px;color:var(--gray-500);margin-bottom:16px;">You will be redirected to PayFast to complete payment securely.</p>
-    <button class="btn btn-primary btn-full" id="paymentConfirmBtn" onclick="confirmPayment()">🔐 Proceed to PayFast</button>
+    <button class="btn btn-primary btn-full" id="paymentConfirmBtn" onclick="confirmPayment()"> Proceed to PayFast</button>
   </div>
 </div>
 
 <!-- Tracking Modal (Seller) -->
 <div class="modal-overlay" id="trackingModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('trackingModal')">✕</button>
-    <h3>📦 Add Tracking Number</h3>
+    <button class="modal-close" onclick="closeModal('trackingModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Tracking Number</h3>
     <div class="payout-info-box">
-      <h4>🚚 Pargo Drop-off Instructions</h4>
+      <h4> Pargo Drop-off Instructions</h4>
       <p>1. Package the book securely.<br/>2. Go to your nearest Pargo drop point (Clicks, PnP, etc.).<br/>3. Show your Pargo waybill QR code (sent to your email).<br/>4. Drop off the parcel — no payment required from you.<br/>5. Enter the tracking number below.</p>
     </div>
     <div class="form-group">
@@ -810,22 +987,22 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Code Release Modal (Seller) -->
 <div class="modal-overlay" id="codeModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('codeModal')">✕</button>
-    <h3>🔐 Enter Release Code</h3>
+    <button class="modal-close" onclick="closeModal('codeModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Enter Release Code</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Ask the buyer for their 6-digit release code. They will share it with you once they've received and inspected the book.</p>
     <div class="form-group">
       <label>Release Code</label>
       <input class="form-control" id="codeInput" type="text" maxlength="6" placeholder="6-digit code" style="font-size:24px;font-weight:900;text-align:center;letter-spacing:8px;"/>
     </div>
-    <button class="btn btn-success btn-full" onclick="verifyCode()">✅ Verify & Release Funds</button>
+    <button class="btn btn-success btn-full" onclick="verifyCode()"> Verify & Release Funds</button>
   </div>
 </div>
 
 <!-- Dispute Modal -->
 <div class="modal-overlay" id="disputeModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('disputeModal')">✕</button>
-    <h3>⚠️ Raise a Dispute</h3>
+    <button class="modal-close" onclick="closeModal('disputeModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Raise a Dispute</h3>
     <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;">Do NOT release your code. Describe the issue below and our team will investigate within 24 hours.</p>
     <div class="form-group">
       <label>What is the problem?</label>
@@ -842,8 +1019,8 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Review Modal -->
 <div class="modal-overlay" id="reviewModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('reviewModal')">✕</button>
-    <h3>⭐ Rate this Transaction</h3>
+    <button class="modal-close" onclick="closeModal('reviewModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Rate this Transaction</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;" id="reviewSellerName"></p>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="starContainer">
       <span style="font-size:32px;cursor:pointer;" onclick="setRating(1)" data-star="1">☆</span>
@@ -863,8 +1040,8 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Delete Modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
-    <h3>🗑️ Remove Listing?</h3>
+    <button class="modal-close" onclick="closeModal('deleteModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Remove Listing?</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Are you sure you want to remove this listing? This cannot be undone.</p>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-secondary btn-full" onclick="closeModal('deleteModal')">Cancel</button>
@@ -876,11 +1053,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
 <!-- Promote Modal -->
 <div class="modal-overlay" id="promoteModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('promoteModal')">✕</button>
-    <h3>⭐ Feature Your Listing</h3>
+    <button class="modal-close" onclick="closeModal('promoteModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Feature Your Listing</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Get your book seen first! Featured listings appear at the top of search results with a highlighted badge.</p>
     <div id="promotePlans"></div>
-    <button class="btn btn-warning btn-full" id="promoteBtn" onclick="confirmPromotion()">⭐ Feature This Book</button>
+    <button class="btn btn-warning btn-full" id="promoteBtn" onclick="confirmPromotion()"> Feature This Book</button>
   </div>
 </div>
 
@@ -1140,7 +1317,7 @@ window.filterBooks=function(){
         <div class="book-card-title">${b.title}</div>
         <div class="book-card-footer">
           <div class="price">R${b.price||b.subPrice||0}${b.bookType==="digital"?"/yr":""}</div>
-          ${b.status==="pending"?`<span class="badge-pill" style="background:#fff3e0;color:#e76f51;">⏳ Pending</span>`:b.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${b.condition?.toLowerCase()}">${b.condition}</span>`}
+          ${b.status==="pending"?`<span class="badge-pill" style="background:var(--tint);color:var(--warning);">⏳ Pending</span>`:b.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${b.condition?.toLowerCase()}">${b.condition}</span>`}
         </div>
       </div>
     </div>`).join("");
@@ -1157,7 +1334,7 @@ async function renderWantedListings(){
         return`<div class="wanted-card" style="margin:0 16px 8px;${found?"opacity:0.55;":""}">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
             <h4>${found?"✅":"🔍"} ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
-            ${found?`<span style="font-size:10px;font-weight:900;padding:2px 8px;background:#d8f3dc;color:#2d6a4f;border-radius:20px;white-space:nowrap;">Found!</span>`:""}
+            ${found?`<span style="font-size:10px;font-weight:900;padding:2px 8px;background:var(--tint);color:var(--success);border-radius:20px;white-space:nowrap;">Found!</span>`:""}
           </div>
           <p>${w.university||""} ${w.module?`• ${w.module}`:""}</p>
           ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
@@ -1223,7 +1400,7 @@ window.showDetail=async function(id){
     ${book.edition?`<div class="meta-tag">📖 ${book.edition}</div>`:""}
     <div class="meta-tag">🎓 ${book.university||"Unknown"}</div>
     ${book.bookType==="digital"?`<span class="badge-pill type-digital">Digital</span>`:`<span class="badge-pill condition-${book.condition?.toLowerCase()}">${book.condition}</span>`}
-    ${book.featured?`<span class="badge-pill" style="background:#fef3c7;color:#92400e;">⭐ Featured</span>`:""}`;
+    ${book.featured?`<span class="badge-pill" style="background:var(--tint);color:var(--warning);">⭐ Featured</span>`:""}`;
   document.getElementById("detailDescription").textContent=book.description||"";
   // Seller info + rating
   const sellerRating=book.sellerRating||0;
@@ -1244,7 +1421,7 @@ window.showDetail=async function(id){
         <div class="price-breakdown-row"><span>Book Price</span><span>R${p}</span></div>
         <div class="price-breakdown-row"><span>Pargo Delivery Fee</span><span>R${deliveryFeeAmount}</span></div>
         <div class="price-breakdown-row total"><span>Total You Pay</span><span>R${total}</span></div>
-        <div style="font-size:11px;margin-top:6px;color:#166534;">Or choose hand delivery — pay R${p} only.</div>
+        <div style="font-size:11px;margin-top:6px;color:var(--success);">Or choose hand delivery — pay R${p} only.</div>
       </div>`;
   }else{
     document.getElementById("detailPriceBreakdown").innerHTML="";
@@ -1313,7 +1490,7 @@ window.showDetail=async function(id){
           <p>Delivered to your nearest Pargo pickup point (Clicks, PnP, etc). Total: R${book.price+deliveryFeeAmount}.</p>
           <div class="courier-form" id="courierForm">
             <button class="btn btn-info btn-sm btn-full" style="margin-top:8px;" onclick="openPargoMap(event)">🗺️ Find My Nearest Pargo Point</button>
-            <div id="selectedPargoDisplay" style="display:none;margin-top:8px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;font-weight:800;color:#1d4ed8;"></div>
+            <div id="selectedPargoDisplay" style="display:none;margin-top:8px;padding:10px;background:var(--tint);border:1px solid var(--tint);border-radius:8px;font-size:12px;font-weight:800;color:var(--info);"></div>
           </div>
         </div>
         <div class="delivery-coming-soon">
@@ -1321,7 +1498,7 @@ window.showDetail=async function(id){
           <p>Collect from a partner bookshop near you.</p>
         </div>
       </div>
-      ${isSold||isPending?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-weight:800;color:#166534;">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
+      ${isSold||isPending?`<div style="background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;font-weight:800;color:var(--success);">✅ ${isSold?"This book has been sold":"Purchase pending"}</div>`:`
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" onclick="openMessageFromDetail('${book.id}','${book.sellerId}','${book.sellerName||"Seller"}','${book.title.replace(/'/g,"\\'")}')">💬 Message</button>
         <button class="btn btn-primary btn-full" onclick="openPayment('${book.id}')">💳 Buy Now</button>
@@ -2190,7 +2367,7 @@ async function loadNotifications(){
       else if(n.type==="message"){icon="💬";text=`New message from <strong>${esc(n.fromName)}</strong>`;}
       else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${esc(n.bookTitle)}"</em> has been purchased!`;}
       else{text=n.message||"New notification";}
-      return`<div onclick="markNotifRead('${n.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"#eff6ff"};transition:background 0.2s;">
+      return`<div onclick="markNotifRead('${n.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"var(--tint)"};transition:background 0.2s;">
         <div style="font-size:22px;flex-shrink:0;">${icon}</div>
         <div style="flex:1;">
           <div style="font-size:13px;line-height:1.5;${read?"":"font-weight:700;"}">${text}</div>
@@ -2255,16 +2432,16 @@ async function loadProfile(){
   if(bankingEl){
     if(currentUserData.banking&&currentUserData.banking.bankName){
       bankingEl.innerHTML=`
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;margin-bottom:8px;">
-          <div style="font-weight:800;font-size:13px;color:#166534;">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
-          <div style="font-size:11px;color:#166534;margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
+        <div style="background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="font-weight:800;font-size:13px;color:var(--success);">✅ ${currentUserData.banking.bankName} ****${String(currentUserData.banking.accountNumber||"").slice(-4)}</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px;">${currentUserData.banking.accountHolder||""}</div>
         </div>
         <button class="btn btn-secondary btn-full btn-sm" onclick="openBankingModal()">✏️ Update Banking Details</button>`;
     }else{
       bankingEl.innerHTML=`
-        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:8px;">
-          <div style="font-weight:800;font-size:13px;color:#9a3412;">⚠️ No banking details yet</div>
-          <div style="font-size:11px;color:#9a3412;margin-top:2px;">Add them to receive payments when your books sell.</div>
+        <div style="background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="font-weight:800;font-size:13px;color:var(--warning);">⚠️ No banking details yet</div>
+          <div style="font-size:11px;color:var(--warning);margin-top:2px;">Add them to receive payments when your books sell.</div>
         </div>
         <button class="btn btn-primary btn-full btn-sm" onclick="openBankingModal()">💰 Add Banking Details</button>`;
     }
@@ -2272,7 +2449,7 @@ async function loadProfile(){
   // Pending payouts
   const payouts=snapOf(((await sb.from("payouts").select("*").eq("seller_id",currentUser.uid).eq("status","pending")).data)||[],mapPayout);
   document.getElementById("pendingPayouts").innerHTML=payouts.empty?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No pending payouts.</div>`:
-    payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:#166534;">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:#166534;">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
+    payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid var(--line);background:var(--tint);border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:var(--success);">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:var(--success);">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
   // My listings
   document.getElementById("myListings").innerHTML=myBooks.length===0?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No listings yet.</div>`:
     myBooks.map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="showDetail('${b.id}')">
@@ -2291,7 +2468,7 @@ async function loadProfile(){
       <div style="font-size:11px;color:var(--gray-400);">R${t.amount} • ${t.deliveryMethod==="courier"?`📦 Courier ${t.trackingNumber?`(${t.trackingNumber})`:"(tracking pending)"}`:"🤝 Hand Delivery"} • ${t.status==="completed"?"✅ Done":t.status==="disputed"?"⚠️ Disputed":"⏳ Pending"}</div>
       ${t.status==="completed"?`<div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-sm btn-secondary" onclick="openReviewModal('${d.id}','${t.sellerName||"Seller"}')">⭐ Leave Review</button><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:1px solid var(--gray-200);" onclick="openRefundModal('${d.id}','${(t.bookTitle||"").replace(/'/g,"\\'")}')">↩ Request Refund</button></div>`:""}
     </div>`;}),
-    ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;background:#eff6ff;cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:#1d4ed8;">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
+    ...subs.docs.map(d=>{const s=d.data();const exp=s.expiresAt?.toDate?.();return`<div style="padding:10px;border:1px solid var(--tint);border-radius:10px;margin-bottom:8px;background:var(--tint);cursor:pointer;" onclick="openReader('${s.bookId}')"><div style="font-weight:800;font-size:13px;">📖 ${s.bookTitle}</div><div style="font-size:11px;color:var(--info);">${exp?`Expires ${exp.toLocaleDateString("en-ZA")}`:"Active"}</div></div>`;})
   ].join("");
 }
 
@@ -2461,18 +2638,18 @@ window.addEventListener("load",()=>{
 <div class="modal-overlay" id="pargoModal" style="align-items:flex-end;padding:0;">
   <div style="background:white;width:100%;height:88vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-weight:900;font-size:15px;">📦 Find Your Nearest Pargo Point</div>
-      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);">✕</button>
+      <div style="font-weight:900;font-size:15px;"> Find Your Nearest Pargo Point</div>
+      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
-    <div style="padding:10px 16px;background:#eff6ff;font-size:12px;color:#1d4ed8;flex-shrink:0;line-height:1.6;">
-      📍 <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
-      <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:#1d4ed8;font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
+    <div style="padding:10px 16px;background:var(--tint);font-size:12px;color:var(--info);flex-shrink:0;line-height:1.6;">
+       <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
+      <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:var(--info);font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
     </div>
     <iframe id="pargoIframe" src="" style="flex:1;border:none;width:100%;" allow="geolocation" title="Pargo Pickup Points"></iframe>
     <div style="padding:12px 16px;border-top:1px solid var(--gray-200);flex-shrink:0;background:white;">
       <label style="font-size:12px;font-weight:800;color:var(--gray-500);display:block;margin-bottom:6px;">ENTER YOUR CHOSEN PARGO PICKUP ADDRESS</label>
       <input id="pargoManualInput" class="form-control" placeholder="e.g. Clicks Limpopo Mall, Polokwane" style="margin-bottom:8px;"/>
-      <button class="btn btn-primary btn-full btn-sm" onclick="confirmManualPargoPoint()">✅ Confirm Pargo Point</button>
+      <button class="btn btn-primary btn-full btn-sm" onclick="confirmManualPargoPoint()"> Confirm Pargo Point</button>
     </div>
   </div>
 </div>
@@ -2480,8 +2657,8 @@ window.addEventListener("load",()=>{
 <!-- Banking Details Modal -->
 <div class="modal-overlay" id="bankingModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
-    <h3>💰 Add Banking Details</h3>
+    <button class="modal-close" onclick="closeModal('bankingModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Banking Details</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
     <div class="form-group">
       <label>Bank Name</label>
@@ -2509,7 +2686,7 @@ window.addEventListener("load",()=>{
       <label>Branch Code</label>
       <input class="form-control" id="bankBranchCode" placeholder="e.g. 632005"/>
     </div>
-    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()">💾 Save Banking Details</button>
+    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()"> Save Banking Details</button>
     <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="closeModal('bankingModal')">I'll do this later</button>
   </div>
 </div>
@@ -2517,8 +2694,8 @@ window.addEventListener("load",()=>{
 <!-- Refund Request Modal -->
 <div class="modal-overlay" id="refundModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('refundModal')">✕</button>
-    <h3>↩ Request a Refund</h3>
+    <button class="modal-close" onclick="closeModal('refundModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3>Request a refund</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Refunds are reviewed by our team. Please provide details and we'll respond within 48 hours.</p>
     <div class="form-group">
       <label>Reason for refund</label>
@@ -2542,9 +2719,9 @@ window.addEventListener("load",()=>{
 <!-- App Feedback Modal -->
 <div class="modal-overlay" id="appFeedbackModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('appFeedbackModal')">✕</button>
-    <h3>💬 Rate BookWorm</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with BookWorm so far? Your feedback helps us improve.</p>
+    <button class="modal-close" onclick="closeModal('appFeedbackModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Rate bugu</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with bugu so far? Your feedback helps us improve.</p>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="appRatingStars">
       <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
       <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(2)">☆</span>
@@ -2563,9 +2740,9 @@ window.addEventListener("load",()=>{
 <!-- Flag / Report Modal -->
 <div class="modal-overlay" id="flagModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('flagModal')">✕</button>
-    <h3>🚩 Report Listing</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep BookWorm safe. Our team reviews every report within 24 hours.</p>
+    <button class="modal-close" onclick="closeModal('flagModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Report Listing</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep bugu safe. Our team reviews every report within 24 hours.</p>
     <div class="form-group">
       <label>Reason for reporting</label>
       <select class="form-control" id="flagReason">
@@ -2590,8 +2767,8 @@ window.addEventListener("load",()=>{
 <!-- Sub Modal -->
 <div class="modal-overlay" id="subModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('subModal')">✕</button>
-    <h3>📖 Subscribe for Annual Access</h3>
+    <button class="modal-close" onclick="closeModal('subModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Subscribe for Annual Access</h3>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;" id="subBookTitle"></div>
       <div style="font-size:20px;font-weight:900;margin-top:6px;" id="subPrice"></div>
