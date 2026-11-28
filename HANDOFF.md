@@ -22,20 +22,23 @@ Source of truth for the look: `DESIGN.md`. Rules for everyone: `AGENTS.md`.
 
 PRs 3 to 11 were each checked by script: all element ids, all `onclick` handlers and all existing `<script>` blocks were identical to `main` before the PR (PR 9 adds one head script and one `onclick`). PR 2 is the exception described in its row: colour literals inside script template strings. That is the only reason a design change is visible in a `<script>` diff.
 
-## 2. Known merge conflict with `supabase-migration` (stage 1)
+## 2. Known merge conflicts with `supabase-migration` (checked against stage 4, `00f96e7`)
 
-Merging current `main` into `supabase-migration` gives **one** conflict, in the seller earnings box on the upload screen:
+Merging current `main` into `supabase-migration` gives **two** conflicts in `index.html`. Both are one-line clashes between your change and a design colour token. In each case keep your logic and keep the token.
 
-- design side (PR 2): colour `#3b82f6` became `var(--info)`
-- your side: the delivery-fee note text changed
-
-Resolution (keep your wording, keep the design token):
+**Conflict 1: seller earnings note on the upload screen** (design replaced `#3b82f6` with `var(--info)`; you changed the wording):
 
 ```html
 <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: the delivery fee is paid by the buyer on top of the book price and is not part of your earnings.</div>
 ```
 
-Your `js-delivery-fee` span in `#pbDeliveryRow` merges cleanly.
+**Conflict 2: notification row in the notifications renderer** (design replaced `#eff6ff` with `var(--tint)`; you changed `d.id` to `n.id`):
+
+```js
+      return`<div onclick="markNotifRead('${n.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"var(--tint)"};transition:background 0.2s;">
+```
+
+Your `js-delivery-fee` span in `#pbDeliveryRow` merges cleanly. After resolving, please search your branch for any hex colour (`#` followed by 3 or 6 hex digits) outside `:root`. Replace with tokens: tints become `var(--tint)`, text colours `var(--ink)` or `var(--mute)`, status colours `var(--ink)`.
 
 ## 3. Contract: please do not rename these
 
@@ -75,3 +78,5 @@ Add dated messages below. Design reads this file at the start of each session.
 - _(design, 2026-11-28)_ Opened this file. Nothing needed from you yet apart from reading section 2 before merging.
 
 - _(design, 2026-11-28)_ Correction to section 1: PR 2 did change 15 script lines (colour literals inside style strings only). Admin repo: see its `HANDOFF.md`.
+
+- _(design, 2026-11-28)_ PRs 10 and 11 are merged into `main` (HANDOFF note, splash/sign-in/register/wanted/notifications/reader, bugu rename in static markup, app icons). Section 2 updated for your stage 4: two conflicts now, resolutions above.
