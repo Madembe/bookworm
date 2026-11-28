@@ -666,7 +666,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
         <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
         <div class="earnings-row"><span>bugu Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
         <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
-        <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
+        <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: the delivery fee is paid by the buyer on top of the book price and is not part of your earnings.</div>
       </div>
     </div>
     <div id="digitalFields" style="display:none;">
@@ -947,7 +947,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
-      <div class="price-breakdown-row" id="pbDeliveryRow"><span>Pargo Delivery Fee</span><span>R79</span></div>
+      <div class="price-breakdown-row" id="pbDeliveryRow"><span>Pargo Delivery Fee</span><span>R<span class="js-delivery-fee"></span></span></div>
       <div class="price-breakdown-row total"><span>Total</span><span id="pbTotal"></span></div>
     </div>
     <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Your payment is held securely in escrow. Funds are only released to the seller when you confirm receipt with a release code.</p>
@@ -1061,31 +1061,55 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
   </div>
 </div>
 
-<!-- Firebase -->
+<!-- Supabase -->
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,sendEmailVerification,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,addDoc,getDoc,getDocs,updateDoc,deleteDoc,query,where,orderBy,limit,onSnapshot,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
-const firebaseConfig={apiKey:"AIzaSyCx22fQpWPMMPz4Gx16kPkS9tewpS7o1GA",authDomain:"bookworm-b9ba6.firebaseapp.com",projectId:"bookworm-b9ba6",storageBucket:"bookworm-b9ba6.firebasestorage.app",messagingSenderId:"616027780575",appId:"1:616027780575:web:c778c93c9779138e54c06a",measurementId:"G-33YHX4EZS1"};
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
+// Supabase (publishable key is public by design; Row Level Security protects the data)
+const SUPABASE_URL="https://xbhflzwsqnumsjfrrqbb.supabase.co";
+const SUPABASE_KEY="sb_publishable_tvvpHcHYVbfKdi1shbMjaA_6o1UdYKk";
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ---- helpers: database rows -> the shapes the UI already uses ----
+const fts=v=>{if(!v)return null;const d=new Date(v);d.toDate=()=>d;d.seconds=Math.floor(d.getTime()/1000);return d;};
+const num=v=>v==null?undefined:Number(v);
+const BOOK_SELECT="*, seller:profiles!books_seller_id_fkey(name,university,rating,rating_count), promotions(expires_at,status)";
+function mapBook(r){
+  const promo=(r.promotions||[]).filter(p=>p.status==="active"&&new Date(p.expires_at)>new Date()).map(p=>new Date(p.expires_at)).sort((a,b)=>b-a)[0];
+  return{id:r.id,title:r.title,author:r.author||"",isbn:r.isbn||"",edition:r.edition||"",module:r.module||"",university:r.university,campus:r.campus||"",bookType:r.book_type,price:num(r.price),condition:r.condition,photos:r.photos||[],subPrice:num(r.sub_price),licenceRef:r.licence_ref,description:r.description||"",status:r.status,featured:!!r.featured,featuredUntil:promo||null,createdAt:fts(r.created_at),sellerId:r.seller_id,sellerName:r.seller?.name||"Seller",sellerUniversity:r.seller?.university||r.university,sellerRating:num(r.seller?.rating)||0,sellerRatingCount:r.seller?.rating_count||0};
+}
+function mapProfile(p,priv){
+  return{id:p.id,uid:p.id,email:priv?.email,accountType:p.account_type,name:p.name,university:p.university,businessReg:p.business_reg,licenceNumber:p.licence_number,verified:p.verified,role:p.role,sold:p.sold,bought:p.bought,rating:num(p.rating)||0,ratingCount:p.rating_count,whatsapp:priv?.whatsapp||"",banking:priv?.banking||null,createdAt:fts(p.created_at)};
+}
+const mapWanted=w=>({id:w.id,title:w.title,edition:w.edition||"",module:w.module||"",university:w.university||"",budget:num(w.budget)||0,notes:w.notes||"",status:w.status,posterId:w.poster_id,posterName:w.poster?.name||"Student",createdAt:fts(w.created_at)});
+const TX_SELECT="*, book:books(title), buyer:profiles!transactions_buyer_id_fkey(name), seller:profiles!transactions_seller_id_fkey(name)";
+function mapTx(t){
+  return{id:t.id,bookId:t.book_id,bookTitle:t.book?.title||"",buyerId:t.buyer_id,sellerId:t.seller_id,buyerName:t.buyer?.name||"Buyer",sellerName:t.seller?.name||"Seller",amount:num(t.amount),deliveryFee:num(t.delivery_fee),totalAmount:num(t.total_amount),commission:num(t.commission_rate),status:t.status,deliveryMethod:t.delivery_method,...(t.meetup||{}),pargoAddress:t.pargo_address,trackingNumber:t.tracking_number,courierName:t.courier_name,createdAt:fts(t.created_at),paidAt:fts(t.paid_at),completedAt:fts(t.completed_at),disputeDeadline:fts(t.dispute_deadline)};
+}
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mapNotif=n=>({id:n.id,type:n.type,message:n.message,read:n.read,createdAt:fts(n.created_at),...(n.data||{})});
+const snapOf=(rows,fn=x=>x)=>({empty:!rows.length,size:rows.length,docs:rows.map(r=>({id:r.id,data:()=>fn(r)}))});
+const mapPayout=p=>({id:p.id,txId:p.tx_id,sellerId:p.seller_id,amount:num(p.amount),status:p.status,banking:p.banking,createdAt:fts(p.created_at)});
+const mapSub=x=>({id:x.id,userId:x.user_id,bookId:x.book_id,bookTitle:x.book?.title||"",sellerId:x.seller_id,amount:num(x.amount),status:x.status,expiresAt:fts(x.expires_at),createdAt:fts(x.created_at)});
+async function getOrCreateChat({buyerId,sellerId,bookId=null,wantedId=null,title}){
+  let q=sb.from("chats").select("id").eq("buyer_id",buyerId).eq("seller_id",sellerId);
+  q=bookId?q.eq("book_id",bookId):q.eq("wanted_id",wantedId);
+  const ex=await q.maybeSingle();if(ex.error)throw ex.error;
+  if(ex.data)return ex.data.id;
+  const ins=await sb.from("chats").insert({buyer_id:buyerId,seller_id:sellerId,book_id:bookId,wanted_id:wantedId,book_title:title}).select("id").single();
+  if(ins.error)throw ins.error;return ins.data.id;
+}
 
 // CONFIG
 const CLOUD="drtdddsxp";
 const PRESET="bookworm_uploads";
 const ADMIN_EMAIL="admin@bookworm.co.za";
-const PF_MERCHANT_ID="34606233";
-const PF_MERCHANT_KEY="xbwlwikgiyxwr";
-const PF_SANDBOX=false;
-const PARGO_DELIVERY_FEE=79;
 
 // STATE
 let currentUser=null,currentUserData=null,allBooks=[],currentBook=null;
 let previousScreen="screen-home",currentChatId=null,deleteTargetId=null,unsubChat=null,unsubNotif=null;
 let currentBookType="physical",currentPDFDoc=null,currentReaderPage=1,currentReaderBook=null;
-let commissionRate=5,deliveryFeeAmount=PARGO_DELIVERY_FEE,selectedDelivery=null,currentTxId=null;
+let commissionRate=null,deliveryFeeAmount=null,appSettings={},selectedDelivery=null,currentTxId=null;
 let photoFiles=[null,null,null],currentUploadType="physical";
 let selectedRating=0,reviewTxId=null,reviewSellerId=null;
 let promoteBookId=null,promoteDays=7,promotePrice=0;
@@ -1109,37 +1133,31 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden&&document.g
 function showScreenshotWarn(){const w=document.getElementById("screenshotWarn");if(w){w.style.display="block";setTimeout(()=>{w.style.display="none";},3000);}}
 
 // AUTH STATE
-let justRegistered=false;
-onAuthStateChanged(auth,async(user)=>{
+let justRegistered=false,bootedFor=null;
+async function onSignedIn(session){
+  const u=session.user;
+  currentUser={uid:u.id,id:u.id,email:u.email};
+  await loadUserData();
+  await loadBooks();
+  startNotifListener();
+  applyDeliverySettings();
+  cleanExpiredPromos();
+  switchScreen("screen-home");
+}
+// (work is deferred with setTimeout: calling Supabase inside this callback directly can deadlock)
+sb.auth.onAuthStateChange((event,session)=>{
   authResolved=true;
-  if(user){
-    if(!user.emailVerified){
-      // Signed in but not verified — sign them out silently
-      // If this is immediately after registration, justRegistered handles messaging
-      const wasRegistering=justRegistered;
-      justRegistered=false;
-      await signOut(auth);
-      if(!wasRegistering){
-        toast("Please verify your email before signing in. Check your inbox.","error");
-      }
-      return;
+  setTimeout(async()=>{
+    if(session&&session.user){
+      if(bootedFor===session.user.id)return;   // token refreshes etc.
+      bootedFor=session.user.id;
+      await onSignedIn(session);
+    }else{
+      bootedFor=null;currentUser=null;currentUserData=null;
+      if(unsubNotif){unsubNotif();unsubNotif=null;}
+      if(!document.getElementById("screen-login").classList.contains("active"))switchScreen("screen-login");
     }
-    justRegistered=false;
-    currentUser=user;
-    await loadUserData();
-    await loadBooks();
-    startNotifListener();
-    applyDeliverySettings();
-    cleanExpiredPromos();
-    switchScreen("screen-home");
-  }else{
-    currentUser=null;
-    currentUserData=null;
-    if(unsubNotif){unsubNotif();unsubNotif=null;}
-    if(!document.getElementById("screen-login").classList.contains("active")){
-      switchScreen("screen-login");
-    }
-  }
+  },0);
 });
 
 function switchScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id)?.classList.add("active");window.scrollTo(0,0);}
@@ -1152,7 +1170,7 @@ window.toggleAccountFields=function(){const t=document.getElementById("regAccoun
 window.showForgotPassword=async function(){
   const email=prompt("Enter your email address to reset your password:");
   if(!email)return;
-  try{await sendPasswordResetEmail(auth,email);toast("Password reset email sent! Check your inbox.","success");}
+  try{const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin});if(error)throw error;toast("Password reset email sent! Check your inbox.","success");}
   catch(e){toast("Could not send reset email. Check your email address.","error");}
 };
 
@@ -1162,10 +1180,14 @@ window.handleLogin=async function(){
   const pass=document.getElementById("loginPassword").value;
   if(!email||!pass)return toast("Please fill in all fields","error");
   try{
-    await signInWithEmailAndPassword(auth,email,pass);
-  }catch(e){toast("Invalid email or password","error");}
+    const{error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+  }catch(e){
+    if(/not confirmed/i.test(e.message||""))toast("Please verify your email before signing in. Check your inbox.","error");
+    else toast("Invalid email or password","error");
+  }
 };
-window.handleLogout=async function(){await signOut(auth);};
+window.handleLogout=async function(){await sb.auth.signOut();};
 window.handleRegister=async function(){
   const btn=document.getElementById("registerBtn");
   if(btn.disabled)return;
@@ -1191,16 +1213,11 @@ window.handleRegister=async function(){
     extra={name:bname,businessReg:breg,licenceNumber:lic,university:"N/A",verified:false};
   }
   try{
-    const c=await createUserWithEmailAndPassword(auth,email,pass);
-    await sendEmailVerification(c.user);
-    await setDoc(doc(db,"users",c.user.uid),{
-      uid:c.user.uid,email,accountType:type,...extra,
-      whatsapp,banking:null,
-      sold:0,bought:0,rating:0,ratingCount:0,
-      createdAt:serverTimestamp()
-    });
+    const{data:su,error:suErr}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin,data:{account_type:type,name:extra.name,university:extra.university,business_reg:extra.businessReg||null,licence_number:extra.licenceNumber||null,whatsapp}}});
+    if(suErr)throw suErr;
+    // Supabase hides "already registered" by returning a user with no identities
+    if(su.user&&Array.isArray(su.user.identities)&&su.user.identities.length===0){const dup=new Error("already registered");dup.code="auth/email-already-in-use";throw dup;}
     justRegistered=true;
-    await signOut(auth);
     // justRegistered is consumed by onAuthStateChanged — show success after a tick
     setTimeout(()=>{
       toast("Account created! 📚 Please check your email and verify before signing in.","success");
@@ -1211,7 +1228,7 @@ window.handleRegister=async function(){
     btn.disabled=false;
     justRegistered=false;
     console.error("Registration error:",e);
-    if(e.code==="auth/email-already-in-use"){
+    if(e.code==="auth/email-already-in-use"||/already registered/i.test(e.message||"")){
       toast("This email is already registered. Try signing in.","error");
     }
     // All other errors: do NOT show a toast — the success/verify message already handles the flow
@@ -1221,25 +1238,31 @@ function resetBtn(btn,msg){btn.disabled=false;toast(msg,"error");}
 
 async function loadUserData(){
   try{
-    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
-    if(userDoc.exists()){
-      currentUserData={id:userDoc.id,...userDoc.data()};
-    }else{
-      // Fallback for accounts created before this fix
-      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-      const s=await getDocs(q);
-      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
-    }
-    const cd=await getDoc(doc(db,"settings","commission"));
-    if(cd.exists()){commissionRate=cd.data().rate||5;deliveryFeeAmount=cd.data().deliveryFee||PARGO_DELIVERY_FEE;}
+    const[p,pr]=await Promise.all([
+      sb.from("profiles").select("*").eq("id",currentUser.uid).single(),
+      sb.from("profile_private").select("*").eq("user_id",currentUser.uid).maybeSingle(),
+      loadSettings()]);
+    if(p.error)throw p.error;
+    currentUserData=mapProfile(p.data,pr.data);
+    if(currentUserData.email)currentUser.email=currentUserData.email;
   }catch(e){console.error("loadUserData:",e);}
 }
+// Commission, delivery fee and toggles are all admin-controlled settings (nothing hardcoded)
+async function loadSettings(){
+  const r=await sb.from("settings").select("key,value");
+  if(r.error){console.error("loadSettings:",r.error);return;}
+  appSettings=Object.fromEntries(r.data.map(x=>[x.key,x.value]));
+  if(appSettings.commission){commissionRate=Number(appSettings.commission.rate);deliveryFeeAmount=Number(appSettings.commission.deliveryFee);}
+  applyFeeText();
+}
+function applyFeeText(){document.querySelectorAll(".js-delivery-fee").forEach(el=>{el.textContent=deliveryFeeAmount==null?"":deliveryFeeAmount;});}
 
 // BOOKS
 async function loadBooks(){
   try{
-    const s=await getDocs(query(collection(db,"books"),orderBy("createdAt","desc")));
-    allBooks=s.docs.map(d=>({id:d.id,...d.data()}));
+    const r=await sb.from("books").select(BOOK_SELECT).neq("status","removed").order("created_at",{ascending:false});
+    if(r.error)throw r.error;
+    allBooks=r.data.map(mapBook);
     filterBooks();
   }catch(e){console.error(e);}
 }
@@ -1304,10 +1327,10 @@ async function renderWantedListings(){
   const grid=document.getElementById("booksGrid");
   grid.style.display="block";
   try{
-    const snap=await getDocs(query(collection(db,"wanted"),orderBy("createdAt","desc")));
-    if(snap.empty){grid.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><h3>No wanted listings yet</h3><p>Be the first to post what you're looking for!</p></div><div style="padding:0 16px;"><button class="btn btn-primary btn-full" onclick="requireAuth('screen-wanted')">+ Post Wanted Listing</button></div>`;return;}
+    const wr=await sb.from("wanted").select("*, poster:profiles!wanted_poster_id_fkey(name)").order("created_at",{ascending:false});if(wr.error)throw wr.error;const wList=wr.data.map(mapWanted);
+    if(!wList.length){grid.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><h3>No wanted listings yet</h3><p>Be the first to post what you're looking for!</p></div><div style="padding:0 16px;"><button class="btn btn-primary btn-full" onclick="requireAuth('screen-wanted')">+ Post Wanted Listing</button></div>`;return;}
     grid.innerHTML=`<div style="padding:0 16px 8px;"><button class="btn btn-primary btn-full btn-sm" onclick="requireAuth('screen-wanted')">+ Post What You Need</button></div>`+
-      snap.docs.map(d=>{const w=d.data();const isOwner=currentUser&&w.posterId===currentUser.uid;const found=w.status==="found";
+      wList.map(w=>{const isOwner=currentUser&&w.posterId===currentUser.uid;const found=w.status==="found";
         return`<div class="wanted-card" style="margin:0 16px 8px;${found?"opacity:0.55;":""}">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
             <h4>${found?"✅":"🔍"} ${w.title}${w.edition?` — ${w.edition}`:""}</h4>
@@ -1317,14 +1340,14 @@ async function renderWantedListings(){
           ${w.budget?`<p style="color:var(--success);font-weight:800;">Budget: R${w.budget}</p>`:""}
           <p style="margin-top:6px;">${w.notes||""}</p>
           <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Posted by ${w.posterName||"Student"}</div>
-          ${isOwner&&!found?`<button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="markWantedFound('${d.id}')">✅ I Found My Book</button>`:""}
-          ${!isOwner&&currentUser&&!found?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="notifyWantedPoster('${d.id}','${w.posterId||""}','${(w.title||"").replace(/'/g,"\\'")}')">📣 I Have This Book</button>`:""}
+          ${isOwner&&!found?`<button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="markWantedFound('${w.id}')">✅ I Found My Book</button>`:""}
+          ${!isOwner&&currentUser&&!found?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="notifyWantedPoster('${w.id}','${w.posterId||""}','${(w.title||"").replace(/'/g,"\\'")}')">📣 I Have This Book</button>`:""}
         </div>`;}).join("");
   }catch(e){grid.innerHTML=`<div class="empty-state"><p>Could not load wanted listings.</p></div>`;}
 }
 window.markWantedFound=async function(wantedId){
   try{
-    await updateDoc(doc(db,"wanted",wantedId),{status:"found",foundAt:serverTimestamp()});
+    {const r=await sb.from("wanted").update({status:"found",found_at:new Date().toISOString()}).eq("id",wantedId);if(r.error)throw r.error;}
     toast("Great! Marked as found 🎉","success");
     renderWantedListings();
   }catch(e){toast("Could not update listing","error");}
@@ -1335,31 +1358,9 @@ window.notifyWantedPoster=async function(wantedId,posterId,bookTitle){
   if(currentUser.uid===posterId){toast("That's your own wanted post!","warning");return;}
   if(!currentUserData)await loadUserData();
   try{
-    // Write notification to Firestore
-    await addDoc(collection(db,"notifications"),{
-      toUserId:posterId,
-      fromUserId:currentUser.uid,
-      fromName:currentUserData?.name||"A seller",
-      type:"wanted_match",
-      wantedId:wantedId,
-      bookTitle:bookTitle,
-      read:false,
-      createdAt:serverTimestamp()
-    });
-    // Open a chat so they can talk directly — use wantedId as the bookId context
-    const chatId=[currentUser.uid,posterId].sort().join("_")+"_wanted_"+wantedId;
-    const ref=doc(db,"chats",chatId);
-    const s=await getDoc(ref);
-    if(!s.exists()){
-      await setDoc(ref,{
-        participants:[currentUser.uid,posterId],
-        participantNames:{[currentUser.uid]:currentUserData?.name||"Seller",[posterId]:"Student"},
-        bookId:"wanted_"+wantedId,
-        bookTitle:bookTitle+" (Wanted)",
-        lastMessage:"",
-        updatedAt:serverTimestamp()
-      });
-    }
+    const nr=await sb.from("notifications").insert({to_user_id:posterId,from_user_id:currentUser.uid,type:"wanted_match",message:`${currentUserData?.name||"A seller"} has "${bookTitle}"`,data:{wantedId,bookTitle,fromName:currentUserData?.name||"A seller"}});
+    if(nr.error)throw nr.error;
+    const chatId=await getOrCreateChat({buyerId:currentUser.uid,sellerId:posterId,wantedId,title:bookTitle+" (Wanted)"});
     openChatRoom(chatId,currentUserData?.name||"Seller",bookTitle+" (Wanted)");
     toast("✅ Notification sent! Chat opened.","success");
   }catch(e){
@@ -1370,19 +1371,13 @@ window.notifyWantedPoster=async function(wantedId,posterId,bookTitle){
 // Check for wanted matches when a new book is listed and notify posters
 async function notifyWantedMatches(bookTitle){
   try{
-    const wantedSnap=await getDocs(query(collection(db,"wanted"),where("status","!=","found")));
-    const matches=wantedSnap.docs.filter(d=>{
-      const w=d.data();
-      return w.posterId!==currentUser.uid&&bookTitle.toLowerCase().includes((w.title||"").toLowerCase().split(" ")[0]);
-    });
-    for(const m of matches){
-      const w=m.data();
-      await addDoc(collection(db,"notifications"),{
-        toUserId:w.posterId,fromUserId:currentUser.uid,fromName:currentUserData?.name||"A seller",
-        type:"wanted_match",wantedId:m.id,bookTitle,read:false,createdAt:serverTimestamp()
-      });
+    const wr=await sb.from("wanted").select("id,title,poster_id").neq("status","found").neq("poster_id",currentUser.uid);
+    if(wr.error)throw wr.error;
+    const matches=(wr.data||[]).filter(w=>bookTitle.toLowerCase().includes((w.title||"").toLowerCase().split(" ")[0]));
+    if(matches.length){
+      const ir=await sb.from("notifications").insert(matches.map(w=>({to_user_id:w.poster_id,from_user_id:currentUser.uid,type:"wanted_match",message:`${currentUserData?.name||"A seller"} listed "${bookTitle}"`,data:{wantedId:w.id,bookTitle,fromName:currentUserData?.name||"A seller"}})));
+      if(ir.error)throw ir.error;
     }
-    if(matches.length>0)console.log(`Notified ${matches.length} user(s) about ${bookTitle}`);
   }catch(e){console.error("notifyWantedMatches:",e);}
 }
 
@@ -1594,19 +1589,18 @@ window.captureMeetupLocation=function(e){
     toast(`📍 Location captured!`,"success");
   },()=>toast("Could not get location. Please enter manually.","error"));
 };
-async function getBookById(id){try{const s=await getDoc(doc(db,"books",id));return s.exists()?{id:s.id,...s.data()}:null;}catch(e){return null;}}
+async function getBookById(id){try{const r=await sb.from("books").select(BOOK_SELECT).eq("id",id).maybeSingle();return r.data?mapBook(r.data):null;}catch(e){return null;}}
 async function getPendingTx(bookId){
   try{
-    const q=query(collection(db,"transactions"),where("bookId","==",bookId),where("status","==","pending"),limit(1));
-    const s=await getDocs(q);return s.empty?null:{id:s.docs[0].id,...s.docs[0].data()};
+    const r=await sb.from("transactions").select(TX_SELECT).eq("book_id",bookId).in("status",["awaiting_payment","paid"]).order("created_at",{ascending:false}).limit(1);
+    return r.data&&r.data.length?mapTx(r.data[0]):null;
   }catch(e){return null;}
 }
 async function checkSubscription(bookId){
   if(!currentUser)return false;
   try{
-    const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId),where("status","==","active"));
-    const s=await getDocs(q);if(s.empty)return false;
-    return s.docs[0].data().expiresAt?.toDate()>new Date();
+    const r=await sb.from("subscriptions").select("expires_at").eq("user_id",currentUser.uid).eq("book_id",bookId).eq("status","active").gt("expires_at",new Date().toISOString()).limit(1);
+    return !!(r.data&&r.data.length);
   }catch(e){return false;}
 }
 
@@ -1620,16 +1614,9 @@ window.saveBankingDetails=async function(){
   if(!bankName||!accountHolder||!accountNumber||!branchCode)return toast("Please fill in all banking details","error");
   if(!currentUser)return toast("Please sign in first","error");
   try{
-    // Always use the Firebase Auth UID as the doc ID — most reliable
-    const docId=currentUser.uid;
     const banking={bankName,accountHolder,accountNumber,accountTypeBank:accountType,branchCode};
-    // Try updateDoc first; if doc doesn't exist (old accounts stored differently), use setDoc merge
-    try{
-      await updateDoc(doc(db,"users",docId),{banking});
-    }catch(updateErr){
-      // Fallback: setDoc with merge
-      await setDoc(doc(db,"users",docId),{banking},{ merge:true });
-    }
+    const br=await sb.from("profile_private").update({banking}).eq("user_id",currentUser.uid);
+    if(br.error)throw br.error;
     if(currentUserData)currentUserData.banking=banking;
     closeModal("bankingModal");
     toast("Banking details saved! 💰","success");
@@ -1889,7 +1876,12 @@ window.submitListing=async function(){
       const pdfUrl=await uploadToCloudinary(window.selectedPDFFile,"pdf");
       data={...data,subPrice,licenceRef,pdfUrl};
     }
-    await addDoc(collection(db,"books"),data);
+    const row={title:data.title,author:data.author||null,isbn:data.isbn||null,edition:data.edition||null,module:data.module||null,university:data.university,campus:data.campus||null,book_type:data.bookType,seller_id:currentUser.uid,description:data.description||null};
+    if(data.bookType==="physical"){row.price=data.price;row.condition=data.condition;row.photos=data.photos;}
+    else{row.sub_price=data.subPrice;row.licence_ref=data.licenceRef;}
+    const ins=await sb.from("books").insert(row).select("id").single();
+    if(ins.error)throw ins.error;
+    if(data.pdfUrl){const fr=await sb.from("book_files").insert({book_id:ins.data.id,pdf_url:data.pdfUrl});if(fr.error)throw fr.error;}
     toast("Book listed successfully! 🎉","success");
     // Notify any wanted posters whose title matches
     notifyWantedMatches(title);
@@ -1921,7 +1913,7 @@ window.submitWanted=async function(){
   if(!title)return toast("Please enter a book title","error");
   if(!currentUser)return toast("Please sign in first","error");
   try{
-    await addDoc(collection(db,"wanted"),{title,edition:document.getElementById("wantedEdition").value.trim(),module:document.getElementById("wantedModule").value.trim(),university,budget:parseFloat(document.getElementById("wantedBudget").value)||0,notes:document.getElementById("wantedNotes").value.trim(),posterName:currentUserData?.name||"Student",posterId:currentUser.uid,createdAt:serverTimestamp()});
+    {const wr=await sb.from("wanted").insert({title,edition:document.getElementById("wantedEdition").value.trim()||null,module:document.getElementById("wantedModule").value.trim()||null,university,budget:parseFloat(document.getElementById("wantedBudget").value)||0,notes:document.getElementById("wantedNotes").value.trim()||null,poster_id:currentUser.uid});if(wr.error)throw wr.error;}
     toast("Wanted listing posted! Sellers will contact you.","success");
     switchScreen("screen-home");
   }catch(e){toast("Failed to post wanted listing","error");}
@@ -1949,57 +1941,34 @@ window.confirmPayment=async function(){
   closeModal("paymentModal");
   if(!currentBook)return;
   const isCourier=selectedDelivery==="courier";
-  const total=isCourier?currentBook.price+deliveryFeeAmount:currentBook.price;
-  // Generate a unique 6-digit code tied to this transaction
-  const code=Math.floor(100000+Math.random()*900000).toString();
   const meetupData=selectedDelivery==="meetup"?{
     meetupLocation:document.getElementById("meetupLocation")?.value||"",
     meetupAddress:document.getElementById("meetupAddress")?.value||"",
     meetupGPS:window._meetupGPS||null,
     meetupMapsUrl:window._meetupMapsUrl||null
-  }:{pargoAddress:document.getElementById("pargoAddress")?.value||""};
+  }:{};
   try{
-    const txRef=await addDoc(collection(db,"transactions"),{
-      bookId:currentBook.id,bookTitle:currentBook.title,
-      buyerId:currentUser.uid,buyerName:currentUserData?.name||"Buyer",buyerEmail:currentUser.email,
-      sellerId:currentBook.sellerId,sellerName:currentBook.sellerName,
-      amount:currentBook.price,deliveryFee:isCourier?deliveryFeeAmount:0,totalAmount:total,
-      commission:commissionRate,code,
-      status:"pending",deliveryMethod:selectedDelivery,
-      ...meetupData,
-      createdAt:serverTimestamp(),
-      disputeDeadline:new Date(Date.now()+48*60*60*1000)
-    });
-    currentTxId=txRef.id;
-    // Mark book as pending (NOT sold — stays visible to seller)
-    await updateDoc(doc(db,"books",currentBook.id),{status:"pending"});
-    // Redirect to PayFast
-    initiatePayFast(currentBook,txRef.id,code,total);
+    // The database works out the price, fee and commission and generates the release code
+    const r=await sb.rpc("create_transaction",{p_book_id:currentBook.id,p_delivery_method:selectedDelivery,p_meetup:meetupData,p_pargo_address:isCourier?(document.getElementById("pargoAddress")?.value||""):null});
+    if(r.error)throw r.error;
+    currentTxId=r.data.tx_id;
+    await startPayFast(currentTxId);
   }catch(e){
-    toast("Payment initiation failed","error");
+    toast((e.message||"Payment initiation failed").slice(0,120),"error");
     btn.disabled=false;
     console.error(e);
   }
 };
-function initiatePayFast(book,txId,code,total){
+// Asks our server for a signed PayFast request (amount comes from the database, secrets stay on the server)
+async function startPayFast(txId){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session)throw new Error("Please sign in again");
+  const res=await fetch("/api/create-payment",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({tx_id:txId})});
+  const j=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(j.error||"Could not start payment");
   const form=document.createElement("form");
-  form.method="POST";
-  form.action=PF_SANDBOX?"https://sandbox.payfast.co.za/eng/process":"https://www.payfast.co.za/eng/process";
-  const fields={
-    merchant_id:PF_MERCHANT_ID,merchant_key:PF_MERCHANT_KEY,
-    return_url:`${window.location.origin}${window.location.pathname}?tx=${txId}`,
-    cancel_url:`${window.location.origin}${window.location.pathname}?cancel=1`,
-    notify_url:"https://us-central1-bookworm-b9ba6.cloudfunctions.net/payfastITN",
-    name_first:currentUserData?.name?.split(" ")[0]||"Student",
-    name_last:currentUserData?.name?.split(" ").slice(1).join(" ")||"Buyer",
-    email_address:currentUser.email,
-    m_payment_id:txId,
-    amount:total.toFixed(2),
-    item_name:`BookWorm: ${book.title}`,
-    item_description:`Secure purchase`,
-    custom_str1:txId,custom_str2:code,custom_str3:book.sellerId
-  };
-  Object.entries(fields).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);});
+  form.method="POST";form.action=j.action;
+  Object.entries(j.fields).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;form.appendChild(i);});
   document.body.appendChild(form);
   form.submit();
 }
@@ -2014,13 +1983,14 @@ function showTransactionScreen(code,book,txId){
     </div>`:
     `<div class="tracking-card">
       <h4>🤝 Hand Delivery Details</h4>
-      <p>${document.getElementById("meetupLocation")?.value||""}</p>
-      <p>${document.getElementById("meetupAddress")?.value||""}</p>
+      <p>${esc(window._txMeetup?.meetupLocation||document.getElementById("meetupLocation")?.value||"")}</p>
+      <p>${esc(window._txMeetup?.meetupAddress||document.getElementById("meetupAddress")?.value||"")}</p>
       ${window._meetupMapsUrl?`<a href="${window._meetupMapsUrl}" target="_blank" style="color:var(--info);font-size:12px;font-weight:800;">📍 View on Google Maps</a>`:""}
     </div>`;
   document.getElementById("transactionContent").innerHTML=`
     <h2 style="font-size:22px;font-weight:900;margin-bottom:6px;">🔐 Secure Transaction</h2>
-    <p style="color:var(--gray-400);font-size:13px;margin-bottom:14px;">Your payment is protected. Release funds only when satisfied.</p>
+    <p style="color:var(--gray-400);font-size:13px;margin-bottom:10px;">Your payment is protected. Release funds only when satisfied.</p>
+    <div id="payStatusBanner" style="border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;margin-bottom:12px;background:var(--tint);color:var(--warning);">⏳ Waiting for PayFast to confirm your payment…</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:12px;margin-bottom:14px;">
       <div style="font-weight:800;font-size:14px;">📚 ${book.title}</div>
       <div style="font-size:12px;color:var(--gray-400);">R${book.price} • Secured in escrow</div>
@@ -2045,15 +2015,24 @@ function showTransactionScreen(code,book,txId){
     </div>
     <div style="text-align:center;margin-top:10px;"><button class="btn btn-sm" style="font-size:11px;color:var(--gray-400);background:transparent;border:none;text-decoration:underline;" onclick="openFlagModal('${book.id}','${book.title.replace(/'/g,"\\'")}')">🚩 Report this listing</button></div>`;
   // Live tracking update
-  if(isCourier){
-    onSnapshot(doc(db,"transactions",txId),snap=>{
-      const tx=snap.data();
+  const applyTx=(t)=>{
+    const tx=t?mapTx(t):null;
+    const bn=document.getElementById("payStatusBanner");
+    if(bn&&tx){
+      if(tx.status==="awaiting_payment"){bn.style.background="var(--tint)";bn.style.color="var(--warning)";bn.textContent="⏳ Waiting for PayFast to confirm your payment…";}
+      else if(tx.status==="cancelled"){bn.style.background="var(--tint)";bn.style.color="var(--error)";bn.textContent="This order was cancelled because payment was not completed.";}
+      else{bn.style.background="var(--tint)";bn.style.color="var(--success)";bn.textContent=tx.status==="completed"?"✅ Completed — funds released to the seller.":tx.status==="disputed"?"⚠️ Dispute open — our team is reviewing.":"✅ Payment secured in escrow.";}
+    }
+    {
       if(tx?.trackingNumber){
         const el=document.getElementById("trackingDisplay");
-        if(el)el.innerHTML=`<div style="margin-top:8px;"><div style="font-size:12px;font-weight:800;margin-bottom:4px;">📦 Tracking Number:</div><div class="tracking-number-display">${tx.trackingNumber}</div><div style="font-size:11px;color:var(--gray-400);">Courier: ${tx.courierName||"Courier"}</div></div>`;
+        if(el)el.innerHTML=`<div style="margin-top:8px;"><div style="font-size:12px;font-weight:800;margin-bottom:4px;">📦 Tracking Number:</div><div class="tracking-number-display">${tx.trackingNumber}</div><div style="font-size:11px;color:var(--gray-400);">Courier: ${esc(tx.courierName||"Courier")}</div></div>`;
       }
-    });
-  }
+    }
+  };
+  sb.from("transactions").select("*").eq("id",txId).single().then(r=>{if(r.data)applyTx(r.data);});
+  if(window._txChannel)sb.removeChannel(window._txChannel);
+  window._txChannel=sb.channel("tx-"+txId).on("postgres_changes",{event:"UPDATE",schema:"public",table:"transactions",filter:`id=eq.${txId}`},pl=>applyTx(pl.new)).subscribe();
   previousScreen="screen-detail";switchScreen("screen-transaction");
 }
 
@@ -2064,10 +2043,12 @@ window.submitTracking=async function(){
   const tracking=document.getElementById("trackingInput").value.trim();
   if(!tracking)return toast("Please enter a tracking number","error");
   try{
-    await updateDoc(doc(db,"transactions",currentTxId),{trackingNumber:tracking,courierName:courier,trackingAddedAt:serverTimestamp()});
+    {const tr=await sb.rpc("add_tracking",{p_tx_id:currentTxId,p_courier:courier,p_tracking:tracking});if(tr.error)throw tr.error;
+    try{const t=await sb.from("transactions").select("buyer_id,book:books(title)").eq("id",currentTxId).single();
+      if(t.data)await sb.from("notifications").insert({to_user_id:t.data.buyer_id,from_user_id:currentUser.uid,type:"tracking",message:`Tracking number added for "${t.data.book?.title||"your book"}"`,data:{txId:currentTxId}});}catch(_){}}
     closeModal("trackingModal");
     toast("Tracking number saved! Buyer has been notified.","success");
-  }catch(e){toast("Failed to add tracking","error");}
+  }catch(e){toast((e.message||"Failed to add tracking").slice(0,100),"error");}
 };
 
 // DISPUTE
@@ -2076,11 +2057,10 @@ window.submitDispute=async function(){
   const desc=document.getElementById("disputeText").value.trim();
   if(!desc)return toast("Please describe the issue","error");
   try{
-    await addDoc(collection(db,"disputes"),{txId:currentTxId,userId:currentUser.uid,userName:currentUserData?.name||"User",description:desc,status:"open",createdAt:serverTimestamp()});
-    await updateDoc(doc(db,"transactions",currentTxId),{status:"disputed"});
+    {const dr=await sb.rpc("open_dispute",{p_tx_id:currentTxId,p_description:desc});if(dr.error)throw dr.error;}
     closeModal("disputeModal");
     toast("Dispute submitted. Our team will review within 24 hours.","success");
-  }catch(e){toast("Failed to submit dispute","error");}
+  }catch(e){toast((e.message||"Failed to submit dispute").slice(0,100),"error");}
 };
 
 // CODE RELEASE — locked to correct book + transaction
@@ -2090,33 +2070,24 @@ window.verifyCode=async function(){
   if(entered.length!==6)return toast("Please enter a 6-digit code","error");
   if(!currentBook)return toast("No book selected","error");
   try{
-    // Query locked to BOTH sellerId AND bookId — prevents code from working on wrong book
-    const q=query(
-      collection(db,"transactions"),
-      where("sellerId","==",currentUser.uid),
-      where("bookId","==",currentBook.id),
-      where("status","==","pending")
-    );
-    const s=await getDocs(q);
-    if(s.empty)return toast("No pending transaction found for this book","error");
-    const tx=s.docs[0];
-    const txData=tx.data();
-    if(txData.code!==entered)return toast("Incorrect code. Please check with the buyer.","error");
-    // Code matches — release funds
-    const comm=Math.round(txData.amount*(commissionRate/100)*100)/100;
-    const net=Math.round((txData.amount-comm)*100)/100;
-    await updateDoc(doc(db,"transactions",tx.id),{status:"completed",completedAt:serverTimestamp(),sellerPayout:net,commissionAmount:comm});
-    await updateDoc(doc(db,"books",currentBook.id),{status:"sold"});
-    // Trigger payout via Cloud Function (will be set up separately)
-    // For now, record payout intent
-    await addDoc(collection(db,"payouts"),{txId:tx.id,sellerId:currentUser.uid,sellerName:currentUserData?.name||"Seller",amount:net,status:"pending",createdAt:serverTimestamp(),banking:currentUserData?.banking||{}});
+    // Find this seller's paid order for this book; the database checks the code
+    const q=await sb.from("transactions").select(TX_SELECT).eq("seller_id",currentUser.uid).eq("book_id",currentBook.id).in("status",["paid","awaiting_payment"]).order("created_at",{ascending:false}).limit(1);
+    if(q.error)throw q.error;
+    if(!q.data.length)return toast("No active order found for this book","error");
+    const txData=mapTx(q.data[0]);
+    if(txData.status!=="paid")return toast("The buyer hasn't completed payment yet","error");
+    const rf=await sb.rpc("release_funds",{p_tx_id:txData.id,p_code:entered});
+    if(rf.error)throw rf.error;
+    if(Number(rf.data)<0)return toast("Incorrect code. Please check with the buyer.","error");
+    const net=Number(rf.data);
+    const tx={id:txData.id};
     closeModal("codeModal");
     toast(`🎉 Funds released! R${net} payout initiated.`,"success");
     // Prompt buyer review
     reviewTxId=tx.id;reviewSellerId=txData.buyerId;
     setTimeout(()=>openReviewModal(tx.id,txData.buyerName),1500);
     await loadBooks();switchScreen("screen-home");
-  }catch(e){toast("Verification failed","error");console.error(e);}
+  }catch(e){toast((e.message||"Verification failed").slice(0,100),"error");console.error(e);}
 };
 
 // REVIEWS
@@ -2137,22 +2108,10 @@ window.submitReview=async function(){
   if(!_currentReviewRating)return toast("Please select a rating","error");
   if(!reviewTxId)return;
   try{
-    const tx=await getDoc(doc(db,"transactions",reviewTxId));
-    if(!tx.exists())return;
-    const txData=tx.data();
-    const reviewedId=currentUser.uid===txData.buyerId?txData.sellerId:txData.buyerId;
-    await addDoc(collection(db,"reviews"),{txId:reviewTxId,reviewerId:currentUser.uid,reviewerName:currentUserData?.name||"User",reviewedId,rating:_currentReviewRating,comment:document.getElementById("reviewComment").value.trim(),createdAt:serverTimestamp()});
-    // Update user average rating
-    const userQ=query(collection(db,"users"),where("uid","==",reviewedId));
-    const userSnap=await getDocs(userQ);
-    if(!userSnap.empty){
-      const ud=userSnap.docs[0].data();
-      const newCount=(ud.ratingCount||0)+1;
-      const newRating=((ud.rating||0)*(ud.ratingCount||0)+_currentReviewRating)/newCount;
-      await updateDoc(doc(db,"users",userSnap.docs[0].id),{rating:Math.round(newRating*10)/10,ratingCount:newCount});
-    }
+    const rv=await sb.rpc("submit_review",{p_tx_id:reviewTxId,p_rating:_currentReviewRating,p_comment:document.getElementById("reviewComment").value.trim()});
+    if(rv.error)throw rv.error;
     closeModal("reviewModal");toast("Review submitted! Thank you.","success");
-  }catch(e){toast("Failed to submit review","error");}
+  }catch(e){toast(/duplicate|unique/i.test(e.message||"")?"You already reviewed this order":"Failed to submit review","error");}
 };
 
 // DELETE
@@ -2160,7 +2119,7 @@ window.openDeleteModal=function(id){deleteTargetId=id;document.getElementById("d
 window.confirmDelete=async function(){
   if(!deleteTargetId)return;
   try{
-    await deleteDoc(doc(db,"books",deleteTargetId));
+    {const dr=await sb.from("books").delete().eq("id",deleteTargetId);if(dr.error)throw dr.error;}
     closeModal("deleteModal");toast("Listing removed","success");
     await loadBooks();switchScreen("screen-home");
   }catch(e){toast("Failed to delete","error");}
@@ -2185,9 +2144,8 @@ window.openPromoteModal=async function(bookId){
       </div>
     </div>`;
   try{
-    const s=await getDoc(doc(db,"settings","promo"));
-    if(s.exists()){
-      const d=s.data();
+    const d=appSettings.promo;
+    if(d){
       document.getElementById("promotePlans").innerHTML=`
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
           <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${d.plan7||29},this)">
@@ -2218,15 +2176,8 @@ window.selectPlan=function(days,price,el){
   el.style.background="var(--gray-100)";
 };
 window.confirmPromotion=async function(){
-  if(!promoteDays||!promotePrice)return toast("Please tap a plan to select it first","error");
-  const expiresAt=new Date(Date.now()+promoteDays*24*60*60*1000);
-  try{
-    await updateDoc(doc(db,"books",promoteBookId),{featured:true,featuredUntil:expiresAt,featuredDays:promoteDays,featuredPrice:promotePrice});
-    await addDoc(collection(db,"promotions"),{bookId:promoteBookId,sellerId:currentUser.uid,days:promoteDays,price:promotePrice,expiresAt,createdAt:serverTimestamp(),status:"active"});
-    closeModal("promoteModal");
-    toast(`⭐ Your listing is now featured for ${promoteDays} days!`,"success");
-    await loadBooks();
-  }catch(e){toast("Failed to feature listing","error");}
+  closeModal("promoteModal");
+  toast("Featuring a listing needs online payment, which is being switched on soon.","warning");
 };
 
 // SUBSCRIPTIONS
@@ -2238,27 +2189,24 @@ window.openSubModal=function(bookId){
   document.getElementById("subModal").classList.add("active");
 };
 window.confirmSubscription=async function(){
-  closeModal("subModal");if(!currentBook)return;
-  const expires=new Date();expires.setFullYear(expires.getFullYear()+1);
-  try{
-    await addDoc(collection(db,"subscriptions"),{userId:currentUser.uid,bookId:currentBook.id,bookTitle:currentBook.title,sellerId:currentBook.sellerId,amount:currentBook.subPrice,status:"active",createdAt:serverTimestamp(),expiresAt:expires});
-    toast("Subscribed! 12 months of access starts now 📖","success");
-    showDetail(currentBook.id);
-  }catch(e){toast("Subscription failed","error");}
+  closeModal("subModal");
+  toast("Digital book subscriptions need online payment, which is being switched on soon.","warning");
 };
 
 // PDF READER
 window.openReader=async function(bookId){
   const book=allBooks.find(b=>b.id===bookId)||(await getBookById(bookId));
-  if(!book||!book.pdfUrl)return toast("PDF not available","error");
+  if(!book)return toast("PDF not available","error");
+  const fr=await sb.from("book_files").select("pdf_url").eq("book_id",bookId).maybeSingle();
+  const pdfUrl=fr.data?.pdf_url;
+  if(!pdfUrl)return toast("PDF not available - check your subscription","error");
   currentReaderBook=book;currentReaderPage=1;
   document.getElementById("readerTitle").textContent=book.title;
-  const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId));
-  const s=await getDocs(q);
+  const s=snapOf(((await sb.from("subscriptions").select("*").eq("user_id",currentUser.uid).eq("book_id",bookId).eq("status","active").order("expires_at",{ascending:false})).data)||[],mapSub);
   if(!s.empty){const exp=s.docs[0].data().expiresAt?.toDate();document.getElementById("readerExpiry").textContent=exp?`Until ${exp.toLocaleDateString("en-ZA")}`:"Active";}
   previousScreen="screen-detail";switchScreen("screen-reader");
   try{
-    currentPDFDoc=await window.pdfjsLib.getDocument(book.pdfUrl).promise;
+    currentPDFDoc=await window.pdfjsLib.getDocument(pdfUrl).promise;
     window._totalPDFPages=currentPDFDoc.numPages;
     renderPDFPage(1);
   }catch(e){toast("Failed to load PDF","error");}
@@ -2291,20 +2239,8 @@ window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
   if(!sellerId||sellerId==="undefined"){return toast("Cannot start chat — seller info missing","error");}
   if(currentUser.uid===sellerId)return toast("You can't chat with yourself!","error");
   if(!currentUserData)await loadUserData();
-  const chatId=[currentUser.uid,sellerId].sort().join("_")+"_"+bookId;
   try{
-    const ref=doc(db,"chats",chatId);
-    const s=await getDoc(ref);
-    if(!s.exists()){
-      await setDoc(ref,{
-        participants:[currentUser.uid,sellerId],
-        participantNames:{[currentUser.uid]:currentUserData?.name||"Buyer",[sellerId]:sellerName||"Seller"},
-        bookId,
-        bookTitle:bookTitle||"Book",
-        lastMessage:"",
-        updatedAt:serverTimestamp()
-      });
-    }
+    const chatId=await getOrCreateChat({buyerId:currentUser.uid,sellerId,bookId,title:bookTitle||"Book"});
     openChatRoom(chatId,sellerName||"Seller",bookTitle||"Book");
   }catch(e){
     console.error("startChat error:",e);
@@ -2314,34 +2250,25 @@ window.startChat=async function(bookId,sellerId,sellerName,bookTitle){
 window.openSupportChat=async function(){
   if(!currentUser){toast("Please sign in to contact support","error");switchScreen("screen-login");return;}
   if(!currentUserData)await loadUserData();
-  const chatId="support_"+currentUser.uid;
   try{
-    const ref=doc(db,"chats",chatId);
-    const s=await getDoc(ref);
-    if(!s.exists()){
-      await setDoc(ref,{
-        participants:[currentUser.uid,"support"],
-        participantNames:{[currentUser.uid]:currentUserData?.name||"Student","support":"BookWorm Support"},
-        bookId:"support",
-        bookTitle:"BookWorm Support Chat",
-        isSupport:true,
-        lastMessage:"Hi, I need help!",
-        updatedAt:serverTimestamp()
-      });
-      // Send an opening message automatically
-      await addDoc(collection(db,"chats",chatId,"messages"),{
-        text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`,
-        senderId:currentUser.uid,
-        senderName:currentUserData?.name||"Student",
-        createdAt:serverTimestamp()
-      });
+    let chatId;
+    const ex=await sb.from("chats").select("id").eq("buyer_id",currentUser.uid).eq("is_support",true).maybeSingle();
+    if(ex.error)throw ex.error;
+    if(ex.data)chatId=ex.data.id;
+    else{
+      const ins=await sb.from("chats").insert({buyer_id:currentUser.uid,seller_id:null,is_support:true,book_title:"BookWorm Support Chat"}).select("id").single();
+      if(ins.error)throw ins.error;
+      chatId=ins.data.id;
+      await sb.from("messages").insert({chat_id:chatId,sender_id:currentUser.uid,text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`});
     }
+    window._supportChatId=chatId;
     openChatRoom(chatId,"BookWorm Support 🛟","We typically reply within 24 hours.");
   }catch(e){
     console.error("Support chat error:",e);
     toast("Could not open support chat. Please email support@bookworm.co.za","error");
   }
 };
+window.openChatById=function(id){const c=(window._chats||{})[id];if(c)openChatRoom(id,c.name,c.title);};
 window.openChatRoom=function(chatId,otherName,bookTitle){
   if(!currentUser){toast("Please sign in","error");return;}
   currentChatId=chatId;
@@ -2352,26 +2279,36 @@ window.openChatRoom=function(chatId,otherName,bookTitle){
   if(nameEl)nameEl.textContent=otherName||"Chat";
   if(bookEl)bookEl.textContent=bookTitle||"";
   if(unsubChat)unsubChat();
-  const msgCol=collection(db,"chats",chatId,"messages");
-  unsubChat=onSnapshot(query(msgCol,orderBy("createdAt")),snap=>{
+  const msgs=[];
+  const draw=()=>{
     const c=document.getElementById("chatMessages");
     if(!c)return;
-    if(snap.empty){c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:13px;">No messages yet. Say hello! 👋</div>`;return;}
-    c.innerHTML=snap.docs.map(d=>{
-      const m=d.data();
-      const sent=m.senderId===currentUser?.uid;
-      const time=m.createdAt?.toDate?.()?.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})||"";
+    if(!msgs.length){c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--gray-400);font-size:13px;">No messages yet. Say hello! 👋</div>`;return;}
+    c.innerHTML=msgs.map(m=>{
+      const sent=m.sender_id===currentUser?.uid;
+      const time=m.created_at?new Date(m.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"";
       return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"};margin-bottom:10px;">
-        <div class="message ${sent?"sent":"received"}" style="max-width:80%;word-break:break-word;">${m.text}</div>
+        <div class="message ${sent?"sent":"received"}" style="max-width:80%;word-break:break-word;">${esc(m.text)}</div>
         <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${time}</div>
       </div>`;
     }).join("");
     c.scrollTop=c.scrollHeight;
-  },e=>{
-    console.error("Chat listener error:",e);
-    const c=document.getElementById("chatMessages");
-    if(c)c.innerHTML=`<div style="padding:20px;color:var(--error);text-align:center;font-size:13px;">Could not load messages. Check your connection.</div>`;
+  };
+  sb.from("messages").select("*").eq("chat_id",chatId).order("created_at").then(r=>{
+    if(r.error){
+      console.error("Chat load error:",r.error);
+      const c=document.getElementById("chatMessages");
+      if(c)c.innerHTML=`<div style="padding:20px;color:var(--error);text-align:center;font-size:13px;">Could not load messages. Check your connection.</div>`;
+      return;
+    }
+    r.data.forEach(m=>{if(!msgs.some(x=>x.id===m.id))msgs.push(m);});
+    msgs.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    draw();
   });
+  const ch=sb.channel("chat-"+chatId).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:`chat_id=eq.${chatId}`},pl=>{
+    if(!msgs.some(m=>m.id===pl.new.id)){msgs.push(pl.new);draw();}
+  }).subscribe();
+  unsubChat=()=>{sb.removeChannel(ch);};
   previousScreen="screen-chat";
   switchScreen("screen-chatroom");
 };
@@ -2380,22 +2317,24 @@ window.sendMessage=async function(){
   const text=input.value.trim();if(!text||!currentChatId)return;
   input.value="";
   try{
-    await addDoc(collection(db,"chats",currentChatId,"messages"),{text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()});
-    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
-  }catch(e){console.error(e);}
+    const mr=await sb.from("messages").insert({chat_id:currentChatId,sender_id:currentUser.uid,text});
+    if(mr.error)throw mr.error;
+  }catch(e){console.error(e);toast("Message not sent","error");}
 };
 async function loadChatList(){
   if(!currentUser)return;
-  const q=query(collection(db,"chats"),where("participants","array-contains",currentUser.uid));
-  const snap=await getDocs(q);
   const cl=document.getElementById("chatList");
-  if(snap.empty){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
-  cl.innerHTML=snap.docs.map(d=>{
-    const c=d.data();const otherId=c.participants.find(p=>p!==currentUser.uid);
-    const name=c.isSupport?"BookWorm Support 🛟":(c.participantNames?.[otherId]||"User");
-    return`<div class="chat-item" onclick="openChatRoom('${d.id}','${name}','${c.bookTitle||""}')">
-      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":name[0]?.toUpperCase()}</div>
-      <div><div style="font-weight:800;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--gray-400);">${c.lastMessage||"Start the conversation..."}</div></div>
+  const r=await sb.from("chats").select("*, buyer:profiles!chats_buyer_id_fkey(name), seller:profiles!chats_seller_id_fkey(name)").or(`buyer_id.eq.${currentUser.uid},seller_id.eq.${currentUser.uid}`).order("updated_at",{ascending:false});
+  if(r.error||!r.data.length){cl.innerHTML=`<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Buy a book or contact support to get started!</p></div>`;return;}
+  window._chats={};
+  cl.innerHTML=r.data.map(c=>{
+    const mine=c.buyer_id===currentUser.uid;
+    const name=c.is_support?"BookWorm Support 🛟":((mine?c.seller?.name:c.buyer?.name)||"User");
+    window._chats[c.id]={name,title:c.book_title||""};
+    if(c.is_support)window._supportChatId=c.id;
+    return`<div class="chat-item" onclick="openChatById('${c.id}')">
+      <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":esc(name[0]?.toUpperCase())}</div>
+      <div><div style="font-weight:800;font-size:14px;">${esc(name)}</div><div style="font-size:12px;color:var(--gray-400);">${esc(c.last_message)||"Start the conversation..."}</div></div>
     </div>`;
   }).join("");
 }
@@ -2403,29 +2342,32 @@ async function loadChatList(){
 // NOTIFICATIONS
 function startNotifListener(){
   if(!currentUser||unsubNotif)return;
-  const q=query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc"));
-  unsubNotif=onSnapshot(q,snap=>{
-    const unread=snap.docs.filter(d=>!d.data().read).length;
+  const upd=async()=>{
+    const r=await sb.from("notifications").select("id",{count:"exact",head:true}).eq("to_user_id",currentUser.uid).eq("read",false);
+    const unread=r.count||0;
     const badge=document.getElementById("notifBadge");
     if(badge){badge.textContent=unread>9?"9+":unread;badge.style.display=unread>0?"flex":"none";}
-  },e=>console.error("notif listener:",e));
+  };
+  upd();
+  const ch=sb.channel("notif-"+currentUser.uid).on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:`to_user_id=eq.${currentUser.uid}`},upd).subscribe();
+  unsubNotif=()=>{sb.removeChannel(ch);};
 }
 async function loadNotifications(){
   if(!currentUser)return;
   const container=document.getElementById("notifList");
   container.innerHTML=`<div style="text-align:center;padding:30px;color:var(--gray-400);">Loading...</div>`;
   try{
-    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),orderBy("createdAt","desc")));
-    if(snap.empty){container.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll notify you about wanted matches, messages, and more.</p></div>`;return;}
-    container.innerHTML=snap.docs.map(d=>{
-      const n=d.data();const read=n.read;
+    const nr=await sb.from("notifications").select("*").eq("to_user_id",currentUser.uid).order("created_at",{ascending:false});if(nr.error)throw nr.error;const nList=nr.data.map(mapNotif);
+    if(!nList.length){container.innerHTML=`<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll notify you about wanted matches, messages, and more.</p></div>`;return;}
+    container.innerHTML=nList.map(n=>{
+      const read=n.read;
       const time=n.createdAt?.toDate?.()?.toLocaleDateString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})||"";
       let icon="🔔",text="";
-      if(n.type==="wanted_match"){icon="📚";text=`<strong>${n.fromName}</strong> says they have a book matching your wanted post: <em>"${n.bookTitle||n.wantedTitle||""}"</em>`;}
-      else if(n.type==="message"){icon="💬";text=`New message from <strong>${n.fromName}</strong>`;}
-      else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${n.bookTitle}"</em> has been purchased!`;}
+      if(n.type==="wanted_match"){icon="📚";text=`<strong>${esc(n.fromName)}</strong> says they have a book matching your wanted post: <em>"${esc(n.bookTitle||n.wantedTitle||"")}"</em>`;}
+      else if(n.type==="message"){icon="💬";text=`New message from <strong>${esc(n.fromName)}</strong>`;}
+      else if(n.type==="book_sold"){icon="💸";text=`Your book <em>"${esc(n.bookTitle)}"</em> has been purchased!`;}
       else{text=n.message||"New notification";}
-      return`<div onclick="markNotifRead('${d.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"var(--tint)"};transition:background 0.2s;">
+      return`<div onclick="markNotifRead('${n.id}','${n.type}','${n.wantedId||""}','${n.chatId||""}')" style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-bottom:1px solid var(--gray-200);cursor:pointer;background:${read?"var(--white)":"var(--tint)"};transition:background 0.2s;">
         <div style="font-size:22px;flex-shrink:0;">${icon}</div>
         <div style="flex:1;">
           <div style="font-size:13px;line-height:1.5;${read?"":"font-weight:700;"}">${text}</div>
@@ -2437,7 +2379,7 @@ async function loadNotifications(){
   }catch(e){container.innerHTML=`<div style="padding:16px;color:var(--error);">Could not load notifications.</div>`;}
 }
 window.markNotifRead=async function(notifId,type,wantedId,chatId){
-  try{await updateDoc(doc(db,"notifications",notifId),{read:true});}catch(e){}
+  try{await sb.from("notifications").update({read:true}).eq("id",notifId);}catch(e){}
   // Navigate based on type
   if(type==="wanted_match"&&wantedId)switchHomeTab_wanted();
   else if(type==="message"&&chatId)openChatRoom(chatId,"","");
@@ -2453,9 +2395,8 @@ function switchHomeTab_wanted(){
 window.markAllNotifsRead=async function(){
   if(!currentUser)return;
   try{
-    const snap=await getDocs(query(collection(db,"notifications"),where("toUserId","==",currentUser.uid),where("read","==",false)));
-    const batch=snap.docs.map(d=>updateDoc(doc(db,"notifications",d.id),{read:true}));
-    await Promise.all(batch);
+    const mr=await sb.from("notifications").update({read:true}).eq("to_user_id",currentUser.uid).eq("read",false);if(mr.error)throw mr.error;
+
     toast("All notifications marked as read","success");
     loadNotifications();
   }catch(e){toast("Could not update notifications","error");}
@@ -2464,17 +2405,7 @@ window.markAllNotifsRead=async function(){
 // PROFILE
 async function loadProfile(){
   if(!currentUser)return;
-  try{
-    // Use uid as doc ID (new accounts) with fallback for old accounts
-    const userDoc=await getDoc(doc(db,"users",currentUser.uid));
-    if(userDoc.exists()){
-      currentUserData={id:userDoc.id,...userDoc.data()};
-    }else{
-      const q=query(collection(db,"users"),where("uid","==",currentUser.uid));
-      const s=await getDocs(q);
-      if(!s.empty)currentUserData={id:s.docs[0].id,...s.docs[0].data()};
-    }
-  }catch(e){console.error("loadProfile fetch:",e);}
+  await loadUserData();
   if(!currentUserData)return;
   const name=currentUserData.name||"";
   document.getElementById("profileAvatar").textContent=name?name[0].toUpperCase():"?";
@@ -2485,16 +2416,16 @@ async function loadProfile(){
   // Also query Firestore directly in case allBooks cache is stale
   let myBooks=myBooksFromCache;
   try{
-    const myBooksSnap=await getDocs(query(collection(db,"books"),where("sellerId","==",currentUser.uid)));
+    const myBooksSnap=snapOf(((await sb.from("books").select(BOOK_SELECT).eq("seller_id",currentUser.uid)).data)||[],mapBook);
     if(!myBooksSnap.empty){
       const fromDB=myBooksSnap.docs.map(d=>({id:d.id,...d.data()})).filter(b=>b.status!=="sold");
       if(fromDB.length>=myBooksFromCache.length)myBooks=fromDB;
     }
   }catch(e){console.error("myBooks fetch:",e);}
   document.getElementById("statListings").textContent=myBooks.length;
-  const sold=await getDocs(query(collection(db,"transactions"),where("sellerId","==",currentUser.uid),where("status","==","completed")));
+  const sold=snapOf(((await sb.from("transactions").select("id").eq("seller_id",currentUser.uid).eq("status","completed")).data)||[]);
   document.getElementById("statSold").textContent=sold.size;
-  const bought=await getDocs(query(collection(db,"transactions"),where("buyerId","==",currentUser.uid)));
+  const bought=snapOf(((await sb.from("transactions").select("id").eq("buyer_id",currentUser.uid).in("status",["paid","completed","disputed"])).data)||[]);
   document.getElementById("statBought").textContent=bought.size;
   // Banking status
   const bankingEl=document.getElementById("bankingStatus");
@@ -2516,7 +2447,7 @@ async function loadProfile(){
     }
   }
   // Pending payouts
-  const payouts=await getDocs(query(collection(db,"payouts"),where("sellerId","==",currentUser.uid),where("status","==","pending")));
+  const payouts=snapOf(((await sb.from("payouts").select("*").eq("seller_id",currentUser.uid).eq("status","pending")).data)||[],mapPayout);
   document.getElementById("pendingPayouts").innerHTML=payouts.empty?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No pending payouts.</div>`:
     payouts.docs.map(d=>{const p=d.data();return`<div style="padding:10px;border:1px solid var(--line);background:var(--tint);border-radius:10px;margin-bottom:8px;"><div style="font-weight:800;font-size:13px;color:var(--success);">💰 R${p.amount} pending payout</div><div style="font-size:11px;color:var(--success);">To: ${p.banking?.bankName||""} • ${p.banking?.accountHolder||""}</div></div>`;}).join("");
   // My listings
@@ -2528,8 +2459,8 @@ async function loadProfile(){
     </div>`).join("");
   // Purchases
   const [boughtTx,subs]=await Promise.all([
-    getDocs(query(collection(db,"transactions"),where("buyerId","==",currentUser.uid))),
-    getDocs(query(collection(db,"subscriptions"),where("userId","==",currentUser.uid)))
+    sb.from("transactions").select(TX_SELECT).eq("buyer_id",currentUser.uid).neq("status","cancelled").order("created_at",{ascending:false}).then(r=>snapOf(r.data||[],mapTx)),
+    sb.from("subscriptions").select("*, book:books(title)").eq("user_id",currentUser.uid).then(r=>snapOf(r.data||[],mapSub))
   ]);
   document.getElementById("myPurchases").innerHTML=(boughtTx.empty&&subs.empty)?`<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No purchases yet.</div>`:[
     ...boughtTx.docs.map(d=>{const t=d.data();return`<div style="padding:10px;border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;">
@@ -2551,13 +2482,7 @@ window.submitAppFeedback=async function(){
   if(!appRating)return toast("Please select a star rating first","error");
   const comment=document.getElementById("appFeedbackText")?.value.trim()||"";
   try{
-    await addDoc(collection(db,"appFeedback"),{
-      userId:currentUser?.uid||"anonymous",
-      userName:currentUserData?.name||"User",
-      university:currentUserData?.university||"",
-      rating:appRating,comment,
-      createdAt:serverTimestamp()
-    });
+    {const fb=await sb.from("app_feedback").insert({user_id:currentUser?.uid||null,rating:appRating,message:comment});if(fb.error)throw fb.error;}
     appRating=0;
     document.querySelectorAll("#appRatingStars span").forEach(s=>s.textContent="☆");
     if(document.getElementById("appFeedbackText"))document.getElementById("appFeedbackText").value="";
@@ -2579,12 +2504,7 @@ window.submitFlag=async function(){
   const details=document.getElementById("flagDetails").value.trim();
   if(!reason)return toast("Please select a reason","error");
   try{
-    await addDoc(collection(db,"flaggedContent"),{
-      itemId:flagTargetId,itemTitle:flagTargetTitle,type:"listing",
-      reason,details,reportedBy:currentUser.uid,
-      reportedByName:currentUserData?.name||"User",
-      status:"open",createdAt:serverTimestamp()
-    });
+    {const fl=await sb.from("flagged_content").insert({item_id:flagTargetId,item_title:flagTargetTitle,type:"listing",reason,details,reported_by:currentUser.uid});if(fl.error)throw fl.error;}
     closeModal("flagModal");
     toast("Report submitted. Our team will review within 24 hours.","success");
   }catch(e){toast("Failed to submit report","error");console.error(e);}
@@ -2604,15 +2524,7 @@ window.submitRefundRequest=async function(){
   if(!reason)return toast("Please select a reason","error");
   if(!details)return toast("Please describe the issue","error");
   try{
-    await updateDoc(doc(db,"transactions",refundTxId),{
-      refundRequested:true,refundReason:reason,refundDetails:details,
-      refundRequestedAt:serverTimestamp(),refundRequestedBy:currentUser.uid
-    });
-    await addDoc(collection(db,"notifications"),{
-      toUserId:"admin_refund_queue",type:"refund_request",txId:refundTxId,
-      userId:currentUser.uid,userName:currentUserData?.name||"User",
-      reason,details,read:false,createdAt:serverTimestamp()
-    });
+    {const rr=await sb.from("refund_requests").insert({tx_id:refundTxId,user_id:currentUser.uid,reason,details});if(rr.error)throw rr.error;}
     closeModal("refundModal");
     toast("Refund request submitted. We'll respond within 48 hours.","success");
   }catch(e){toast("Failed to submit refund request","error");console.error(e);}
@@ -2621,28 +2533,19 @@ window.submitRefundRequest=async function(){
 // AI SUPPORT BOT — reads faqs from Firestore, auto-responds in support chat
 async function getAIResponse(userMessage){
   try{
-    const settingsDoc=await getDoc(doc(db,"settings","aiSupport"));
-    const aiEnabled=settingsDoc.exists()?settingsDoc.data().enabled!==false:true;
-    const autoRespond=settingsDoc.exists()?settingsDoc.data().autoRespond!==false:true;
-    if(!aiEnabled||!autoRespond)return null;
-    const faqsSnap=await getDocs(collection(db,"faqs"));
-    const faqs=faqsSnap.docs.map(d=>d.data());
+    const cfg=appSettings.aiSupport||{};
+    if(cfg.enabled===false||cfg.autoRespond===false)return null;
+    const fr=await sb.from("faqs").select("question,answer");
+    const faqs=fr.data||[];
     const msg=userMessage.toLowerCase();
     const match=faqs.find(f=>{
       const triggers=(f.question||"").toLowerCase().split(" ");
       return triggers.some(t=>t.length>3&&msg.includes(t));
     });
     if(match)return match.answer;
-    const keywords=settingsDoc.exists()&&settingsDoc.data().keywords
-      ?settingsDoc.data().keywords
-      :["refund","fraud","scam","stolen","police","lawyer","legal","hacked","abuse","threat"];
-    const needsEscalation=keywords.some(k=>msg.includes(k));
-    if(needsEscalation){
-      await addDoc(collection(db,"escalations"),{
-        chatId:"support_"+currentUser.uid,userId:currentUser.uid,
-        userName:currentUserData?.name||"User",triggerMessage:userMessage,
-        status:"open",createdAt:serverTimestamp()
-      });
+    const keywords=Array.isArray(cfg.keywords)?cfg.keywords:[];
+    if(keywords.some(k=>msg.includes(String(k).toLowerCase()))){
+      await sb.from("escalations").insert({user_id:currentUser.uid,trigger_message:userMessage});
       return"This sounds urgent — I've flagged your message for a human agent who will follow up shortly. For emergencies email support@bookworm.co.za directly.";
     }
     return null;
@@ -2650,37 +2553,29 @@ async function getAIResponse(userMessage){
 }
 
 // Patch sendMessage to trigger AI bot in support chats
-const _origSend=window.sendMessage;
 window.sendMessage=async function(){
   const input=document.getElementById("chatInput");
   const text=input?.value.trim();if(!text||!currentChatId)return;
   input.value="";
+  const chatId=currentChatId;
   try{
-    await addDoc(collection(db,"chats",currentChatId,"messages"),{
-      text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()
-    });
-    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
-    if(currentChatId.startsWith("support_")){
+    const mr=await sb.from("messages").insert({chat_id:chatId,sender_id:currentUser.uid,text});
+    if(mr.error)throw mr.error;
+    if(chatId===window._supportChatId){
       const aiReply=await getAIResponse(text);
       if(aiReply){
         setTimeout(async()=>{
-          await addDoc(collection(db,"chats",currentChatId,"messages"),{
-            text:aiReply,senderId:"support",senderName:"BookWorm Bot 🤖",
-            isBot:true,createdAt:serverTimestamp()
-          });
-          await updateDoc(doc(db,"chats",currentChatId),{lastMessage:aiReply,updatedAt:serverTimestamp()});
+          await sb.from("messages").insert({chat_id:chatId,sender_id:null,is_bot:true,text:aiReply});
         },900);
       }
     }
-  }catch(e){console.error(e);}
+  }catch(e){console.error(e);toast("Message not sent","error");}
 };
 
 // DELIVERY SETTINGS — read from Firestore so admin toggles take effect in-app
 async function applyDeliverySettings(){
   try{
-    const s=await getDoc(doc(db,"settings","delivery"));
-    if(!s.exists())return;
-    const d=s.data();
+    const d=appSettings.delivery;if(!d)return;
     document.querySelectorAll("[data-delivery='courier']").forEach(el=>{
       el.style.display=d.courier===false?"none":"";
     });
@@ -2696,21 +2591,7 @@ async function applyDeliverySettings(){
 }
 
 // PROMO EXPIRY — auto-unfeature expired listings client-side on load
-async function cleanExpiredPromos(){
-  try{
-    const now=new Date();
-    const expired=(allBooks||[]).filter(b=>{
-      if(!b.featured||!b.featuredUntil)return false;
-      const exp=b.featuredUntil.toDate?b.featuredUntil.toDate():new Date(b.featuredUntil);
-      return exp<now;
-    });
-    for(const b of expired){
-      await updateDoc(doc(db,"books",b.id),{featured:false});
-      await updateDoc(doc(db,"promotions",b.id),{status:"expired"}).catch(()=>{});
-    }
-    if(expired.length)await loadBooks();
-  }catch(e){console.error("Promo expiry:",e);}
-}
+async function cleanExpiredPromos(){/* featured status is driven by the promotions table; nothing to clean client-side */}
 
 // RESET UPLOAD FORM
 function resetUploadForm(){
@@ -2731,16 +2612,22 @@ window.toast=function(msg,type=""){const t=document.getElementById("toast");t.te
 // Check URL params on load (PayFast return)
 window.addEventListener("load",()=>{
   const params=new URLSearchParams(window.location.search);
-  if(params.get("tx")){
-    const txId=params.get("tx");
+  const txId=params.get("tx"),pay=params.get("payment");
+  if(txId){
     setTimeout(async()=>{
-      if(currentUser){
-        const tx=await getDoc(doc(db,"transactions",txId));
-        if(tx.exists()){
-          const txData=tx.data();
-          const book=await getBookById(txData.bookId);
-          if(book){currentBook=book;selectedDelivery=txData.deliveryMethod;showTransactionScreen(txData.code,book,txId);}
-        }
+      if(!currentUser)return;
+      if(pay==="cancelled"){
+        await sb.rpc("cancel_unpaid_transaction",{p_tx_id:txId});
+        toast("Payment cancelled. The book is available again.","warning");
+        loadBooks();
+        return;
+      }
+      const tr=await sb.from("transactions").select("*").eq("id",txId).maybeSingle();
+      if(tr.data){
+        const t=mapTx(tr.data);
+        const cr=await sb.from("transaction_codes").select("code").eq("tx_id",txId).maybeSingle();
+        const book=await getBookById(t.bookId);
+        if(book){currentBook=book;selectedDelivery=t.deliveryMethod;window._txMeetup=t;window._meetupMapsUrl=t.meetupMapsUrl||window._meetupMapsUrl;showTransactionScreen(cr.data?.code||"------",book,txId);}
       }
     },2500);
     window.history.replaceState({},"",window.location.pathname);
