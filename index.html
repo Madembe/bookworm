@@ -300,6 +300,24 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 .price-rec-box,.licence-note{background:var(--surf);border:1px solid var(--line);color:var(--ink)}
 .seller-earnings-box{border-radius:12px}
 .pdf-upload-area{border:1.5px dashed var(--line);border-radius:12px;background:transparent;color:var(--mute)}
+
+/* order and escrow (DESIGN.md sections 5 and 6): modals, release code, delivery options, tracking */
+.transaction-container{padding:8px 18px 28px;max-width:560px;margin:0 auto}
+.modal-overlay{background:rgba(0,0,0,.45)}
+.modal{background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.modal h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin-bottom:12px}
+.modal h4{font-weight:600}
+.modal-close{width:36px;height:36px;margin:-6px -8px 0 0;display:grid;place-items:center;color:var(--ink);line-height:0}
+.delivery-option{border:1px solid var(--line);background:var(--surf);border-radius:12px}
+.delivery-coming-soon{border:1px dashed var(--line);border-radius:12px}
+.code-display{background:var(--ink);color:var(--inv);border-radius:12px}
+.code-number{font-family:'IBM Plex Mono',monospace;font-weight:500;letter-spacing:.35em}
+.step-item{border-bottom:1px solid var(--line)}
+.step-num{font-weight:600}
+.step-text{color:var(--mute)}
+.tracking-card{background:var(--surf);border:1px solid var(--line);border-radius:12px}
+.tracking-number-display{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.payout-info-box{background:var(--surf);border:1px solid var(--line);border-radius:12px;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -866,9 +884,9 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <!-- Payment Modal -->
 <div class="modal-overlay" id="paymentModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
-    <h3>💳 Confirm Purchase</h3>
-    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;">⚠️ <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
+    <button class="modal-close" onclick="closeModal('paymentModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Confirm Purchase</h3>
+    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;"> <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
@@ -877,17 +895,17 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     </div>
     <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;line-height:1.6;">Your payment is held securely in escrow. Funds are only released to the seller when you confirm receipt with a release code.</p>
     <p style="font-size:12px;color:var(--gray-500);margin-bottom:16px;">You will be redirected to PayFast to complete payment securely.</p>
-    <button class="btn btn-primary btn-full" id="paymentConfirmBtn" onclick="confirmPayment()">🔐 Proceed to PayFast</button>
+    <button class="btn btn-primary btn-full" id="paymentConfirmBtn" onclick="confirmPayment()"> Proceed to PayFast</button>
   </div>
 </div>
 
 <!-- Tracking Modal (Seller) -->
 <div class="modal-overlay" id="trackingModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('trackingModal')">✕</button>
-    <h3>📦 Add Tracking Number</h3>
+    <button class="modal-close" onclick="closeModal('trackingModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Tracking Number</h3>
     <div class="payout-info-box">
-      <h4>🚚 Pargo Drop-off Instructions</h4>
+      <h4> Pargo Drop-off Instructions</h4>
       <p>1. Package the book securely.<br/>2. Go to your nearest Pargo drop point (Clicks, PnP, etc.).<br/>3. Show your Pargo waybill QR code (sent to your email).<br/>4. Drop off the parcel — no payment required from you.<br/>5. Enter the tracking number below.</p>
     </div>
     <div class="form-group">
@@ -912,22 +930,22 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <!-- Code Release Modal (Seller) -->
 <div class="modal-overlay" id="codeModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('codeModal')">✕</button>
-    <h3>🔐 Enter Release Code</h3>
+    <button class="modal-close" onclick="closeModal('codeModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Enter Release Code</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Ask the buyer for their 6-digit release code. They will share it with you once they've received and inspected the book.</p>
     <div class="form-group">
       <label>Release Code</label>
       <input class="form-control" id="codeInput" type="text" maxlength="6" placeholder="6-digit code" style="font-size:24px;font-weight:900;text-align:center;letter-spacing:8px;"/>
     </div>
-    <button class="btn btn-success btn-full" onclick="verifyCode()">✅ Verify & Release Funds</button>
+    <button class="btn btn-success btn-full" onclick="verifyCode()"> Verify & Release Funds</button>
   </div>
 </div>
 
 <!-- Dispute Modal -->
 <div class="modal-overlay" id="disputeModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('disputeModal')">✕</button>
-    <h3>⚠️ Raise a Dispute</h3>
+    <button class="modal-close" onclick="closeModal('disputeModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Raise a Dispute</h3>
     <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;">Do NOT release your code. Describe the issue below and our team will investigate within 24 hours.</p>
     <div class="form-group">
       <label>What is the problem?</label>
@@ -944,8 +962,8 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <!-- Review Modal -->
 <div class="modal-overlay" id="reviewModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('reviewModal')">✕</button>
-    <h3>⭐ Rate this Transaction</h3>
+    <button class="modal-close" onclick="closeModal('reviewModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Rate this Transaction</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;" id="reviewSellerName"></p>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="starContainer">
       <span style="font-size:32px;cursor:pointer;" onclick="setRating(1)" data-star="1">☆</span>
@@ -965,8 +983,8 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <!-- Delete Modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
-    <h3>🗑️ Remove Listing?</h3>
+    <button class="modal-close" onclick="closeModal('deleteModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Remove Listing?</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Are you sure you want to remove this listing? This cannot be undone.</p>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-secondary btn-full" onclick="closeModal('deleteModal')">Cancel</button>
@@ -978,11 +996,11 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <!-- Promote Modal -->
 <div class="modal-overlay" id="promoteModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('promoteModal')">✕</button>
-    <h3>⭐ Feature Your Listing</h3>
+    <button class="modal-close" onclick="closeModal('promoteModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Feature Your Listing</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;">Get your book seen first! Featured listings appear at the top of search results with a highlighted badge.</p>
     <div id="promotePlans"></div>
-    <button class="btn btn-warning btn-full" id="promoteBtn" onclick="confirmPromotion()">⭐ Feature This Book</button>
+    <button class="btn btn-warning btn-full" id="promoteBtn" onclick="confirmPromotion()"> Feature This Book</button>
   </div>
 </div>
 
@@ -2676,18 +2694,18 @@ window.addEventListener("load",()=>{
 <div class="modal-overlay" id="pargoModal" style="align-items:flex-end;padding:0;">
   <div style="background:white;width:100%;height:88vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-weight:900;font-size:15px;">📦 Find Your Nearest Pargo Point</div>
-      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);">✕</button>
+      <div style="font-weight:900;font-size:15px;"> Find Your Nearest Pargo Point</div>
+      <button onclick="closeModal('pargoModal')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     <div style="padding:10px 16px;background:var(--tint);font-size:12px;color:var(--info);flex-shrink:0;line-height:1.6;">
-      📍 <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
+       <strong>Find your nearest Pargo point</strong> (Clicks, PnP, Checkers, etc.) on the map below, then type your chosen pickup address in the field below the map.<br/>
       <span style="opacity:0.75;">If the map doesn't load, visit <a href="https://pargo.co.za/store-locator/" target="_blank" style="color:var(--info);font-weight:800;">pargo.co.za/store-locator</a> to find a point near you.</span>
     </div>
     <iframe id="pargoIframe" src="" style="flex:1;border:none;width:100%;" allow="geolocation" title="Pargo Pickup Points"></iframe>
     <div style="padding:12px 16px;border-top:1px solid var(--gray-200);flex-shrink:0;background:white;">
       <label style="font-size:12px;font-weight:800;color:var(--gray-500);display:block;margin-bottom:6px;">ENTER YOUR CHOSEN PARGO PICKUP ADDRESS</label>
       <input id="pargoManualInput" class="form-control" placeholder="e.g. Clicks Limpopo Mall, Polokwane" style="margin-bottom:8px;"/>
-      <button class="btn btn-primary btn-full btn-sm" onclick="confirmManualPargoPoint()">✅ Confirm Pargo Point</button>
+      <button class="btn btn-primary btn-full btn-sm" onclick="confirmManualPargoPoint()"> Confirm Pargo Point</button>
     </div>
   </div>
 </div>
@@ -2695,8 +2713,8 @@ window.addEventListener("load",()=>{
 <!-- Banking Details Modal -->
 <div class="modal-overlay" id="bankingModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('bankingModal')">✕</button>
-    <h3>💰 Add Banking Details</h3>
+    <button class="modal-close" onclick="closeModal('bankingModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Banking Details</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:16px;line-height:1.6;">Your book is listed! Add your banking details so we know where to send your money when it sells.</p>
     <div class="form-group">
       <label>Bank Name</label>
@@ -2724,7 +2742,7 @@ window.addEventListener("load",()=>{
       <label>Branch Code</label>
       <input class="form-control" id="bankBranchCode" placeholder="e.g. 632005"/>
     </div>
-    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()">💾 Save Banking Details</button>
+    <button class="btn btn-primary btn-full" onclick="saveBankingDetails()"> Save Banking Details</button>
     <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="closeModal('bankingModal')">I'll do this later</button>
   </div>
 </div>
@@ -2732,7 +2750,7 @@ window.addEventListener("load",()=>{
 <!-- Refund Request Modal -->
 <div class="modal-overlay" id="refundModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('refundModal')">✕</button>
+    <button class="modal-close" onclick="closeModal('refundModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <h3>↩ Request a Refund</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Refunds are reviewed by our team. Please provide details and we'll respond within 48 hours.</p>
     <div class="form-group">
@@ -2757,8 +2775,8 @@ window.addEventListener("load",()=>{
 <!-- App Feedback Modal -->
 <div class="modal-overlay" id="appFeedbackModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('appFeedbackModal')">✕</button>
-    <h3>💬 Rate BookWorm</h3>
+    <button class="modal-close" onclick="closeModal('appFeedbackModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Rate BookWorm</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with BookWorm so far? Your feedback helps us improve.</p>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="appRatingStars">
       <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
@@ -2778,8 +2796,8 @@ window.addEventListener("load",()=>{
 <!-- Flag / Report Modal -->
 <div class="modal-overlay" id="flagModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('flagModal')">✕</button>
-    <h3>🚩 Report Listing</h3>
+    <button class="modal-close" onclick="closeModal('flagModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Report Listing</h3>
     <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep BookWorm safe. Our team reviews every report within 24 hours.</p>
     <div class="form-group">
       <label>Reason for reporting</label>
@@ -2805,8 +2823,8 @@ window.addEventListener("load",()=>{
 <!-- Sub Modal -->
 <div class="modal-overlay" id="subModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('subModal')">✕</button>
-    <h3>📖 Subscribe for Annual Access</h3>
+    <button class="modal-close" onclick="closeModal('subModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Subscribe for Annual Access</h3>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;" id="subBookTitle"></div>
       <div style="font-size:20px;font-weight:900;margin-top:6px;" id="subPrice"></div>
