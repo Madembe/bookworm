@@ -884,7 +884,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
   </div>
 </div>
 
-<!-- Firebase -->
+<!-- Supabase -->
 <script type="module">
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
@@ -1806,8 +1806,8 @@ function showTransactionScreen(code,book,txId){
     </div>`:
     `<div class="tracking-card">
       <h4>🤝 Hand Delivery Details</h4>
-      <p>${document.getElementById("meetupLocation")?.value||""}</p>
-      <p>${document.getElementById("meetupAddress")?.value||""}</p>
+      <p>${esc(window._txMeetup?.meetupLocation||document.getElementById("meetupLocation")?.value||"")}</p>
+      <p>${esc(window._txMeetup?.meetupAddress||document.getElementById("meetupAddress")?.value||"")}</p>
       ${window._meetupMapsUrl?`<a href="${window._meetupMapsUrl}" target="_blank" style="color:var(--info);font-size:12px;font-weight:800;">📍 View on Google Maps</a>`:""}
     </div>`;
   document.getElementById("transactionContent").innerHTML=`
@@ -1967,9 +1967,8 @@ window.openPromoteModal=async function(bookId){
       </div>
     </div>`;
   try{
-    const s=await getDoc(doc(db,"settings","promo"));
-    if(s.exists()){
-      const d=s.data();
+    const d=appSettings.promo;
+    if(d){
       document.getElementById("promotePlans").innerHTML=`
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
           <div style="border:2px solid var(--gray-200);border-radius:10px;padding:12px;cursor:pointer;" onclick="selectPlan(7,${d.plan7||29},this)">
@@ -2000,15 +1999,8 @@ window.selectPlan=function(days,price,el){
   el.style.background="var(--gray-100)";
 };
 window.confirmPromotion=async function(){
-  if(!promoteDays||!promotePrice)return toast("Please tap a plan to select it first","error");
-  const expiresAt=new Date(Date.now()+promoteDays*24*60*60*1000);
-  try{
-    await updateDoc(doc(db,"books",promoteBookId),{featured:true,featuredUntil:expiresAt,featuredDays:promoteDays,featuredPrice:promotePrice});
-    await addDoc(collection(db,"promotions"),{bookId:promoteBookId,sellerId:currentUser.uid,days:promoteDays,price:promotePrice,expiresAt,createdAt:serverTimestamp(),status:"active"});
-    closeModal("promoteModal");
-    toast(`⭐ Your listing is now featured for ${promoteDays} days!`,"success");
-    await loadBooks();
-  }catch(e){toast("Failed to feature listing","error");}
+  closeModal("promoteModal");
+  toast("Featuring a listing needs online payment, which is being switched on soon.","warning");
 };
 
 // SUBSCRIPTIONS
@@ -2020,27 +2012,24 @@ window.openSubModal=function(bookId){
   document.getElementById("subModal").classList.add("active");
 };
 window.confirmSubscription=async function(){
-  closeModal("subModal");if(!currentBook)return;
-  const expires=new Date();expires.setFullYear(expires.getFullYear()+1);
-  try{
-    await addDoc(collection(db,"subscriptions"),{userId:currentUser.uid,bookId:currentBook.id,bookTitle:currentBook.title,sellerId:currentBook.sellerId,amount:currentBook.subPrice,status:"active",createdAt:serverTimestamp(),expiresAt:expires});
-    toast("Subscribed! 12 months of access starts now 📖","success");
-    showDetail(currentBook.id);
-  }catch(e){toast("Subscription failed","error");}
+  closeModal("subModal");
+  toast("Digital book subscriptions need online payment, which is being switched on soon.","warning");
 };
 
 // PDF READER
 window.openReader=async function(bookId){
   const book=allBooks.find(b=>b.id===bookId)||(await getBookById(bookId));
-  if(!book||!book.pdfUrl)return toast("PDF not available","error");
+  if(!book)return toast("PDF not available","error");
+  const fr=await sb.from("book_files").select("pdf_url").eq("book_id",bookId).maybeSingle();
+  const pdfUrl=fr.data?.pdf_url;
+  if(!pdfUrl)return toast("PDF not available - check your subscription","error");
   currentReaderBook=book;currentReaderPage=1;
   document.getElementById("readerTitle").textContent=book.title;
-  const q=query(collection(db,"subscriptions"),where("userId","==",currentUser.uid),where("bookId","==",bookId));
-  const s=await getDocs(q);
+  const s=snapOf(((await sb.from("subscriptions").select("*").eq("user_id",currentUser.uid).eq("book_id",bookId).eq("status","active").order("expires_at",{ascending:false})).data)||[],mapSub);
   if(!s.empty){const exp=s.docs[0].data().expiresAt?.toDate();document.getElementById("readerExpiry").textContent=exp?`Until ${exp.toLocaleDateString("en-ZA")}`:"Active";}
   previousScreen="screen-detail";switchScreen("screen-reader");
   try{
-    currentPDFDoc=await window.pdfjsLib.getDocument(book.pdfUrl).promise;
+    currentPDFDoc=await window.pdfjsLib.getDocument(pdfUrl).promise;
     window._totalPDFPages=currentPDFDoc.numPages;
     renderPDFPage(1);
   }catch(e){toast("Failed to load PDF","error");}
@@ -2095,6 +2084,7 @@ window.openSupportChat=async function(){
       chatId=ins.data.id;
       await sb.from("messages").insert({chat_id:chatId,sender_id:currentUser.uid,text:`Hi! I'm ${currentUserData?.name||"a student"} and I need some help. 👋`});
     }
+    window._supportChatId=chatId;
     openChatRoom(chatId,"BookWorm Support 🛟","We typically reply within 24 hours.");
   }catch(e){
     console.error("Support chat error:",e);
@@ -2164,6 +2154,7 @@ async function loadChatList(){
     const mine=c.buyer_id===currentUser.uid;
     const name=c.is_support?"BookWorm Support 🛟":((mine?c.seller?.name:c.buyer?.name)||"User");
     window._chats[c.id]={name,title:c.book_title||""};
+    if(c.is_support)window._supportChatId=c.id;
     return`<div class="chat-item" onclick="openChatById('${c.id}')">
       <div class="chat-avatar">${name==="BookWorm Support 🛟"?"🛟":esc(name[0]?.toUpperCase())}</div>
       <div><div style="font-weight:800;font-size:14px;">${esc(name)}</div><div style="font-size:12px;color:var(--gray-400);">${esc(c.last_message)||"Start the conversation..."}</div></div>
@@ -2314,13 +2305,7 @@ window.submitAppFeedback=async function(){
   if(!appRating)return toast("Please select a star rating first","error");
   const comment=document.getElementById("appFeedbackText")?.value.trim()||"";
   try{
-    await addDoc(collection(db,"appFeedback"),{
-      userId:currentUser?.uid||"anonymous",
-      userName:currentUserData?.name||"User",
-      university:currentUserData?.university||"",
-      rating:appRating,comment,
-      createdAt:serverTimestamp()
-    });
+    {const fb=await sb.from("app_feedback").insert({user_id:currentUser?.uid||null,rating:appRating,message:comment});if(fb.error)throw fb.error;}
     appRating=0;
     document.querySelectorAll("#appRatingStars span").forEach(s=>s.textContent="☆");
     if(document.getElementById("appFeedbackText"))document.getElementById("appFeedbackText").value="";
@@ -2342,12 +2327,7 @@ window.submitFlag=async function(){
   const details=document.getElementById("flagDetails").value.trim();
   if(!reason)return toast("Please select a reason","error");
   try{
-    await addDoc(collection(db,"flaggedContent"),{
-      itemId:flagTargetId,itemTitle:flagTargetTitle,type:"listing",
-      reason,details,reportedBy:currentUser.uid,
-      reportedByName:currentUserData?.name||"User",
-      status:"open",createdAt:serverTimestamp()
-    });
+    {const fl=await sb.from("flagged_content").insert({item_id:flagTargetId,item_title:flagTargetTitle,type:"listing",reason,details,reported_by:currentUser.uid});if(fl.error)throw fl.error;}
     closeModal("flagModal");
     toast("Report submitted. Our team will review within 24 hours.","success");
   }catch(e){toast("Failed to submit report","error");console.error(e);}
@@ -2367,15 +2347,7 @@ window.submitRefundRequest=async function(){
   if(!reason)return toast("Please select a reason","error");
   if(!details)return toast("Please describe the issue","error");
   try{
-    await updateDoc(doc(db,"transactions",refundTxId),{
-      refundRequested:true,refundReason:reason,refundDetails:details,
-      refundRequestedAt:serverTimestamp(),refundRequestedBy:currentUser.uid
-    });
-    await addDoc(collection(db,"notifications"),{
-      toUserId:"admin_refund_queue",type:"refund_request",txId:refundTxId,
-      userId:currentUser.uid,userName:currentUserData?.name||"User",
-      reason,details,read:false,createdAt:serverTimestamp()
-    });
+    {const rr=await sb.from("refund_requests").insert({tx_id:refundTxId,user_id:currentUser.uid,reason,details});if(rr.error)throw rr.error;}
     closeModal("refundModal");
     toast("Refund request submitted. We'll respond within 48 hours.","success");
   }catch(e){toast("Failed to submit refund request","error");console.error(e);}
@@ -2384,28 +2356,19 @@ window.submitRefundRequest=async function(){
 // AI SUPPORT BOT — reads faqs from Firestore, auto-responds in support chat
 async function getAIResponse(userMessage){
   try{
-    const settingsDoc=await getDoc(doc(db,"settings","aiSupport"));
-    const aiEnabled=settingsDoc.exists()?settingsDoc.data().enabled!==false:true;
-    const autoRespond=settingsDoc.exists()?settingsDoc.data().autoRespond!==false:true;
-    if(!aiEnabled||!autoRespond)return null;
-    const faqsSnap=await getDocs(collection(db,"faqs"));
-    const faqs=faqsSnap.docs.map(d=>d.data());
+    const cfg=appSettings.aiSupport||{};
+    if(cfg.enabled===false||cfg.autoRespond===false)return null;
+    const fr=await sb.from("faqs").select("question,answer");
+    const faqs=fr.data||[];
     const msg=userMessage.toLowerCase();
     const match=faqs.find(f=>{
       const triggers=(f.question||"").toLowerCase().split(" ");
       return triggers.some(t=>t.length>3&&msg.includes(t));
     });
     if(match)return match.answer;
-    const keywords=settingsDoc.exists()&&settingsDoc.data().keywords
-      ?settingsDoc.data().keywords
-      :["refund","fraud","scam","stolen","police","lawyer","legal","hacked","abuse","threat"];
-    const needsEscalation=keywords.some(k=>msg.includes(k));
-    if(needsEscalation){
-      await addDoc(collection(db,"escalations"),{
-        chatId:"support_"+currentUser.uid,userId:currentUser.uid,
-        userName:currentUserData?.name||"User",triggerMessage:userMessage,
-        status:"open",createdAt:serverTimestamp()
-      });
+    const keywords=Array.isArray(cfg.keywords)?cfg.keywords:[];
+    if(keywords.some(k=>msg.includes(String(k).toLowerCase()))){
+      await sb.from("escalations").insert({user_id:currentUser.uid,trigger_message:userMessage});
       return"This sounds urgent — I've flagged your message for a human agent who will follow up shortly. For emergencies email support@bookworm.co.za directly.";
     }
     return null;
@@ -2413,29 +2376,23 @@ async function getAIResponse(userMessage){
 }
 
 // Patch sendMessage to trigger AI bot in support chats
-const _origSend=window.sendMessage;
 window.sendMessage=async function(){
   const input=document.getElementById("chatInput");
   const text=input?.value.trim();if(!text||!currentChatId)return;
   input.value="";
+  const chatId=currentChatId;
   try{
-    await addDoc(collection(db,"chats",currentChatId,"messages"),{
-      text,senderId:currentUser.uid,senderName:currentUserData?.name||"User",createdAt:serverTimestamp()
-    });
-    await updateDoc(doc(db,"chats",currentChatId),{lastMessage:text,updatedAt:serverTimestamp()});
-    if(currentChatId.startsWith("support_")){
+    const mr=await sb.from("messages").insert({chat_id:chatId,sender_id:currentUser.uid,text});
+    if(mr.error)throw mr.error;
+    if(chatId===window._supportChatId){
       const aiReply=await getAIResponse(text);
       if(aiReply){
         setTimeout(async()=>{
-          await addDoc(collection(db,"chats",currentChatId,"messages"),{
-            text:aiReply,senderId:"support",senderName:"BookWorm Bot 🤖",
-            isBot:true,createdAt:serverTimestamp()
-          });
-          await updateDoc(doc(db,"chats",currentChatId),{lastMessage:aiReply,updatedAt:serverTimestamp()});
+          await sb.from("messages").insert({chat_id:chatId,sender_id:null,is_bot:true,text:aiReply});
         },900);
       }
     }
-  }catch(e){console.error(e);}
+  }catch(e){console.error(e);toast("Message not sent","error");}
 };
 
 // DELIVERY SETTINGS — read from Firestore so admin toggles take effect in-app
@@ -2457,21 +2414,7 @@ async function applyDeliverySettings(){
 }
 
 // PROMO EXPIRY — auto-unfeature expired listings client-side on load
-async function cleanExpiredPromos(){
-  try{
-    const now=new Date();
-    const expired=(allBooks||[]).filter(b=>{
-      if(!b.featured||!b.featuredUntil)return false;
-      const exp=b.featuredUntil.toDate?b.featuredUntil.toDate():new Date(b.featuredUntil);
-      return exp<now;
-    });
-    for(const b of expired){
-      await updateDoc(doc(db,"books",b.id),{featured:false});
-      await updateDoc(doc(db,"promotions",b.id),{status:"expired"}).catch(()=>{});
-    }
-    if(expired.length)await loadBooks();
-  }catch(e){console.error("Promo expiry:",e);}
-}
+async function cleanExpiredPromos(){/* featured status is driven by the promotions table; nothing to clean client-side */}
 
 // RESET UPLOAD FORM
 function resetUploadForm(){
@@ -2492,16 +2435,22 @@ window.toast=function(msg,type=""){const t=document.getElementById("toast");t.te
 // Check URL params on load (PayFast return)
 window.addEventListener("load",()=>{
   const params=new URLSearchParams(window.location.search);
-  if(params.get("tx")){
-    const txId=params.get("tx");
+  const txId=params.get("tx"),pay=params.get("payment");
+  if(txId){
     setTimeout(async()=>{
-      if(currentUser){
-        const tx=await getDoc(doc(db,"transactions",txId));
-        if(tx.exists()){
-          const txData=tx.data();
-          const book=await getBookById(txData.bookId);
-          if(book){currentBook=book;selectedDelivery=txData.deliveryMethod;showTransactionScreen(txData.code,book,txId);}
-        }
+      if(!currentUser)return;
+      if(pay==="cancelled"){
+        await sb.rpc("cancel_unpaid_transaction",{p_tx_id:txId});
+        toast("Payment cancelled. The book is available again.","warning");
+        loadBooks();
+        return;
+      }
+      const tr=await sb.from("transactions").select("*").eq("id",txId).maybeSingle();
+      if(tr.data){
+        const t=mapTx(tr.data);
+        const cr=await sb.from("transaction_codes").select("code").eq("tx_id",txId).maybeSingle();
+        const book=await getBookById(t.bookId);
+        if(book){currentBook=book;selectedDelivery=t.deliveryMethod;window._txMeetup=t;window._meetupMapsUrl=t.meetupMapsUrl||window._meetupMapsUrl;showTransactionScreen(cr.data?.code||"------",book,txId);}
       }
     },2500);
     window.history.replaceState({},"",window.location.pathname);
