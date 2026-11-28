@@ -18,7 +18,7 @@ It should feel like a calm, intelligent study tool. It must **not** feel like a 
 - Mark: a small page split down the middle, half filled, half outline. Wordmark: Inter 600, tight tracking (-0.035em).
 - App icon: a lowercase **b**. It works best in dark mode (light letter on near-black).
 - Pronunciation note to show once on the splash or sign-up screen: "bugu: Tshivenda for book".
-- Status: the owner chose the name. Availability still needs checking (CIPC, Google Play, App Store, .co.za, social handles). Until the rename PR, code, package names and repo names may still say BookWorm.
+- Status: the owner chose the name and it is now used in the static markup (title, splash, sign-in, header, manifest, icons). Availability still needs checking (CIPC, Google Play, App Store, .co.za, social handles); if it fails, the wordmark is one component and is easy to swap. Strings inside scripts (for example "BookWorm Support", "BookWorm Commission") and repo names still say BookWorm until the Supabase migration has merged.
 
 ## 3. Colour: black and white only, dimmed
 

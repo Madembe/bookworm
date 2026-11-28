@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BookWorm – Student Textbook Marketplace</title>
+<title>bugu – Student textbook marketplace</title>
+<link rel="icon" href="icons/icon-192.png"/>
+<link rel="apple-touch-icon" href="icons/icon-180.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -352,6 +354,24 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);transition:left .2s}
 :root[data-theme="dark"] .sw::after{left:21px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sw::after{left:21px}}
+
+/* remaining screens (DESIGN.md sections 2 to 6): splash, sign-in, register, wanted, notifications, reader */
+:root{--reader:#1c1c1c;--reader-ink:#e6e6e5;--reader-soft:#9a9a98;--reader-btn:#2c2c2c}
+#screen-splash{background:var(--ink);color:var(--inv)}
+.splash-word{display:flex;align-items:center;gap:14px;animation:popIn 0.7s cubic-bezier(.34,1.56,.64,1) forwards}
+.splash-word .bugu-mark{width:30px;height:39px;border:3px solid var(--inv);background:linear-gradient(90deg,var(--inv) 50%,transparent 50%)}
+.splash-word .bugu-word{font-size:64px;color:var(--inv);margin-left:0}
+.splash-sub{color:var(--inv);opacity:.75;font-weight:500;letter-spacing:0}
+.splash-note{color:var(--inv);opacity:.5;font-size:12px;animation:fadeUp 0.6s 0.9s both}
+.auth-container{background:var(--bg)}
+.auth-card{background:var(--surf);border:1px solid var(--line);box-shadow:none;border-radius:14px}
+.auth-wordmark{display:flex;align-items:center;justify-content:center;gap:9px;margin:0 auto 22px}
+.auth-wordmark .bugu-mark{width:20px;height:26px}
+.auth-wordmark .bugu-word{font-size:34px}
+.auth-switch a{font-weight:600}
+.empty-state .icon{display:grid;place-items:center;color:var(--mute);font-size:0;margin-bottom:10px}
+.reader-container,.reader-toolbar,.reader-nav{background:var(--reader);color:var(--reader-ink)}
+.reader-page-num{color:var(--reader-soft)}
 </style>
 <script>try{var t=localStorage.getItem("bugu-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
@@ -362,15 +382,16 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 
 <!-- SPLASH -->
 <div class="screen active" id="screen-splash">
-  <img class="splash-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
-  <div class="splash-sub">Student Textbook Marketplace</div>
+  <div class="splash-word" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
+  <div class="splash-sub">Student textbook marketplace</div>
+  <div class="splash-note">bugu is Tshivenda for “book”</div>
 </div>
 
 <!-- LOGIN -->
 <div class="screen" id="screen-login">
   <div class="auth-container">
     <div class="auth-card">
-      <img class="auth-logo-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+      <div class="auth-wordmark" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
       <div class="form-group">
         <label>Email Address</label>
         <input class="form-control" id="loginEmail" type="email" placeholder="your@email.com"/>
@@ -383,7 +404,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       <div style="text-align:center;margin-top:10px;">
         <a style="font-size:12px;color:var(--gray-400);cursor:pointer;font-weight:700;" onclick="showForgotPassword()">Forgot password?</a>
       </div>
-      <div class="auth-switch">New to BookWorm? <a onclick="showScreen('screen-register')">Create Account</a></div>
+      <div class="auth-switch">New to bugu? <a onclick="showScreen('screen-register')">Create Account</a></div>
     </div>
   </div>
 </div>
@@ -392,7 +413,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 <div class="screen" id="screen-register">
   <div class="auth-container">
     <div class="auth-card">
-      <img class="auth-logo-img" src="https://res.cloudinary.com/drtdddsxp/image/upload/v1776543075/LOGO_BOOKWORM_fcvfic.png" alt="BookWorm"/>
+      <div class="auth-wordmark" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
       <div class="form-group">
         <label>Account Type</label>
         <select class="form-control" id="regAccountType" onchange="toggleAccountFields()">
@@ -643,7 +664,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       <div class="seller-earnings-box" id="sellerEarningsBox">
         <div style="font-weight:900;font-size:12px;color:var(--info);margin-bottom:8px;"> Your earnings</div>
         <div class="earnings-row"><span>Book Price</span><span id="ebPrice">R0</span></div>
-        <div class="earnings-row"><span>BookWorm Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
+        <div class="earnings-row"><span>bugu Commission (<span id="ebCommPct"></span>%)</span><span id="ebComm">-R0</span></div>
         <div class="earnings-total"><span>You Receive</span><span id="ebNet">R0</span></div>
         <div style="font-size:11px;color:var(--info);margin-top:6px;">Note: Delivery fee (R79) is paid by the buyer and goes directly to Pargo.</div>
       </div>
@@ -768,10 +789,10 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Messages</div>
   </nav>
-  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Chats may be reviewed by BookWorm Support for safety and dispute resolution purposes.</div>
+  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Chats may be reviewed by bugu Support for safety and dispute resolution purposes.</div>
   <div class="chat-list" id="chatList"></div>
   <div style="padding:16px;border-top:1px solid var(--gray-200);">
-    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact BookWorm Support</button>
+    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact bugu Support</button>
   </div>
 </div>
 
@@ -838,7 +859,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
   <div class="section-block"><div class="pref-row"><span>Dark mode</span><button class="sw" id="themeSwitch" role="switch" aria-label="Dark mode" onclick="var d=document.documentElement,on=!(d.dataset.theme==='dark'||(!d.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches));d.dataset.theme=on?'dark':'light';try{localStorage.setItem('bugu-theme',d.dataset.theme)}catch(e){}"></button></div></div>
   <div style="padding:16px;">
     <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact Support</button>
-    <button class="btn btn-secondary btn-full btn-sm" style="margin-top:8px;" onclick="document.getElementById('appFeedbackModal').classList.add('active')">Rate BookWorm</button>
+    <button class="btn btn-secondary btn-full btn-sm" style="margin-top:8px;" onclick="document.getElementById('appFeedbackModal').classList.add('active')">Rate bugu</button>
   </div>
 </div>
 
@@ -849,7 +870,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div class="nav-logo-text">Post a Wanted</div>
   </nav>
   <div class="upload-container">
-    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">Can't find the book you need? Post a wanted listing and sellers will contact you!</p>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">Can't find the book you need? Post a wanted listing and sellers will contact you.</p>
     <div class="form-group">
       <label>Book Title</label>
       <input class="form-control" id="wantedTitle" placeholder="e.g. Principles of Marketing"/>
@@ -877,7 +898,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
       <label>Additional Notes</label>
       <textarea class="form-control" id="wantedNotes" placeholder="Any extra details..."></textarea>
     </div>
-    <button class="btn btn-primary btn-full" onclick="submitWanted()">🔍 Post Wanted Listing</button>
+    <button class="btn btn-primary btn-full" onclick="submitWanted()">Post wanted listing</button>
   </div>
 </div>
 
@@ -889,17 +910,17 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div class="nav-actions"><button class="nav-btn btn-sm" onclick="markAllNotifsRead()">Mark all read</button></div>
   </nav>
   <div id="notifList" style="padding:16px;flex:1;overflow-y:auto;">
-    <div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>We'll let you know about wanted matches, messages and more.</p></div>
+    <div class="empty-state"><div class="icon"><svg class="ic" style="width:40px;height:40px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20h4"/></svg></div><h3>No notifications yet</h3><p>We'll let you know about wanted matches, messages and more.</p></div>
   </div>
 </div>
 
 <!-- PDF READER -->
 <div class="screen" id="screen-reader">
   <div class="reader-toolbar">
-    <button onclick="goBack()" style="background:transparent;border:none;color:white;font-size:20px;cursor:pointer;">←</button>
+    <button onclick="goBack()" aria-label="Back" style="background:transparent;border:none;color:var(--reader-ink);cursor:pointer;line-height:0;"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
     <div style="flex:1;padding:0 12px;">
-      <div style="font-weight:800;font-size:13px;color:white;" id="readerTitle"></div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="readerExpiry"></div>
+      <div style="font-weight:600;font-size:13px;color:var(--reader-ink);" id="readerTitle"></div>
+      <div style="font-size:11px;color:var(--reader-soft);" id="readerExpiry"></div>
     </div>
   </div>
   <div class="reader-container">
@@ -909,11 +930,11 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     </div>
   </div>
   <div class="reader-nav">
-    <button onclick="readerPage(-1)" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:white;border:none;">← Prev</button>
+    <button onclick="readerPage(-1)" class="btn btn-sm" style="background:var(--reader-btn);color:var(--reader-ink);border:none;"><svg class="ic" style="width:16px;height:16px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Prev</button>
     <div class="reader-page-num" id="readerPageNum">Page 1</div>
-    <button onclick="readerPage(1)" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:white;border:none;">Next →</button>
+    <button onclick="readerPage(1)" class="btn btn-sm" style="background:var(--reader-btn);color:var(--reader-ink);border:none;">Next <svg class="ic" style="width:16px;height:16px;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
   </div>
-  <div id="screenshotWarnReader" class="screenshot-warn">📵 Screenshots disabled for copyright protection</div>
+  <div id="screenshotWarnReader" class="screenshot-warn">Screenshots disabled for copyright protection</div>
 </div>
 
 <!-- MODALS -->
@@ -922,7 +943,7 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
   <div class="modal">
     <button class="modal-close" onclick="closeModal('paymentModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <h3> Confirm Purchase</h3>
-    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;"> <strong>Pay through BookWorm only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
+    <div style="background:var(--tint);border:1px solid var(--tint);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);font-weight:700;margin-bottom:14px;"> <strong>Pay through bugu only.</strong> Never pay a seller outside the app. Your money is protected by escrow.</div>
     <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:10px;" id="paymentBook"></div>
       <div class="price-breakdown-row"><span>Book Price</span><span id="pbBookPrice"></span></div>
@@ -2812,8 +2833,8 @@ window.addEventListener("load",()=>{
 <div class="modal-overlay" id="appFeedbackModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('appFeedbackModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    <h3> Rate BookWorm</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with BookWorm so far? Your feedback helps us improve.</p>
+    <h3> Rate bugu</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">How's your experience with bugu so far? Your feedback helps us improve.</p>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="appRatingStars">
       <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(1)">☆</span>
       <span style="font-size:32px;cursor:pointer;" onclick="setAppRating(2)">☆</span>
@@ -2834,7 +2855,7 @@ window.addEventListener("load",()=>{
   <div class="modal">
     <button class="modal-close" onclick="closeModal('flagModal')"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <h3> Report Listing</h3>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep BookWorm safe. Our team reviews every report within 24 hours.</p>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;">Help keep bugu safe. Our team reviews every report within 24 hours.</p>
     <div class="form-group">
       <label>Reason for reporting</label>
       <select class="form-control" id="flagReason">
