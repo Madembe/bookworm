@@ -318,6 +318,23 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 .tracking-card{background:var(--surf);border:1px solid var(--line);border-radius:12px}
 .tracking-number-display{font-family:'IBM Plex Mono',monospace;font-weight:500}
 .payout-info-box{background:var(--surf);border:1px solid var(--line);border-radius:12px;color:var(--ink)}
+
+/* chats (DESIGN.md sections 5 and 6): list, room, bubbles, composer; scripts untouched */
+.chat-warning{background:var(--surf);border-bottom:1px solid var(--line);color:var(--mute);font-weight:500;padding:10px 18px}
+.chat-warning .ic{color:var(--ink)}
+.chat-item{padding:14px 18px;border-bottom:1px solid var(--line)}
+.chat-item:hover{background:var(--tint)}
+.chat-avatar{font-weight:600}
+.chat-room-header{border-bottom:1px solid var(--line)}
+.chat-messages{padding:14px 18px;gap:6px}
+.message{font-size:14px;max-width:78%}
+.message.sent{background:var(--ink);color:var(--inv)}
+.message.received{background:var(--surf);color:var(--ink);border:1px solid var(--line)}
+.chat-input-area{padding:10px 18px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
+.chat-input{border:1px solid var(--line);border-radius:10px;min-height:44px;background:var(--surf);color:var(--ink);font-size:14px}
+.chat-input::placeholder{color:var(--mute)}
+.chat-input:focus{border-color:var(--ink)}
+.chat-send{width:44px;height:44px;padding:0;border-radius:10px;justify-content:center;flex:none}
 </style>
 </head>
 <body>
@@ -733,10 +750,10 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div class="nav-logo-text">Messages</div>
   </nav>
-  <div class="chat-warning">🔒 Chats may be reviewed by BookWorm Support for safety and dispute resolution purposes.</div>
+  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Chats may be reviewed by BookWorm Support for safety and dispute resolution purposes.</div>
   <div class="chat-list" id="chatList"></div>
   <div style="padding:16px;border-top:1px solid var(--gray-200);">
-    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()">🛟 Contact BookWorm Support</button>
+    <button class="btn btn-secondary btn-full btn-sm" onclick="openSupportChat()"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9m5 5 3.9 3.9m0-12.8-3.9 3.9m-5 5-3.9 3.9"/></svg> Contact BookWorm Support</button>
   </div>
 </div>
 
@@ -746,14 +763,14 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     <div class="nav-logo" onclick="goBack()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg> Back</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="chat-avatar" id="chatroomAvatar" style="width:32px;height:32px;font-size:12px;"></div>
-      <div><div style="font-size:14px;font-weight:600;color:var(--ink);" id="chatroomName"></div><div style="font-size:11px;color:var(--gray-300);" id="chatroomBook"></div></div>
+      <div><div style="font-size:14px;font-weight:600;color:var(--ink);" id="chatroomName"></div><div style="font-size:11px;color:var(--mute);" id="chatroomBook"></div></div>
     </div>
   </nav>
-  <div class="chat-warning">🔒 Safety reminder: Meet in public places. Never share personal banking details in chat.</div>
+  <div class="chat-warning"><svg class="ic" style="width:16px;height:16px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Safety reminder: Meet in public places. Never share personal banking details in chat.</div>
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-input-area">
-    <input class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMessage()"/>
-    <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+    <input class="chat-input" id="chatInput" placeholder="Message" aria-label="Message" onkeypress="if(event.key==='Enter')sendMessage()"/>
+    <button class="btn btn-primary btn-sm chat-send" aria-label="Send" onclick="sendMessage()"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
   </div>
 </div>
 
