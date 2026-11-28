@@ -224,6 +224,41 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
 .bottom-nav{background:var(--surf);padding-bottom:env(safe-area-inset-bottom,0px)}
 .bottom-nav-item{font-size:11px;font-weight:500;text-transform:none;letter-spacing:0}
 .bottom-nav-item span:first-child{line-height:0}
+
+/* home and listings (DESIGN.md sections 4 to 6): catalogue rows, CSS only so the card renderer script is untouched */
+.hero{background:transparent;color:var(--ink);padding:18px 18px 6px;text-align:left}
+.hero h1{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin:0}
+.hero h1 em{font-style:normal;color:inherit}
+.hero p{font-size:14px;color:var(--mute);max-width:none;margin:6px 0 16px;line-height:1.5}
+.search-bar{max-width:none;margin:0;background:var(--surf);border:1px solid var(--line);border-radius:10px;box-shadow:none}
+.search-bar:focus-within{border-color:var(--ink)}
+.search-bar input{padding:12px 14px;font-weight:400}
+.search-bar button{background:var(--ink);color:var(--inv);margin:5px;border-radius:7px;padding:8px 14px;font-weight:500}
+.trust-badge{display:flex;align-items:center;gap:10px;background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin:14px 0 0;font-size:13px;color:var(--mute)}
+.trust-badge b{color:var(--ink);font-weight:600}
+.home-tabs{background:transparent;border-bottom:1px solid var(--line);margin-top:14px}
+.home-tab{font-weight:500;font-size:14px;margin-bottom:-1px}
+.home-tab.active{font-weight:600}
+.filters{background:transparent;border-bottom:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.filter-select{border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;flex:none}
+.section-title{font-size:16px;font-weight:600}
+.books-grid{display:block;padding:0 16px 24px}
+.book-card{display:flex;gap:14px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:14px 0;overflow:visible}
+.book-card:hover{box-shadow:none;transform:none}
+.book-card:active{opacity:.7}
+.book-card-img{flex:none;width:72px;height:96px;border-radius:2px 5px 5px 2px;background:var(--ink);font-size:0;box-shadow:0 3px 8px -3px rgba(0,0,0,.35)}
+.book-card-img::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(0,0,0,.25);z-index:1}
+.book-card-img::after{content:"";position:absolute;inset:0;margin:auto;width:26px;height:26px;background:var(--inv);opacity:.7;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z'/%3E%3Cpath d='M4 21V5M9 7h6'/%3E%3C/svg%3E") center/contain no-repeat}
+.book-card-img:has(img)::after{display:none}
+.book-card-body{flex:1;min-width:0;display:flex;flex-direction:column;padding:0}
+.book-card-meta{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.04em;color:var(--mute);margin-bottom:2px}
+.book-card-title{font-size:15px;font-weight:600;line-height:1.25}
+.book-card-footer{margin-top:auto;padding-top:8px;align-items:flex-end}
+.price{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.badge-pill{border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:500;text-transform:none;color:var(--mute);background:transparent}
+.condition-new,.condition-good,.condition-used,.type-digital{background:transparent;color:var(--mute)}
+.featured-badge{background:var(--ink);color:var(--inv);font-weight:600;border-radius:4px;letter-spacing:.04em;top:18px;left:4px}
+.empty-state h3{font-weight:600}
 </style>
 </head>
 <body>
@@ -381,18 +416,18 @@ nav{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line)}
     </div>
   </nav>
   <div class="hero">
-    <div class="trust-badge">🎓 South Africa's Student Marketplace</div>
-    <h1>Buy & Sell<br/><em>Textbooks</em> Safely</h1>
-    <p>Secure escrow payments. Release funds only when you're happy with your book.</p>
+    <h1>Find your course books.</h1>
+    <p>Second-hand textbooks from students on your campus.</p>
     <div class="search-bar">
-      <input id="searchInput" placeholder="Search by title, module code..." oninput="filterBooks()"/>
+      <input id="searchInput" placeholder="Module code or title, e.g. ACCN101" oninput="filterBooks()"/>
       <button onclick="filterBooks()">Search</button>
     </div>
+    <div class="trust-badge"><svg class="ic" style="width:18px;height:18px;color:var(--ink)" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span><b>Pay safely.</b> Money is held until you confirm the book.</span></div>
   </div>
   <div class="home-tabs">
-    <div class="home-tab active" onclick="switchHomeTab('physical',this)">📚 Physical Books</div>
-    <div class="home-tab" onclick="switchHomeTab('digital',this)">📖 Digital Books</div>
-    <div class="home-tab" onclick="switchHomeTab('wanted',this)">🔍 Wanted</div>
+    <div class="home-tab active" onclick="switchHomeTab('physical',this)">Physical</div>
+    <div class="home-tab" onclick="switchHomeTab('digital',this)">Digital</div>
+    <div class="home-tab" onclick="switchHomeTab('wanted',this)">Wanted</div>
   </div>
   <div class="filters" id="homeFilters">
     <select class="filter-select" id="filterUniversity" onchange="filterBooks()">
