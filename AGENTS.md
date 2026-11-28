@@ -1,5 +1,7 @@
 # Notes for AI sessions and contributors
 
+This is one repo with two sites: `app/` (students) and `admin/`. Shared tokens are in `shared/tokens.css` and shared functions are in `api/`. See `README.md`.
+
 This repo is being redesigned as **bugu**. Before changing any UI:
 
 1. Read `DESIGN.md`. It is the single source of truth and overrides your own taste.

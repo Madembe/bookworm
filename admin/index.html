@@ -1,0 +1,2592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>bugu admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/shared/tokens.css"/>
+<style>
+/* design tokens live in /shared/tokens.css */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--black);min-height:100vh;}
+.admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--black);}
+.login-card{background:var(--white);border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 4px 40px rgba(0,0,0,0.3);}
+.login-card img{display:block;margin:0 auto 20px;height:70px;}
+.login-card h2{font-size:20px;font-weight:900;text-align:center;margin-bottom:6px;}
+.login-card p{font-size:12px;color:var(--gray-400);text-align:center;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-weight:800;font-size:11px;margin-bottom:4px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;}
+.form-control{width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Inter',system-ui,sans-serif;font-size:14px;background:var(--white);transition:border-color 0.2s;}
+.form-control:focus{outline:none;border-color:var(--black);}
+.btn{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-weight:800;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-primary{background:var(--black);color:var(--white);}
+.btn-primary:hover:not(:disabled){background:var(--hover);}
+.btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black);}
+.btn-success{background:var(--success);color:var(--white);}
+.btn-danger{background:var(--error);color:var(--white);}
+.btn-warning{background:var(--warning);color:var(--white);}
+.btn-info{background:var(--info);color:var(--white);}
+.btn-sm{padding:6px 12px;font-size:11px;}
+.btn-full{width:100%;}
+.admin-layout{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--black);color:var(--white);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo img{height:40px;filter:invert(1);}
+.sidebar-logo div{font-size:11px;color:var(--gray-400);margin-top:4px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav{flex:1;padding:12px 0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);transition:all 0.2s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--white);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:var(--white);background:rgba(255,255,255,0.08);border-left-color:var(--white);}
+.nav-badge{background:var(--warning);color:white;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:900;margin-left:auto;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);}
+.sidebar-footer button{background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:700;width:100%;}
+.sidebar-footer button:hover{background:rgba(255,255,255,0.1);color:white;}
+.main-content{margin-left:240px;flex:1;padding:24px;min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;}
+.page-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-header-left h1{font-size:24px;font-weight:900;}
+.page-header-left p{font-size:13px;color:var(--gray-400);margin-top:4px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--white);border-radius:12px;padding:18px;border:1px solid var(--gray-200);}
+.stat-card .lbl{font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.stat-card .val{font-size:28px;font-weight:900;}
+.stat-card .sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
+.stat-card.green .val{color:var(--success);}
+.stat-card.orange .val{color:var(--warning);}
+.stat-card.red .val{color:var(--error);}
+.stat-card.blue .val{color:var(--info);}
+.table-card{background:var(--white);border-radius:12px;border:1px solid var(--gray-200);overflow:hidden;margin-bottom:20px;}
+.table-card-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.table-card-header h3{font-size:15px;font-weight:900;}
+.admin-table{width:100%;border-collapse:collapse;}
+.admin-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--gray-200);background:var(--gray-100);white-space:nowrap;}
+.admin-table td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--gray-100);}
+.tag{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;display:inline-block;}
+.tag-available{background:var(--tint);color:var(--success);}
+.tag-active{background:var(--tint);color:var(--success);}
+.tag-pending{background:var(--tint);color:var(--warning);}
+.tag-sold{background:var(--tint);color:var(--info);}
+.tag-disputed{background:var(--tint);color:var(--error);}
+.tag-completed{background:var(--tint);color:var(--success);}
+.tag-open{background:var(--tint);color:var(--error);}
+.tag-resolved{background:var(--tint);color:var(--success);}
+.tag-featured{background:var(--tint);color:var(--warning);}
+.tag-cancelled{background:var(--gray-100);color:var(--gray-500);}
+.tag-failed{background:var(--tint);color:var(--error);}
+.tab-bar{display:flex;border-bottom:2px solid var(--gray-200);margin-bottom:20px;flex-wrap:wrap;}
+.tab-item{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:800;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;}
+.tab-item.active{color:var(--black);border-bottom-color:var(--black);}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px;}
+.settings-card{background:var(--white);border-radius:12px;padding:20px;border:1px solid var(--gray-200);}
+.settings-card h3{font-size:14px;font-weight:900;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-200);}
+.settings-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;}
+.settings-row label{font-size:13px;font-weight:700;}
+.settings-row input[type=number]{width:90px;padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:800;text-align:center;}
+.toggle{width:44px;height:24px;background:var(--gray-300);border-radius:12px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--success);}
+.toggle::after{content:"";position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle.on::after{left:23px;}
+.chat-panel{display:flex;height:520px;border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;background:var(--white);}
+.chat-sidebar-p{width:280px;border-right:1px solid var(--gray-200);overflow-y:auto;flex-shrink:0;}
+.chat-main-p{flex:1;display:flex;flex-direction:column;min-width:0;}
+.chat-msgs-p{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.cmsg{max-width:70%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word;}
+.cmsg.sent{background:var(--black);color:white;align-self:flex-end;}
+.cmsg.received{background:var(--gray-100);align-self:flex-start;}
+.chat-input-r{padding:12px;border-top:1px solid var(--gray-200);display:flex;gap:8px;}
+.chat-input-r input{flex:1;padding:9px 13px;border:2px solid var(--gray-200);border-radius:8px;font-family:'Inter',system-ui,sans-serif;font-size:13px;}
+.chat-input-r input:focus{outline:none;border-color:var(--black);}
+.cli{padding:13px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.15s;}
+.cli:hover{background:var(--gray-100);}
+.cavatar{width:38px;height:38px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;}
+.modal h3{font-size:18px;font-weight:900;margin-bottom:16px;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);line-height:1;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:white;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:800;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:300px;}
+.toast.show{opacity:1;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--error);}
+.toast.warning{background:var(--warning);}
+.empty-state{text-align:center;padding:40px;color:var(--gray-400);}
+.report-filters{display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;}
+.report-filters .form-group{margin-bottom:0;}
+.monitor-category{margin-bottom:18px;}.monitor-cat-title{font-size:11px;font-weight:900;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--gray-200);}.monitor-row{background:var(--white);border-radius:10px;padding:13px 18px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--gray-200);gap:12px;}.monitor-row .feat-name{font-weight:800;font-size:13px;}.monitor-row .feat-notes{font-size:11px;color:var(--gray-400);margin-top:2px;}.monitor-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;flex-shrink:0;}.mb-live{background:var(--tint);color:var(--success);}.mb-issue{background:var(--tint);color:var(--warning);}.mb-down{background:var(--tint);color:var(--error);}.mb-maintenance{background:var(--tint);color:var(--info);}.mb-coming_soon{background:var(--gray-100);color:var(--gray-500);}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}.sidebar{width:200px;}.main-content{margin-left:200px;}}
+
+/* admin shell and components (DESIGN.md sections 3 to 8) */
+body{font-size:14px;-webkit-font-smoothing:antialiased}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+.bugu-mark{display:inline-block;width:16px;height:21px;border:2px solid var(--ink);border-radius:2px;background:linear-gradient(90deg,var(--ink) 50%,transparent 50%)}
+.bugu-word{font-size:23px;font-weight:600;letter-spacing:-.035em;line-height:1;color:var(--ink);margin-left:3px}
+.admin-login{background:var(--bg)}
+.login-card{background:var(--surf);border:1px solid var(--line);box-shadow:none;border-radius:14px}
+.login-word{display:flex;align-items:center;justify-content:center;gap:9px;margin:0 auto 18px}
+.login-word .bugu-mark{width:20px;height:26px}.login-word .bugu-word{font-size:34px}
+.login-card h2{font-weight:600}
+.form-group label{font-weight:600;letter-spacing:.05em}
+.form-control,.settings-row input[type=number]{border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:10px;font-weight:400}
+.form-control:focus{border-color:var(--ink)}
+.btn{font-weight:600;border-radius:10px}
+.btn-secondary{border-width:1px}
+.btn-danger,.btn-warning{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.sidebar{background:var(--surf);color:var(--ink);border-right:1px solid var(--line)}
+.sidebar-logo{padding:20px 20px 14px;border-bottom:0}
+.sidebar-word{display:flex;align-items:center;gap:9px}
+.sidebar-logo div{color:var(--mute);letter-spacing:.08em;font-weight:600;margin-top:8px}
+.sidebar-nav{padding:0 12px 12px}
+.nav-group{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);padding:16px 8px 6px}
+.nav-item{padding:8px 10px;margin-bottom:1px;border-radius:8px;border-left:0;font-weight:500;color:var(--mute)}
+.nav-item:hover{background:var(--tint);color:var(--ink)}
+.nav-item.active{background:var(--ink);color:var(--inv)}
+.nav-badge{background:var(--ink);color:var(--inv);font-weight:600;font-size:10px;padding:1px 7px;border-radius:99px}
+.nav-item.active .nav-badge{background:var(--inv);color:var(--ink)}
+.sidebar-footer{border-top:1px solid var(--line)}
+.sidebar-footer button{border:1px solid var(--line);color:var(--ink);border-radius:8px;font-weight:500}
+.sidebar-footer button:hover{background:var(--tint);color:var(--ink)}
+.pref-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);margin-bottom:10px}
+.sw{flex:none;width:40px;height:24px;border-radius:99px;border:1px solid var(--line);background:var(--surf);position:relative;cursor:pointer;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:left .2s}
+:root[data-theme="dark"] .sw::after{left:19px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sw::after{left:19px}}
+.menu-btn{display:none;background:none;border:0;color:var(--ink);cursor:pointer;margin:-8px 0 8px -8px;padding:8px;line-height:0}
+.page-header-left h1{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.stat-card,.table-card,.settings-card{background:var(--surf);border:1px solid var(--line);border-radius:12px}
+.stat-card .lbl{font-weight:600;letter-spacing:.05em}
+.stat-card .val{font-weight:600;letter-spacing:-.02em}
+.table-card-header h3,.settings-card h3{font-weight:600}
+.admin-table th{background:var(--surf);font-weight:600;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+.admin-table td{border-bottom:1px solid var(--line)}
+.admin-table tr:hover td{background:var(--tint)}
+.tab-bar{border-bottom:1px solid var(--line)}
+.tab-item{font-weight:500;margin-bottom:-1px}
+.tab-item.active{font-weight:600}
+.tag{background:transparent;border:1px solid var(--line);color:var(--mute);font-weight:500;border-radius:6px}
+.tag-available,.tag-active,.tag-sold,.tag-completed,.tag-resolved{color:var(--ink)}
+.tag-pending,.tag-featured{border-color:var(--ink);color:var(--ink);font-weight:600}
+.tag-disputed,.tag-open,.tag-failed{background:var(--ink);color:var(--inv);border-color:var(--ink);font-weight:600}
+.toast{background:var(--ink);color:var(--inv)}
+.modal{background:var(--bg);border:1px solid var(--line);border-radius:14px}
+.modal-overlay{background:rgba(0,0,0,.45)}
+@media(max-width:900px){.sidebar{width:240px;transform:translateX(-100%);transition:transform .2s}.sidebar.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.4)}.main-content{margin-left:0;padding:16px}.menu-btn{display:block}.admin-table{min-width:560px}}
+</style>
+<script>try{var t=localStorage.getItem("bugu-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- LOGIN -->
+<div id="adminLogin" class="admin-login">
+  <div class="login-card">
+    <div class="login-word" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></div>
+    <h2>Admin Portal</h2>
+    <p>bugu management console</p>
+    <div class="form-group"><label>Email</label><input class="form-control" id="loginEmail" type="email" placeholder="admin@example.com"/></div>
+    <div class="form-group"><label>Password</label><input class="form-control" id="loginPassword" type="password" placeholder="Your password" onkeypress="if(event.key==='Enter')adminLogin()"/></div>
+    <button class="btn btn-primary btn-full" onclick="adminLogin()">Sign In</button>
+    <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--gray-400);"><svg class="ic" style="width:14px;height:14px;vertical-align:-2px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Restricted access — authorised personnel only</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp" style="display:none;">
+  <div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span class="sidebar-word" aria-label="bugu"><span class="bugu-mark"></span><span class="bugu-word">bugu</span></span>
+        <div>Admin Console</div>
+      </div>
+      <nav class="sidebar-nav" onclick="this.closest('.sidebar').classList.remove('open')">
+      <div class="nav-group">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
+      <div class="nav-group">Money</div>
+      <div class="nav-item" onclick="showPage('transactions',this)">Transactions</div>
+      <div class="nav-item" onclick="showPage('disputes',this)">Disputes <span class="nav-badge" id="disputeBadge" style="display:none;">0</span></div>
+      <div class="nav-item" onclick="showPage('payouts',this)">Payouts</div>
+      <div class="nav-item" onclick="showPage('deliveries',this)">Deliveries</div>
+      <div class="nav-group">Marketplace</div>
+      <div class="nav-item" onclick="showPage('listings',this)">Listings</div>
+      <div class="nav-item" onclick="showPage('digital',this)">Digital Books</div>
+      <div class="nav-item" onclick="showPage('wanted',this)">Wanted</div>
+      <div class="nav-item" onclick="showPage('flagged',this)">Flagged Content <span class="nav-badge" id="flaggedBadge" style="display:none;">0</span></div>
+      <div class="nav-item" onclick="showPage('chats',this)">Chats</div>
+      <div class="nav-group">People</div>
+      <div class="nav-item" onclick="showPage('users',this)">Users</div>
+      <div class="nav-item" onclick="showPage('ambassadors',this)">Ambassadors</div>
+      <div class="nav-item" onclick="showPage('team',this)">Team Members</div>
+      <div class="nav-group">Support</div>
+      <div class="nav-item" onclick="showPage('support',this)">Support</div>
+      <div class="nav-item" onclick="showPage('aisupport',this)">AI Support</div>
+      <div class="nav-item" onclick="showPage('appfeedback',this)">App Feedback</div>
+      <div class="nav-item" onclick="showPage('escalation',this)">Escalations <span class="nav-badge" id="escalationBadge" style="display:none;">0</span></div>
+      <div class="nav-group">Growth</div>
+      <div class="nav-item" onclick="showPage('promotions',this)">Promotions</div>
+      <div class="nav-item" onclick="showPage('reports',this)">Reports</div>
+      <div class="nav-group">System</div>
+      <div class="nav-item" onclick="showPage('health',this)">Platform Health</div>
+      <div class="nav-item" onclick="showPage('systemstatus',this)">System Status</div>
+      <div class="nav-item" onclick="showPage('statuspreview',this)">Status Monitor</div>
+      <div class="nav-item" onclick="showPage('auditlog',this)">Audit Log</div>
+      <div class="nav-item" onclick="showPage('settings',this)">Settings</div>
+    </nav>
+      <div class="sidebar-footer">
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;" id="adminEmailDisplay"></div>
+        <div class="pref-row"><span>Dark mode</span><button class="sw" id="themeSwitch" role="switch" aria-label="Dark mode" onclick="var d=document.documentElement,on=!(d.dataset.theme==='dark'||(!d.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches));d.dataset.theme=on?'dark':'light';try{localStorage.setItem('bugu-theme',d.dataset.theme)}catch(e){}"></button></div>
+    <button onclick="adminLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <button class="menu-btn" aria-label="Menu" onclick="document.querySelector('.sidebar').classList.toggle('open')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header"><div class="page-header-left"><h1> Dashboard</h1><p id="dashDate"></p></div><button class="btn btn-secondary btn-sm" onclick="loadAll()"> Refresh</button></div>
+        <div class="stats-grid" id="dashStats"></div>
+        <div class="two-col">
+          <div class="table-card"><div class="table-card-header"><h3>Recent Transactions</h3></div><div id="recentTx" style="padding:12px;"></div></div>
+          <div class="table-card"><div class="table-card-header"><h3>Recent Listings</h3></div><div id="recentListings" style="padding:12px;"></div></div>
+        </div>
+      </div>
+
+      <!-- LISTINGS -->
+      <div id="page-listings" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Listings</h1><p>All books on the platform.</p></div><input class="form-control" id="listingSearch" placeholder="Search listings..." style="width:200px;" oninput="renderListings()"/></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setLTab('all',this)">All</div>
+          <div class="tab-item" onclick="setLTab('available',this)">Available</div>
+          <div class="tab-item" onclick="setLTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setLTab('sold',this)">Sold</div>
+          <div class="tab-item" onclick="setLTab('stale',this)"> Stale 90+ days</div>
+        </div>
+        <div style="background:var(--gray-100);border-radius:10px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:800;color:var(--gray-500);">BULK ACTIONS:</span>
+          <button class="btn btn-sm btn-warning" onclick="bulkNudgeStale()"> Nudge All Stale</button>
+          <button class="btn btn-sm btn-danger" onclick="bulkRemoveSold()"> Remove All Sold (90d+)</button>
+          <span id="bulkCount" style="font-size:11px;color:var(--gray-400);margin-left:auto;"></span>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3 id="listingTabTitle">All Listings</h3><span id="listingCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="listingsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="page-users" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Users</h1><p>All registered users.</p></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-info btn-sm" onclick="openBulkComms()"> Bulk Message</button>
+            <input class="form-control" id="userSearch" placeholder="Search users..." style="width:200px;" oninput="renderUsers()"/>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setUserTab('all',this)">All</div>
+          <div class="tab-item" onclick="setUserTab('unverified',this)"> Unverified ID</div>
+          <div class="tab-item" onclick="setUserTab('suspended',this)"> Suspended</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Users</h3><span id="userCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="usersTable"></table></div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div id="page-transactions" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Transactions</h1><p>All payment transactions.</p></div></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setTTab('all',this)">All</div>
+          <div class="tab-item" onclick="setTTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setTTab('completed',this)">Completed</div>
+          <div class="tab-item" onclick="setTTab('disputed',this)">Disputed</div>
+          <div class="tab-item" onclick="setTTab('cancelled',this)">Cancelled</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Transactions</h3><span id="txCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="txTable"></table></div>
+        </div>
+      </div>
+
+      <!-- DELIVERIES -->
+      <div id="page-deliveries" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Deliveries</h1><p>Courier and meetup delivery overview.</p></div></div>
+        <div class="stats-grid" id="deliveryStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setDTab('all',this)">All</div>
+          <div class="tab-item" onclick="setDTab('courier',this)"> Courier</div>
+          <div class="tab-item" onclick="setDTab('meetup',this)"> Meetup</div>
+          <div class="tab-item" onclick="setDTab('no-tracking',this)"> No Tracking Yet</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Deliveries</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="deliveryTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PAYOUTS -->
+      <div id="page-payouts" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Payouts</h1><p>Seller payout management.</p></div></div>
+        <div class="stats-grid" id="payoutStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setPTab('pending',this)">Pending</div>
+          <div class="tab-item" onclick="setPTab('completed',this)">Completed</div>
+          <div class="tab-item" onclick="setPTab('failed',this)">Failed</div>
+          <div class="tab-item" onclick="setPTab('refunds',this)">↩ Refunds</div>
+        </div>
+        <div style="background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:var(--warning);font-weight:700;">
+           Payouts over <strong>R500</strong> require approval from a second admin before processing. These are marked  Pending Approval.
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Payouts</h3><button class="btn btn-sm btn-success" onclick="exportPayouts()">⬇ Export CSV</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="payoutsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- DISPUTES -->
+      <div id="page-disputes" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Disputes</h1><p>Resolve buyer and seller disputes.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Disputes</h3><span id="disputeCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="disputesTable"></table></div>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div id="page-support" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Support Chats</h1><p>Reply to student support requests.</p></div></div>
+        <div class="chat-panel">
+          <div class="chat-sidebar-p" id="supportList"><div class="empty-state"><p>Loading...</p></div></div>
+          <div class="chat-main-p" id="supportChat"><div class="empty-state"><div style="font-size:36px;margin-bottom:10px;"></div><h3>Select a chat</h3><p>Choose a support conversation from the left.</p></div></div>
+        </div>
+      </div>
+
+      <!-- CHATS -->
+      <div id="page-chats" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> All Chats</h1><p>Monitor conversations for safety and disputes.</p></div></div>
+        <div style="background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--warning);font-weight:700;"> Chat monitoring is for safety and dispute resolution only, in compliance with POPIA. Users are informed that chats may be reviewed.</div>
+        <div class="chat-panel">
+          <div class="chat-sidebar-p" id="allChatList"><div class="empty-state"><p>Loading...</p></div></div>
+          <div class="chat-main-p" id="allChatView"><div class="empty-state"><div style="font-size:36px;margin-bottom:10px;"></div><h3>Select a chat to view</h3></div></div>
+        </div>
+      </div>
+
+      <!-- DIGITAL -->
+      <div id="page-digital" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Digital Books</h1><p>Manage digital book listings.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Digital Listings</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="digitalTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PROMOTIONS -->
+      <div id="page-promotions" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Promotions</h1><p>Featured listings and promotion revenue.</p></div></div>
+        <div class="stats-grid" id="promoStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>All Promotions</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="promoTable"></table></div>
+        </div>
+      </div>
+
+      <!-- WANTED -->
+      <div id="page-wanted" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Wanted Listings</h1><p>Books students are looking for.</p></div></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Wanted</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="wantedTable"></table></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Reports</h1><p>Custom revenue reports for any date range.</p></div></div>
+        <div class="report-filters">
+          <div class="form-group"><label>From Date</label><input type="date" class="form-control" id="reportFrom"/></div>
+          <div class="form-group"><label>To Date</label><input type="date" class="form-control" id="reportTo"/></div>
+          <button class="btn btn-primary" onclick="generateReport()"> Generate</button>
+          <button class="btn btn-secondary" onclick="exportReport()">⬇ Export CSV</button>
+        </div>
+        <div class="stats-grid" id="reportStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Transaction Breakdown</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="reportTable"></table></div>
+        </div>
+      </div>
+
+      <!-- AMBASSADORS -->
+      <div id="page-ambassadors" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1> Brand Ambassadors</h1><p>Manage campus ambassadors and track their institution's performance.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('addAmbassadorModal').classList.add('active')">+ Add Ambassador</button>
+        </div>
+        <div class="stats-grid" id="ambassadorStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setAmbTab('active',this)">Active</div>
+          <div class="tab-item" onclick="setAmbTab('probation',this)"> Probation</div>
+          <div class="tab-item" onclick="setAmbTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Ambassadors</h3><button class="btn btn-sm btn-success" onclick="exportAmbassadors()">⬇ Export CSV</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="ambassadorsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- AI SUPPORT -->
+      <div id="page-aisupport" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> AI Support Config</h1><p>Manage AI responses and escalation rules.</p></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="settings-card">
+            <h3> AI Responder Settings</h3>
+            <div class="settings-row"><label>AI Support Enabled</label><div class="toggle on" id="togAISupport" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Auto-respond to common questions</label><div class="toggle on" id="togAutoRespond" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Offer live agent option</label><div class="toggle on" id="togLiveAgent" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveAISettings()">Save Settings</button>
+          </div>
+          <div class="settings-card">
+            <h3> Support Stats</h3>
+            <div id="supportStats" style="font-size:13px;color:var(--gray-400);">Loading...</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3> AI Knowledge Base</h3><button class="btn btn-sm btn-primary" onclick="document.getElementById('addFAQModal').classList.add('active')">+ Add FAQ</button></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="faqTable"></table></div>
+        </div>
+        <div class="table-card" style="margin-top:16px;">
+          <div class="table-card-header"><h3> Escalation Rules</h3></div>
+          <div style="padding:16px;font-size:13px;">
+            <p style="color:var(--gray-400);margin-bottom:12px;">The AI will automatically escalate to your internal team when these keywords are detected:</p>
+            <div id="escalationKeywords" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+            <div style="display:flex;gap:8px;">
+              <input class="form-control" id="newKeyword" placeholder="Add keyword e.g. refund, fraud, scam" style="flex:1;"/>
+              <button class="btn btn-primary btn-sm" onclick="addKeyword()">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APP FEEDBACK -->
+      <div id="page-appfeedback" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> App Feedback</h1><p>Student ratings and suggestions for bugu.</p></div></div>
+        <div class="stats-grid" id="feedbackStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>All Feedback</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="feedbackTable"></table></div>
+        </div>
+      </div>
+
+      <!-- ESCALATION DASHBOARD -->
+      <div id="page-escalation" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Escalation Dashboard</h1><p>AI support chats flagged for human follow-up.</p></div><button class="btn btn-secondary btn-sm" onclick="loadEscalations()"> Refresh</button></div>
+        <div class="stats-grid" id="escalationStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setEscTab('open',this)"> Open</div>
+          <div class="tab-item" onclick="setEscTab('in_progress',this)"> In Progress</div>
+          <div class="tab-item" onclick="setEscTab('resolved',this)"> Resolved</div>
+          <div class="tab-item" onclick="setEscTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Flagged Chats</h3><span id="escCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="escalationTable"></table></div>
+        </div>
+      </div>
+
+      <!-- TEAM MEMBERS -->
+      <div id="page-team" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1> Team Members</h1><p>Internal staff with portal access.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('addTeamModal').classList.add('active')">+ Add Team Member</button>
+        </div>
+        <div class="stats-grid" id="teamStats"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Staff</h3><span id="teamCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="teamTable"></table></div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div id="page-auditlog" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Audit Log</h1><p>All admin and staff actions on the platform.</p></div><button class="btn btn-secondary btn-sm" onclick="loadAuditLog()"> Refresh</button></div>
+        <div class="report-filters">
+          <div class="form-group"><label>Filter by action</label>
+            <select class="form-control" id="auditFilter" onchange="renderAuditLog()" style="width:200px;">
+              <option value="all">All Actions</option>
+              <option value="login">Logins</option>
+              <option value="listing">Listings</option>
+              <option value="transaction">Transactions</option>
+              <option value="dispute">Disputes</option>
+              <option value="payout">Payouts</option>
+              <option value="user">Users</option>
+              <option value="team">Team</option>
+              <option value="escalation">Escalations</option>
+              <option value="settings">Settings</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="exportAuditLog()">⬇ Export CSV</button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Activity Log</h3><span id="auditCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="auditTable"></table></div>
+        </div>
+      </div>
+
+      <!-- PLATFORM HEALTH -->
+      <div id="page-health" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Platform Health</h1><p>Growth trends, dropout funnel, and activity patterns.</p></div><button class="btn btn-secondary btn-sm" onclick="loadPlatformHealth()"> Refresh</button></div>
+        <div class="stats-grid" id="healthStats"></div>
+        <div class="two-col" style="margin-bottom:20px;">
+          <div class="table-card"><div class="table-card-header"><h3> Growth (Last 6 Months)</h3></div><div id="growthChart" style="padding:16px;"></div></div>
+          <div class="table-card"><div class="table-card-header"><h3>⏰ Activity Heatmap (by Hour)</h3></div><div id="activityHeatmap" style="padding:16px;"></div></div>
+        </div>
+        <div class="table-card" style="margin-bottom:20px;">
+          <div class="table-card-header"><h3> Dropout Funnel — Listings with Views but No Sales</h3><span id="dropoutCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="dropoutTable"></table></div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3> Seller Performance</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="sellerPerfTable"></table></div>
+        </div>
+      </div>
+
+      <!-- FLAGGED CONTENT -->
+      <div id="page-flagged" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Flagged Content</h1><p>User-reported listings and accounts awaiting review.</p></div><button class="btn btn-secondary btn-sm" onclick="loadFlagged()"> Refresh</button></div>
+        <div class="stats-grid" id="flaggedStats"></div>
+        <div class="tab-bar">
+          <div class="tab-item active" onclick="setFlagTab('open',this)"> Pending Review</div>
+          <div class="tab-item" onclick="setFlagTab('reviewed',this)"> Reviewed</div>
+          <div class="tab-item" onclick="setFlagTab('all',this)">All</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Flagged Items</h3><span id="flaggedCount" style="font-size:12px;color:var(--gray-400);"></span></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="flaggedTable"></table></div>
+        </div>
+      </div>
+
+      <!-- STATUS MONITOR -->
+      <div id="page-statuspreview" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1> Status Monitor</h1><p>Live bugu platform status — updates every 60 seconds.</p></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadStatusMonitor()"> Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="showPage('systemstatus',document.querySelector('[onclick*=systemstatus]'))"> Edit Status</button>
+          </div>
+        </div>
+        <div id="monitorBanner" style="padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;">Checking...</div>
+        <div class="stats-grid" id="monitorSummary"></div>
+        <div id="monitorFeatures" style="margin-top:8px;"></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-400);margin-top:16px;font-weight:700;" id="monitorTimestamp"></div>
+      </div>
+
+      <!-- SYSTEM STATUS (edit panel) -->
+      <div id="page-systemstatus" class="page">
+        <div class="page-header">
+          <div class="page-header-left"><h1> System Status</h1><p>Live status of all bugu features. Updates reflect on the public status page.</p></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="loadSystemStatus()"> Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('addFeatureModal').classList.add('active')">+ Add Feature</button>
+          </div>
+        </div>
+        <div style="background:var(--tint);border:1px solid var(--tint);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--info);font-weight:700;">
+           Share the public status page with your team: <strong>bookworm_status.html</strong> — it updates automatically from this panel.
+        </div>
+        <div class="stats-grid" id="statusSummary"></div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Feature Status</h3></div>
+          <div style="overflow-x:auto;"><table class="admin-table" id="statusTable"></table></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="page-header"><div class="page-header-left"><h1> Settings</h1><p>Platform configuration and fees.</p></div></div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3> Commission & Fees</h3>
+            <div class="settings-row"><label>Commission Rate (%)</label><input type="number" id="setCommission" min="0" max="30" step="0.5" value="5"/></div>
+            <div class="settings-row"><label>Pargo Delivery Fee (R)</label><input type="number" id="setDeliveryFee" min="0" value="79"/></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveFeesSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3> Delivery Options</h3>
+            <div class="settings-row"><label>Courier (Pargo)</label><div class="toggle on" id="togCourier" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Meetup</label><div class="toggle on" id="togMeetup" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Bookshop Pickup</label><div class="toggle" id="togBookshop" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveDeliverySettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3> Promotion Pricing</h3>
+            <div class="settings-row"><label>7-Day Feature (R)</label><input type="number" id="setPromo7" min="0" value="29"/></div>
+            <div class="settings-row"><label>14-Day Feature (R)</label><input type="number" id="setPromo14" min="0" value="49"/></div>
+            <div class="settings-row"><label>30-Day Feature (R)</label><input type="number" id="setPromo30" min="0" value="79"/></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="savePromoSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3> Notifications</h3>
+            <div class="settings-row"><label>Email on new listing</label><div class="toggle on" id="togEmailListing" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Email on new transaction</label><div class="toggle on" id="togEmailTx" onclick="this.classList.toggle('on')"></div></div>
+            <div class="settings-row"><label>Email on new dispute</label><div class="toggle on" id="togEmailDispute" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="saveNotifSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3> Bookshop Partners</h3>
+            <div id="bookshopPartners" style="margin-bottom:12px;font-size:13px;color:var(--gray-400);">No partners added yet.</div>
+            <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('partnerModal').classList.add('active')">+ Add Bookshop Partner</button>
+          </div>
+          <div class="settings-card">
+            <h3> Danger Zone</h3>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;">These actions are irreversible.</p>
+            <button class="btn btn-danger btn-sm btn-full" onclick="if(confirm('Export all platform data?'))exportAllData()"> Export All Platform Data</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal"><button class="modal-close" onclick="closeModal('userModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><h3 id="userModalTitle">User Details</h3><div id="userModalContent"></div></div>
+</div>
+<div class="modal-overlay" id="txModal">
+  <div class="modal"><button class="modal-close" onclick="closeModal('txModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><h3> Transaction Details</h3><div id="txModalContent"></div></div>
+</div>
+<div class="modal-overlay" id="partnerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('partnerModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Bookshop Partner</h3>
+    <div class="form-group"><label>Bookshop Name</label><input class="form-control" id="partnerName" placeholder="e.g. Exclus1ves Polokwane"/></div>
+    <div class="form-group"><label>Address</label><input class="form-control" id="partnerAddress" placeholder="Full street address"/></div>
+    <div class="form-group"><label>Contact Number</label><input class="form-control" id="partnerPhone" placeholder="e.g. 015 123 4567"/></div>
+    <div class="form-group"><label>Province</label>
+      <select class="form-control" id="partnerProvince">
+        <option>Limpopo</option><option>Gauteng</option><option>Western Cape</option><option>KwaZulu-Natal</option><option>Eastern Cape</option><option>Mpumalanga</option><option>North West</option><option>Free State</option><option>Northern Cape</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="savePartner()">Add Partner</button>
+  </div>
+</div>
+
+<!-- ADD AMBASSADOR MODAL -->
+<div class="modal-overlay" id="addAmbassadorModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addAmbassadorModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Brand Ambassador</h3>
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="ambName" placeholder="e.g. Thabo Nkosi"/></div>
+    <div class="form-group"><label>Email Address</label><input class="form-control" id="ambEmail" type="email" placeholder="thabo@email.com"/></div>
+    <div class="form-group"><label>WhatsApp Number</label><input class="form-control" id="ambWhatsapp" placeholder="e.g. 0821234567"/></div>
+    <div class="form-group"><label>Student Number</label><input class="form-control" id="ambStudentNum" placeholder="e.g. 202300123"/></div>
+    <div class="form-group"><label>Institution</label>
+      <select class="form-control" id="ambUniversity">
+        <option value="">Select Institution</option>
+        <option>University of Limpopo (UL)</option><option>University of Pretoria (UP)</option><option>University of Johannesburg (UJ)</option><option>University of Cape Town (UCT)</option><option>University of the Witwatersrand (Wits)</option><option>University of KwaZulu-Natal (UKZN)</option><option>University of South Africa (UNISA)</option><option>Stellenbosch University (SU)</option><option>Tshwane University of Technology (TUT)</option><option>Cape Peninsula University of Technology (CPUT)</option><option>Durban University of Technology (DUT)</option><option>Nelson Mandela University (NMU)</option><option>North-West University (NWU)</option><option>University of the Free State (UFS)</option><option>University of the Western Cape (UWC)</option><option>University of Venda (UNIVEN)</option><option>University of Fort Hare (UFH)</option><option>Walter Sisulu University (WSU)</option><option>Vaal University of Technology (VUT)</option><option>Central University of Technology (CUT)</option><option>Mangosuthu University of Technology (MUT)</option><option>Sefako Makgatho Health Sciences University (SMU)</option><option>Sol Plaatje University (SPU)</option><option>University of Mpumalanga (UMP)</option><option>University of Zululand (UNIZULU)</option><option>Rhodes University (RU)</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Commission Rate (%)</label><input class="form-control" id="ambCommission" type="number" value="1" min="0" max="10" step="0.5"/><div style="font-size:11px;color:var(--gray-400);margin-top:4px;">% of bugu's commission from all sales at their institution</div></div>
+    <div class="form-group"><label>Contract Start Date</label><input class="form-control" id="ambStartDate" type="date"/></div>
+    <div class="form-group"><label>Contract End Date</label><input class="form-control" id="ambEndDate" type="date"/></div>
+    <div class="form-group"><label>Status</label>
+      <select class="form-control" id="ambStatus">
+        <option value="probation"> Probation (First 6 months)</option>
+        <option value="active"> Active</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea class="form-control" id="ambNotes" placeholder="Any additional notes about this ambassador..."></textarea></div>
+    <button class="btn btn-primary btn-full" onclick="saveAmbassador()">Add Ambassador</button>
+  </div>
+</div>
+
+<!-- VIEW AMBASSADOR MODAL -->
+<div class="modal-overlay" id="viewAmbassadorModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('viewAmbassadorModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3 id="viewAmbName">Ambassador</h3>
+    <div id="viewAmbContent"></div>
+  </div>
+</div>
+
+<!-- MESSAGE AMBASSADOR MODAL -->
+<div class="modal-overlay" id="messageAmbModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('messageAmbModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Message Ambassador</h3>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:14px;" id="messageAmbTarget"></p>
+    <div class="form-group"><label>Message</label><textarea class="form-control" id="ambMessageText" placeholder="Type your message to the ambassador..." style="min-height:120px;"></textarea></div>
+    <button class="btn btn-primary btn-full" onclick="sendAmbassadorMessage()">Send Message</button>
+  </div>
+</div>
+
+<!-- ADD FAQ MODAL -->
+<div class="modal-overlay" id="addFAQModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addFAQModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add FAQ / AI Response</h3>
+    <div class="form-group"><label>Question / Trigger</label><input class="form-control" id="faqQuestion" placeholder="e.g. How does escrow work?"/></div>
+    <div class="form-group"><label>AI Response</label><textarea class="form-control" id="faqAnswer" placeholder="The response the AI will give..." style="min-height:120px;"></textarea></div>
+    <div class="form-group"><label>Category</label>
+      <select class="form-control" id="faqCategory">
+        <option value="payment"> Payment & Escrow</option>
+        <option value="delivery"> Delivery</option>
+        <option value="listing"> Listing a Book</option>
+        <option value="dispute"> Disputes</option>
+        <option value="account"> Account</option>
+        <option value="general"> General</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveFAQ()">Save FAQ</button>
+  </div>
+</div>
+
+<!-- BULK COMMS MODAL -->
+<div class="modal-overlay" id="bulkCommsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('bulkCommsModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Bulk Message to Users</h3>
+    <div class="form-group"><label>Target Audience</label>
+      <select class="form-control" id="bulkTarget">
+        <option value="all">All Users</option>
+        <option value="sellers">Sellers with Active Listings</option>
+        <option value="buyers">Users who've bought</option>
+        <option value="unverified">Unverified Users</option>
+        <option value="suspended">Suspended Users</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notification Title</label><input class="form-control" id="bulkTitle" placeholder="e.g. Important platform update"/></div>
+    <div class="form-group"><label>Message</label><textarea class="form-control" id="bulkMessage" placeholder="Write your message..." style="min-height:100px;"></textarea></div>
+    <div id="bulkPreview" style="font-size:12px;color:var(--gray-400);margin-bottom:12px;"></div>
+    <button class="btn btn-primary btn-full" onclick="sendBulkMessage()"> Send to All</button>
+  </div>
+</div>
+
+<!-- ADD FEATURE STATUS MODAL -->
+<div class="modal-overlay" id="addFeatureModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addFeatureModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Feature to Status Board</h3>
+    <div class="form-group"><label>Feature Name</label><input class="form-control" id="featName" placeholder="e.g. Pargo Courier Integration"/></div>
+    <div class="form-group"><label>Category</label>
+      <select class="form-control" id="featCategory">
+        <option value="payments"> Payments & Escrow</option>
+        <option value="auth"> Authentication</option>
+        <option value="listings"> Listings</option>
+        <option value="delivery"> Delivery</option>
+        <option value="chat"> Chat & Support</option>
+        <option value="ai"> AI Features</option>
+        <option value="notifications"> Notifications</option>
+        <option value="other"> Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select class="form-control" id="featStatus">
+        <option value="live"> Live</option>
+        <option value="issue"> Issue</option>
+        <option value="down"> Down</option>
+        <option value="maintenance"> Maintenance</option>
+        <option value="coming_soon"> Coming Soon</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes (optional)</label><input class="form-control" id="featNotes" placeholder="e.g. API key expired, investigating..."/></div>
+    <button class="btn btn-primary btn-full" onclick="saveFeatureStatus()">Save</button>
+  </div>
+</div>
+
+<!-- FLAGGED REVIEW MODAL -->
+<div class="modal-overlay" id="flaggedModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('flaggedModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Review Flagged Item</h3>
+    <div id="flaggedModalContent"></div>
+  </div>
+</div>
+
+<!-- ADD TEAM MEMBER MODAL -->
+<div class="modal-overlay" id="addTeamModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addTeamModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3> Add Team Member</h3>
+    <p style="font-size:12px;color:var(--gray-400);margin-bottom:16px;">This creates a Firebase account for the staff member. They can sign in with the email and password you set here.</p>
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="tmName" placeholder="e.g. Lerato Dlamini"/></div>
+    <div class="form-group"><label>Email Address</label><input class="form-control" id="tmEmail" type="email" placeholder="lerato@africakai.co.za"/></div>
+    <div class="form-group"><label>Role</label>
+      <select class="form-control" id="tmRole">
+        <option value="support"> Support Agent — Chats & Support only</option>
+        <option value="listings"> Listings Manager — Listings & Wanted</option>
+        <option value="finance"> Finance — Transactions, Payouts & Reports</option>
+        <option value="operations"> Operations — All except Team & Settings</option>
+        <option value="admin"> Full Admin — Everything</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Temporary Password</label><input class="form-control" id="tmPassword" type="password" placeholder="Min 8 characters"/></div>
+    <div class="form-group"><label>Notes (optional)</label><input class="form-control" id="tmNotes" placeholder="e.g. Part-time, Mon–Wed"/></div>
+    <button class="btn btn-primary btn-full" onclick="addTeamMember()">Add Team Member</button>
+  </div>
+</div>
+
+<!-- ESCALATION VIEW MODAL -->
+<div class="modal-overlay" id="escalationModal">
+  <div class="modal" style="max-width:580px;">
+    <button class="modal-close" onclick="closeModal('escalationModal')"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3 id="escModalTitle"> Escalated Chat</h3>
+    <div id="escModalContent"></div>
+  </div>
+</div>
+
+<script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+const SUPABASE_URL="https://xbhflzwsqnumsjfrrqbb.supabase.co";
+const SUPABASE_KEY="sb_publishable_tvvpHcHYVbfKdi1shbMjaA_6o1UdYKk"; // public (publishable) key
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const auth={currentUser:null};
+const db={};
+
+// ───────── Firestore-style adapter over Supabase (keeps the portal's screens unchanged) ─────────
+const camel=k=>k.replace(/_([a-z])/g,(_,c)=>c.toUpperCase());
+const snake=k=>k.replace(/[A-Z]/g,c=>"_"+c.toLowerCase());
+const fts=v=>{if(!v)return null;const d=new Date(v);d.toDate=()=>d;d.seconds=Math.floor(d.getTime()/1000);return d;};
+const isUuid=v=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const DATEKEY=/(_at|_date)$/;
+const C={
+  users:{t:"profiles",sel:"*, priv:profile_private(email,whatsapp,banking)",drop:["priv"],ex:r=>({uid:r.id,email:r.priv?.email,whatsapp:r.priv?.whatsapp||"",banking:r.priv?.banking||null,idVerified:r.id_verified}),blocked:true},
+  books:{t:"books",sel:"*, seller:profiles!books_seller_id_fkey(name)",drop:["seller"],ex:r=>({sellerName:r.seller?.name||"-"}),blocked:true},
+  transactions:{t:"transactions",sel:"*, book:books(title), buyer:profiles!transactions_buyer_id_fkey(name,priv:profile_private(email)), seller:profiles!transactions_seller_id_fkey(name)",drop:["book","buyer","seller","meetup"],blocked:true,
+    ex:r=>({bookTitle:r.book?.title||"",buyerName:r.buyer?.name||"",buyerEmail:r.buyer?.priv?.email||"",sellerName:r.seller?.name||"",commission:r.commission_rate,payStatus:r.status,status:(r.status==="awaiting_payment"||r.status==="paid")?"pending":r.status,...(r.meetup||{})})},
+  disputes:{t:"disputes",sel:"*, u:profiles!disputes_user_id_fkey(name)",drop:["u"],ex:r=>({userName:r.u?.name||""}),w:[]},
+  payouts:{t:"payouts",sel:"*, s:profiles!payouts_seller_id_fkey(name)",drop:["s"],ex:r=>({sellerName:r.s?.name||""}),w:["status","paid_at","failed_at","pending_approval","requested_by","requested_at","approved_by"]},
+  promotions:{t:"promotions",sel:"*, book:books(title)",drop:["book"],ex:r=>({bookTitle:r.book?.title||""}),w:["status"]},
+  wanted:{t:"wanted",sel:"*, p:profiles!wanted_poster_id_fkey(name)",drop:["p"],ex:r=>({posterName:r.p?.name||""}),w:[]},
+  chats:{t:"chats",sel:"*, b:profiles!chats_buyer_id_fkey(name), s:profiles!chats_seller_id_fkey(name)",drop:["b","s"],w:[],
+    ex:r=>({participants:[r.buyer_id,r.seller_id||"support"],participantNames:{[r.buyer_id]:r.b?.name||"Student",...(r.seller_id?{[r.seller_id]:r.s?.name||"Seller"}:{}),support:"BookWorm Support"}}),map:{isSupport:"is_support"}},
+  messages:{t:"messages",sel:"*, chat:chats(buyer_id)",drop:["chat"],w:["chat_id","text"],
+    ex:r=>({senderId:(r.sender_id&&r.sender_id===r.chat?.buyer_id)?r.sender_id:(r.is_bot?"support":"support_reply"),senderName:r.is_bot?"BookWorm Bot 🤖":"BookWorm Support"})},
+  notifications:{t:"notifications",sel:"*",w:["to_user_id","from_user_id","type","message","title","data"]},
+  flaggedContent:{t:"flagged_content",sel:"*, rb:profiles!flagged_content_reported_by_fkey(name)",drop:["rb"],ex:r=>({reportedByName:r.rb?.name||""}),w:["status","reviewed_by","reviewed_at","action"]},
+  escalations:{t:"escalations",sel:"*, u:profiles!escalations_user_id_fkey(name)",drop:["u"],ex:r=>({userName:r.u?.name||""}),w:["status","assigned_to","claimed_at","resolved_by","resolved_at","resolution_note","notes","note_by","note_at"]},
+  faqs:{t:"faqs",sel:"*",w:["question","answer","category"]},
+  appFeedback:{t:"app_feedback",sel:"*, u:profiles!app_feedback_user_id_fkey(name,university)",drop:["u"],ex:r=>({userName:r.u?.name||"User",university:r.u?.university||"",comment:r.message||""}),w:[]},
+  ambassadors:{t:"ambassadors",sel:"*",w:["name","email","whatsapp","student_number","university","commission_rate","start_date","end_date","status","notes","total_earned","activated_at","terminated_at","last_paid_at"]},
+  ambassadorPayments:{t:"ambassador_payments",sel:"*",w:["ambassador_id","ambassador_name","university","amount","paid_at"]},
+  bookshopPartners:{t:"bookshop_partners",sel:"*",w:["name","address","phone","province"]},
+  auditLog:{t:"audit_log",sel:"*",ex:r=>({timestamp:fts(r.created_at)}),w:["action","category","detail","performed_by","performed_by_email","role","user_id"],map:{timestamp:"created_at"}},
+  systemStatus:{t:"system_status",sel:"*",w:["name","category","status","notes","updated_at","updated_by"]},
+  teamMembers:{t:"team_members",sel:"*",ex:r=>({id:r.user_id,uid:r.user_id}),idcol:"user_id",w:["user_id","name","email","role","notes","active","created_by","deactivated_at","reactivated_at"]},
+  settings:{t:"settings",special:"settings"}
+};
+function fromRow(cfg,r){
+  const o={};
+  for(const[k,v]of Object.entries(r)){
+    if(cfg.drop&&cfg.drop.includes(k))continue;
+    o[camel(k)]=(DATEKEY.test(k)&&v)?fts(v):v;
+  }
+  return Object.assign(o,cfg.ex?cfg.ex(r):{});
+}
+function toRow(name,data){
+  const cfg=C[name];
+  if(cfg.blocked)throw new Error(`Direct edits to ${name} are not allowed - use an admin action`);
+  const row={};const extra={};
+  for(const[k,v]of Object.entries(data)){
+    let val=v instanceof Date?v.toISOString():v;
+    let col=(cfg.map&&cfg.map[k])||snake(k);
+    if(name==="notifications"){
+      if(k==="toUserId"||k==="userId"){row.to_user_id=val;continue;}
+      if(["type","message","title"].includes(k)){row[k]=val;continue;}
+      if(!["read","createdAt","fromUserId"].includes(k))extra[k]=val;
+      continue;
+    }
+    if(name==="teamMembers"&&k==="uid")col="user_id";
+    if((cfg.w||[]).includes(col))row[col]=val;
+  }
+  if(name==="notifications"){if(!isUuid(row.to_user_id))return null;row.from_user_id=auth.currentUser?.id||null;row.data=extra;}
+  if(name==="auditLog")row.user_id=auth.currentUser?.id||null;
+  return row;
+}
+const collection=(_db,name,parent,sub)=>sub?{coll:sub,parent,kind:"coll"}:{coll:name,kind:"coll"};
+const doc=(_db,name,id,sub,id2)=>sub?{coll:sub,parent:id,id:id2,kind:"doc"}:{coll:name,id,kind:"doc"};
+const where=(f,op,v)=>({k:"where",f,op,v});
+const orderBy=(f,dir="asc")=>({k:"order",f,dir});
+const limit=n=>({k:"limit",n});
+const query=(ref,...cs)=>({...ref,cons:cs});
+const serverTimestamp=()=>new Date().toISOString();
+const snapOf=(cfg,rows)=>({empty:!rows.length,size:rows.length,docs:rows.map(r=>{const d=fromRow(cfg,r);const id=d.id;return{id,data:()=>d};})});
+function colFor(cfg,f){return(cfg.map&&cfg.map[f])||(f==="uid"?"id":snake(f));}
+async function runQuery(q){
+  const cfg=C[q.coll];if(!cfg)throw new Error("Unknown collection "+q.coll);
+  let b=sb.from(cfg.t).select(cfg.sel||"*");
+  if(q.coll==="messages"&&q.parent)b=b.eq("chat_id",q.parent);
+  for(const c of(q.cons||[])){
+    if(c.k==="where"){
+      const col=colFor(cfg,c.f);
+      if(c.f==="participants")continue;
+      const v=c.v instanceof Date?c.v.toISOString():c.v;
+      if(c.op==="==")b=(v===null)?b.is(col,null):b.eq(col,v);
+      else if(c.op==="!=")b=b.neq(col,v);
+      else if(c.op==="in")b=b.in(col,v);
+      else if(c.op===">")b=b.gt(col,v);else if(c.op===">=")b=b.gte(col,v);
+      else if(c.op==="<")b=b.lt(col,v);else if(c.op==="<=")b=b.lte(col,v);
+    }else if(c.k==="order")b=b.order(colFor(cfg,c.f),{ascending:c.dir!=="desc"});
+    else if(c.k==="limit")b=b.limit(c.n);
+  }
+  const r=await b;if(r.error)throw r.error;
+  return snapOf(cfg,r.data||[]);
+}
+async function getDocs(q){return runQuery(q);}
+async function getDoc(ref){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings"){
+    const r=await sb.from("settings").select("value").eq("key",ref.id).maybeSingle();
+    if(r.error)throw r.error;
+    return{exists:()=>!!r.data,id:ref.id,data:()=>r.data?r.data.value:undefined};
+  }
+  const r=await sb.from(cfg.t).select(cfg.sel||"*").eq(cfg.idcol||"id",ref.id).maybeSingle();
+  if(r.error)throw r.error;
+  const d=r.data?fromRow(cfg,r.data):undefined;
+  return{exists:()=>!!r.data,id:ref.id,data:()=>d};
+}
+async function writeSettings(key,data,merge){
+  let value=data;
+  if(merge){const cur=await sb.from("settings").select("value").eq("key",key).maybeSingle();value={...(cur.data?.value||{}),...data};}
+  const r=await sb.from("settings").upsert({key,value:JSON.parse(JSON.stringify(value)),updated_at:new Date().toISOString()});
+  if(r.error)throw r.error;
+}
+async function setDoc(ref,data,opts){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings")return writeSettings(ref.id,data,opts&&opts.merge);
+  const row=toRow(ref.coll,data);if(!row)return;
+  row[cfg.idcol||"id"]=ref.id;
+  const r=await sb.from(cfg.t).upsert(row);if(r.error)throw r.error;
+}
+async function updateDoc(ref,data){
+  const cfg=C[ref.coll];
+  if(cfg.special==="settings")return writeSettings(ref.id,data,true);
+  const row=toRow(ref.coll,data);
+  if(!row||!Object.keys(row).length)return;
+  const r=await sb.from(cfg.t).update(row).eq(cfg.idcol||"id",ref.id);if(r.error)throw r.error;
+}
+async function addDoc(ref,data){
+  const cfg=C[ref.coll];
+  const row=toRow(ref.coll,data);if(!row)return{id:null};
+  if(ref.coll==="messages"){row.chat_id=ref.parent;row.sender_id=auth.currentUser?.id;}
+  const r=await sb.from(cfg.t).insert(row).select("id").maybeSingle();if(r.error)throw r.error;
+  return{id:r.data?.id};
+}
+async function deleteDoc(ref){
+  const cfg=C[ref.coll];
+  if(cfg.blocked)throw new Error(`Direct deletes on ${ref.coll} are not allowed - use an admin action`);
+  const r=await sb.from(cfg.t).delete().eq(cfg.idcol||"id",ref.id);if(r.error)throw r.error;
+}
+function onSnapshot(target,cb,errcb){
+  const cfg=C[target.coll];
+  const run=async()=>{try{cb(await runQuery(target));}catch(e){(errcb||console.error)(e);}};
+  run();
+  const f=(target.coll==="messages"&&target.parent)?{filter:`chat_id=eq.${target.parent}`}:{};
+  const ch=sb.channel("adm-"+target.coll+"-"+Math.random().toString(36).slice(2)).on("postgres_changes",{event:"*",schema:"public",table:cfg.t,...f},run).subscribe();
+  return()=>{sb.removeChannel(ch);};
+}
+const admRpc=async(fn,args)=>{const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data;};
+let currentUserRole="admin";
+let currentUserName="Admin";
+let auditLogData=[];
+let escalationsData=[];
+let escTab="open";
+let teamMembers=[];
+let userTab="all";
+let flagTab="open";
+let flaggedData=[];
+let systemFeatures=[];
+
+// ─── AUDIT LOG HELPER ─────────────────────────────────────────────────────────
+async function logAction(action,category,detail){
+  try{
+    await addDoc(collection(db,"auditLog"),{
+      action,category,detail,
+      performedBy:currentUserName,
+      performedByEmail:auth.currentUser?.email||"unknown",
+      role:currentUserRole,
+      timestamp:serverTimestamp()
+    });
+  }catch(e){console.warn("Audit log failed:",e);}
+}
+
+let D={users:[],books:[],transactions:[],disputes:[],payouts:[],promotions:[],wanted:[]};
+let commissionRate=5,deliveryFee=79;
+let lTab="all",txTab="all",delTab="all",poTab="pending";
+let supChatId=null,unsubSup=null,unsubView=null;
+
+let bootedFor=null;
+sb.auth.onAuthStateChange((event,session)=>{setTimeout(()=>handleSession(session),0);});
+async function handleSession(session){
+  const u=session&&session.user;
+  if(u){
+    if(bootedFor===u.id)return;
+    bootedFor=u.id;auth.currentUser=u;
+    const pr=await sb.from("profiles").select("name,role,suspended").eq("id",u.id).single();
+    if(pr.error||!pr.data||pr.data.role==="user"||pr.data.suspended){
+      bootedFor=null;await sb.auth.signOut();
+      toast("Access denied. Authorised personnel only.","error");
+      return;
+    }
+    currentUserRole=pr.data.role;currentUserName=pr.data.name||"Admin";
+    document.getElementById("adminLogin").style.display="none";
+    document.getElementById("adminApp").style.display="block";
+    document.getElementById("adminEmailDisplay").textContent=`${currentUserName} (${currentUserRole})`;
+    document.getElementById("dashDate").textContent=new Date().toLocaleDateString("en-ZA",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    applyRoleRestrictions(currentUserRole);
+    await logAction("Signed in","login",`${currentUserName} logged into admin portal`);
+    await loadAll();
+    await loadSettings();
+    await checkEscalationBadge();
+  }else{
+    bootedFor=null;auth.currentUser=null;
+    document.getElementById("adminLogin").style.display="flex";
+    document.getElementById("adminApp").style.display="none";
+  }
+}
+
+function applyRoleRestrictions(role){
+  const roleMap={
+    support:["dashboard","support","chats","escalation"],
+    listings:["dashboard","listings","digital","wanted","promotions","flagged"],
+    finance:["dashboard","transactions","payouts","reports"],
+    operations:["dashboard","listings","users","transactions","deliveries","payouts","disputes","support","chats","digital","promotions","wanted","reports","ambassadors","aisupport","appfeedback","escalation","flagged","health"],
+    admin:null
+  };
+  if(role==="admin")return;
+  const allowed=roleMap[role]||["dashboard"];
+  document.querySelectorAll(".nav-item").forEach(item=>{
+    const onclick=item.getAttribute("onclick")||"";
+    const match=onclick.match(/showPage\('(\w+)'/);
+    if(match&&!allowed.includes(match[1])){item.style.display="none";}
+  });
+}
+
+window.adminLogin=async function(){
+  const e=document.getElementById("loginEmail").value.trim();
+  const p=document.getElementById("loginPassword").value;
+  if(!e||!p)return toast("Please fill in all fields","error");
+  try{const{error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)throw error;}
+  catch(e){toast("Invalid email or password","error");}
+};
+window.adminLogout=async function(){await logAction("Signed out","login",`${currentUserName} signed out`);await sb.auth.signOut();};
+
+window.loadAll=async function(){
+  try{
+    const[u,b,t,d,p,pr,w]=await Promise.all([
+      getDocs(collection(db,"users")),
+      getDocs(query(collection(db,"books"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"transactions"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"disputes"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"payouts"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"promotions"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"wanted"),orderBy("createdAt","desc")))
+    ]);
+    D.users=u.docs.map(d=>({id:d.id,...d.data()}));
+    D.books=b.docs.map(d=>({id:d.id,...d.data()}));
+    D.transactions=t.docs.map(d=>({id:d.id,...d.data()}));
+    D.disputes=d.docs.map(d=>({id:d.id,...d.data()}));
+    D.payouts=p.docs.map(d=>({id:d.id,...d.data()}));
+    D.promotions=pr.docs.map(d=>({id:d.id,...d.data()}));
+    D.wanted=w.docs.map(d=>({id:d.id,...d.data()}));
+    try{const rr=await sb.from("refund_requests").select("*");const m=Object.fromEntries((rr.data||[]).map(x=>[x.tx_id,x]));D.transactions.forEach(t=>{const r=m[t.id];if(r){t.refundRequested=true;t.refundReason=r.reason;t.refundDetails=r.details;t.refundStatus=r.status;t.refundRequestId=r.id;}});}catch(_){}
+    const ob=D.disputes.filter(x=>x.status==="open").length;
+    const badge=document.getElementById("disputeBadge");
+    if(ob>0){badge.textContent=ob;badge.style.display="inline";}else{badge.style.display="none";}
+    renderDashboard();
+    toast("Data refreshed","success");
+  }catch(e){console.error(e);toast("Failed to load data","error");}
+};
+
+function ts(t){return t?.toDate?t.toDate():new Date((t?.seconds||0)*1000);}
+function daysAgo(t){return Math.floor((new Date()-ts(t))/(864e5));}
+
+window.showPage=function(page,el){
+  if(page!=="statuspreview"&&monitorTimer){clearTimeout(monitorTimer);monitorTimer=null;}
+  document.querySelectorAll(".page").forEach(p=>{p.classList.remove("active");p.style.display="none";});
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const pg=document.getElementById(`page-${page}`);
+  pg.classList.add("active");pg.style.display="block";
+  el.classList.add("active");
+  const fns={listings:renderListings,users:renderUsers,transactions:renderTransactions,deliveries:renderDeliveries,payouts:renderPayouts,disputes:renderDisputes,support:loadSupportChats,chats:loadAllChats,digital:renderDigital,promotions:renderPromotions,wanted:renderWanted,reports:setDefaultDates,ambassadors:loadAmbassadors,aisupport:loadAISupport,appfeedback:loadAppFeedback,escalation:loadEscalations,team:loadTeamMembers,auditlog:loadAuditLog,health:loadPlatformHealth,systemstatus:loadSystemStatus,flagged:loadFlagged,statuspreview:loadStatusMonitor};
+  fns[page]?.();
+};
+
+function renderDashboard(){
+  const txs=D.transactions,books=D.books,users=D.users;
+  const done=txs.filter(t=>t.status==="completed");
+  const pend=txs.filter(t=>t.status==="pending");
+  const disp=txs.filter(t=>t.status==="disputed");
+  const rev=done.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const dRev=done.reduce((s,t)=>s+(t.deliveryFee||0),0);
+  const pRev=D.promotions.reduce((s,p)=>s+(p.price||0),0);
+  const bVal=books.filter(b=>b.status==="available").reduce((s,b)=>s+(b.price||b.subPrice||0),0);
+  document.getElementById("dashStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Revenue</div><div class="val">R${(rev+dRev+pRev).toFixed(0)}</div><div class="sub">Comm + Delivery + Promos</div></div>
+    <div class="stat-card"><div class="lbl">Commission Earned</div><div class="val">R${rev.toFixed(0)}</div><div class="sub">${commissionRate}% rate</div></div>
+    <div class="stat-card blue"><div class="lbl">Active Listings</div><div class="val">${books.filter(b=>b.status==="available").length}</div><div class="sub">Value: R${bVal.toLocaleString()}</div></div>
+    <div class="stat-card"><div class="lbl">Total Users</div><div class="val">${users.length}</div><div class="sub">Students & Bookshops</div></div>
+    <div class="stat-card orange"><div class="lbl">Pending Sales</div><div class="val">${pend.length}</div><div class="sub">Awaiting completion</div></div>
+    <div class="stat-card green"><div class="lbl">Completed Sales</div><div class="val">${done.length}</div><div class="sub">All time</div></div>
+    <div class="stat-card red"><div class="lbl">Open Disputes</div><div class="val">${disp.length}</div><div class="sub">Needs attention</div></div>
+    <div class="stat-card orange"><div class="lbl">Promo Revenue</div><div class="val">R${pRev.toFixed(0)}</div><div class="sub">Featured listings</div></div>`;
+  document.getElementById("recentTx").innerHTML=txs.slice(0,6).map(t=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+      <div><div style="font-weight:800;font-size:12px;">${t.bookTitle||""}</div><div style="font-size:11px;color:var(--gray-400);">${t.buyerName||""}</div></div>
+      <div style="text-align:right;"><div style="font-weight:900;">R${t.amount||0}</div><span class="tag tag-${t.status}">${t.status}</span></div>
+    </div>`).join("")||`<p style="color:var(--gray-400);font-size:13px;">No transactions yet.</p>`;
+  document.getElementById("recentListings").innerHTML=books.slice(0,6).map(b=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+      <div><div style="font-weight:800;font-size:12px;">${b.title||""}</div><div style="font-size:11px;color:var(--gray-400);">${b.sellerName||""}</div></div>
+      <div style="text-align:right;"><div style="font-weight:900;">R${b.price||b.subPrice||0}</div><span class="tag tag-${b.status}">${b.status}</span></div>
+    </div>`).join("")||`<p style="color:var(--gray-400);font-size:13px;">No listings yet.</p>`;
+}
+
+window.setLTab=function(tab,el){lTab=tab;document.querySelectorAll("#page-listings .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderListings();};
+function renderListings(){
+  const s=(document.getElementById("listingSearch")?.value||"").toLowerCase();
+  const now=new Date(),d90=new Date(now-90*864e5);
+  let books=D.books.filter(b=>{
+    if(s&&!b.title?.toLowerCase().includes(s)&&!b.sellerName?.toLowerCase().includes(s))return false;
+    if(lTab==="stale")return b.status==="available"&&ts(b.createdAt)<d90;
+    if(lTab!=="all")return b.status===lTab;
+    return true;
+  });
+  document.getElementById("listingCount").textContent=`${books.length} listings`;
+  document.getElementById("listingTabTitle").textContent=lTab==="stale"?"🚩 Stale Listings (90+ days)":"Listings";
+  document.getElementById("listingsTable").innerHTML=`
+    <thead><tr><th>Title</th><th>Type</th><th>Seller</th><th>Price</th><th>Status</th><th>Age</th><th>Actions</th></tr></thead>
+    <tbody>${books.map(b=>{const d=daysAgo(b.createdAt);return`<tr>
+      <td><div style="font-weight:800;">${b.title}</div><div style="font-size:11px;color:var(--gray-400);">${b.module||""} ${b.edition||""}</div></td>
+      <td>${b.bookType==="digital"?"📖 Digital":"📚 Physical"}</td>
+      <td style="font-size:12px;">${b.sellerName||"-"}</td>
+      <td style="font-weight:900;">R${b.price||b.subPrice||0}</td>
+      <td><span class="tag tag-${b.status}">${b.status}</span>${b.featured?` <span class="tag tag-featured">⭐</span>`:""}</td>
+      <td style="font-size:12px;">${d}d${d>=90?` <span style="color:var(--error);">🚩</span>`:""}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${lTab==="stale"?`<button class="btn btn-sm btn-warning" onclick="nudgeSeller('${b.id}','${b.sellerId}')">📩 Nudge</button>`:""}
+        <button class="btn btn-sm btn-danger" onclick="delBook('${b.id}')">Remove</button>
+      </td>
+    </tr>`;}).join("")}</tbody>`;
+}
+window.delBook=async function(id){
+  if(!confirm("Remove this listing?"))return;
+  const b=D.books.find(x=>x.id===id);
+  await admRpc("admin_set_book",{p_book:id,p_status:"removed"});
+  await logAction("Removed listing","listing",`Removed "${b?.title||id}"`);
+  D.books=D.books.filter(b=>b.id!==id);
+  renderListings();renderDashboard();toast("Listing removed","success");
+};
+window.nudgeSeller=async function(bid,sid){
+  await addDoc(collection(db,"notifications"),{userId:sid,type:"stale_listing",bookId:bid,message:"Your listing has been on BookWorm for 90+ days. Consider adjusting your price or updating your photos to attract buyers.",createdAt:serverTimestamp(),read:false});
+  toast("Nudge sent to seller","success");
+};
+
+function renderUsers(){
+  const s=(document.getElementById("userSearch")?.value||"").toLowerCase();
+  let users=D.users.filter(u=>!s||u.name?.toLowerCase().includes(s)||u.email?.toLowerCase().includes(s));
+  if(userTab==="unverified")users=users.filter(u=>!u.idVerified);
+  else if(userTab==="suspended")users=users.filter(u=>u.suspended);
+  document.getElementById("userCount").textContent=`${users.length} users`;
+  document.getElementById("usersTable").innerHTML=`
+    <thead><tr><th>Name</th><th>Type</th><th>Email</th><th>WhatsApp</th><th>Institution</th><th>Rating</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="font-weight:800;">${u.name||"-"}</td>
+      <td>${u.accountType==="bookshop"?"🏪 Bookshop":"🎓 Student"}</td>
+      <td style="font-size:12px;">${u.email||"-"}</td>
+      <td style="font-size:12px;">${u.whatsapp||"-"}</td>
+      <td style="font-size:12px;">${u.university||"-"}</td>
+      <td style="font-size:12px;">${u.rating?`${"★".repeat(Math.round(u.rating))} (${u.ratingCount||0})`:"-"}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-info" onclick="viewUser('${u.id}')">View</button>
+        ${!u.idVerified?`<button class="btn btn-sm btn-success" onclick="verifyUser('${u.id}','${(u.name||"User").replace(/'/g,"\\'")}')">✅ Verify</button>`:`<span style="font-size:11px;color:var(--success);font-weight:800;">✅ Verified</span>`}
+        <button class="btn btn-sm btn-danger" onclick="suspendUser('${u.id}','${(u.name||"User").replace(/'/g,"\\'")}')">Suspend</button>
+      </td>
+    </tr>`).join("")}</tbody>`;
+}
+window.viewUser=function(id){
+  const u=D.users.find(x=>x.id===id);if(!u)return;
+  document.getElementById("userModalTitle").textContent=u.name||"User";
+  document.getElementById("userModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Account Type:</strong> ${u.accountType}</div>
+      <div><strong>Email:</strong> ${u.email}</div>
+      <div><strong>WhatsApp:</strong> ${u.whatsapp||"-"}</div>
+      <div><strong>Institution:</strong> ${u.university||"-"}</div>
+      <div><strong>Rating:</strong> ${u.rating||0} ⭐ (${u.ratingCount||0} reviews)</div>
+      <div><strong>Joined:</strong> ${ts(u.createdAt).toLocaleDateString("en-ZA")}</div>
+      ${u.banking?`<div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-top:4px;">
+        <div style="font-weight:900;font-size:12px;margin-bottom:8px;">🏦 Banking Details</div>
+        <div><strong>Bank:</strong> ${u.banking.bankName||"-"}</div>
+        <div><strong>Account Holder:</strong> ${u.banking.accountHolder||"-"}</div>
+        <div><strong>Account Number:</strong> ****${String(u.banking.accountNumber||"").slice(-4)}</div>
+        <div><strong>Account Type:</strong> ${u.banking.accountTypeBank||"-"}</div>
+        <div><strong>Branch Code:</strong> ${u.banking.branchCode||"-"}</div>
+      </div>`:"<div><strong>Banking:</strong> Not provided</div>"}
+    </div>`;
+  document.getElementById("userModal").classList.add("active");
+};
+window.suspendUser=async function(id,name){
+  if(!confirm(`Suspend ${name}? They will not be able to log in.`))return;
+  await admRpc("admin_set_suspended",{p_user:id,p_val:true});
+  await logAction("Suspended user","user",`Suspended ${name}`);
+  toast(`${name} suspended`,"warning");
+  await loadAll();renderUsers();
+};
+
+window.setTTab=function(tab,el){txTab=tab;document.querySelectorAll("#page-transactions .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderTransactions();};
+function renderTransactions(){
+  const txs=txTab==="all"?D.transactions:D.transactions.filter(t=>t.status===txTab);
+  document.getElementById("txCount").textContent=`${txs.length} transactions`;
+  document.getElementById("txTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Seller</th><th>Amount</th><th>Delivery</th><th>Tracking</th><th>Commission</th><th>Status</th><th></th></tr></thead>
+    <tbody>${txs.map(t=>`<tr>
+      <td style="font-weight:800;max-width:140px;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-size:12px;">${t.sellerName||"-"}</td>
+      <td style="font-weight:900;">R${t.amount||0}</td>
+      <td style="font-size:12px;">${t.deliveryMethod==="courier"?"📦 Courier":"🤝 Meetup"}</td>
+      <td style="font-size:12px;">${t.trackingNumber||`<span style="color:var(--warning);">-</span>`}</td>
+      <td style="font-size:12px;">R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+      <td><button class="btn btn-sm btn-info" onclick="viewTx('${t.id}')">View</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+window.viewTx=function(id){
+  const t=D.transactions.find(x=>x.id===id);if(!t)return;
+  document.getElementById("txModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:8px;">
+      <div><strong>Book:</strong> ${t.bookTitle}</div>
+      <div><strong>Buyer:</strong> ${t.buyerName} (${t.buyerEmail||"-"})</div>
+      <div><strong>Seller:</strong> ${t.sellerName}</div>
+      <div><strong>Book Amount:</strong> R${t.amount}</div>
+      <div><strong>Delivery Fee:</strong> R${t.deliveryFee||0}</div>
+      <div><strong>Total Paid:</strong> R${t.totalAmount||t.amount}</div>
+      <div><strong>Commission:</strong> R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</div>
+      <div><strong>Delivery Method:</strong> ${t.deliveryMethod==="courier"?"📦 Pargo Courier":"🤝 Meetup"}</div>
+      <div><strong>Tracking Number:</strong> ${t.trackingNumber||"Not yet added"}</div>
+      <div><strong>Status:</strong> <span class="tag tag-${t.status}">${t.status}</span></div>
+      ${t.meetupAddress?`<div><strong>Meetup Address:</strong> ${t.meetupAddress}</div>`:""}
+      ${t.pargoAddress?`<div><strong>Pargo Pickup Point:</strong> ${t.pargoAddress}</div>`:""}
+      <div><strong>Date:</strong> ${ts(t.createdAt).toLocaleDateString("en-ZA")}</div>
+      ${t.status==="pending"?`<div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-success btn-sm" onclick="adminCompleteTx('${t.id}')">✅ Mark Complete</button>
+        <button class="btn btn-danger btn-sm" onclick="adminCancelTx('${t.id}')">❌ Cancel & Refund</button>
+      </div>`:""}
+    </div>`;
+  document.getElementById("txModal").classList.add("active");
+};
+window.adminCompleteTx=async function(id){
+  await admRpc("admin_complete_transaction",{p_tx:id});
+  await logAction("Completed transaction","transaction",`Admin marked transaction ${id} complete`);
+  closeModal("txModal");await loadAll();renderTransactions();toast("Marked complete","success");
+};
+window.adminCancelTx=async function(id){
+  if(!confirm("Cancel this transaction?"))return;
+  await admRpc("admin_cancel_transaction",{p_tx:id});
+  await logAction("Cancelled transaction","transaction",`Cancelled transaction ${id}`);
+  closeModal("txModal");await loadAll();renderTransactions();toast("Transaction cancelled","warning");
+};
+
+window.setDTab=function(tab,el){delTab=tab;document.querySelectorAll("#page-deliveries .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderDeliveries();};
+function renderDeliveries(){
+  let txs=D.transactions.filter(t=>t.status==="pending"||t.status==="completed");
+  if(delTab==="courier")txs=txs.filter(t=>t.deliveryMethod==="courier");
+  else if(delTab==="meetup")txs=txs.filter(t=>t.deliveryMethod==="meetup");
+  else if(delTab==="no-tracking")txs=txs.filter(t=>t.deliveryMethod==="courier"&&!t.trackingNumber&&t.status==="pending");
+  const cour=D.transactions.filter(t=>t.deliveryMethod==="courier");
+  const wt=cour.filter(t=>t.trackingNumber);
+  const nt=cour.filter(t=>!t.trackingNumber&&t.status==="pending");
+  document.getElementById("deliveryStats").innerHTML=`
+    <div class="stat-card"><div class="lbl">Total Courier</div><div class="val">${cour.length}</div></div>
+    <div class="stat-card green"><div class="lbl">Tracking Added</div><div class="val">${wt.length}</div></div>
+    <div class="stat-card orange"><div class="lbl">Awaiting Tracking</div><div class="val">${nt.length}</div></div>
+    <div class="stat-card blue"><div class="lbl">Meetup</div><div class="val">${D.transactions.filter(t=>t.deliveryMethod==="meetup").length}</div></div>`;
+  document.getElementById("deliveryTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Seller</th><th>Method</th><th>Pargo Point</th><th>Tracking</th><th>Status</th><th></th></tr></thead>
+    <tbody>${txs.map(t=>`<tr>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-size:12px;">${t.sellerName||"-"}</td>
+      <td>${t.deliveryMethod==="courier"?"📦 Courier":"🤝 Meetup"}</td>
+      <td style="font-size:12px;">${t.pargoAddress||"-"}</td>
+      <td style="font-size:12px;">${t.trackingNumber||`<span style="color:var(--warning);font-weight:800;">Not added</span>`}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+      <td>${!t.trackingNumber&&t.deliveryMethod==="courier"?`<button class="btn btn-sm btn-warning" onclick="addTracking('${t.id}')">Add Tracking</button>`:""}</td>
+    </tr>`).join("")}</tbody>`;
+}
+window.addTracking=async function(id){
+  const tr=prompt("Enter tracking number:");
+  if(!tr)return;
+  await admRpc("admin_add_tracking",{p_tx:id,p_tracking:tr});
+  await loadAll();renderDeliveries();toast("Tracking number added","success");
+};
+
+window.setPTab=function(tab,el){poTab=tab;document.querySelectorAll("#page-payouts .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderPayouts();};
+function renderPayouts(){
+  const po=D.payouts.filter(p=>p.status===poTab);
+  const tPend=D.payouts.filter(p=>p.status==="pending").reduce((s,p)=>s+(p.amount||0),0);
+  const tPaid=D.payouts.filter(p=>p.status==="completed").reduce((s,p)=>s+(p.amount||0),0);
+  document.getElementById("payoutStats").innerHTML=`
+    <div class="stat-card orange"><div class="lbl">Pending Payouts</div><div class="val">R${tPend.toFixed(0)}</div><div class="sub">${D.payouts.filter(p=>p.status==="pending").length} sellers waiting</div></div>
+    <div class="stat-card green"><div class="lbl">Total Paid Out</div><div class="val">R${tPaid.toFixed(0)}</div><div class="sub">${D.payouts.filter(p=>p.status==="completed").length} completed</div></div>`;
+  document.getElementById("payoutsTable").innerHTML=`
+    <thead><tr><th>Seller</th><th>Amount</th><th>Bank</th><th>Account Holder</th><th>Acc No.</th><th>Branch</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${po.length===0?`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-400);">No ${poTab} payouts.</td></tr>`:
+    po.map(p=>`<tr>
+      <td style="font-weight:800;">${p.sellerName||"-"}</td>
+      <td style="font-weight:900;color:var(--success);">R${p.amount?.toFixed(2)||0}</td>
+      <td style="font-size:12px;">${p.banking?.bankName||"-"}</td>
+      <td style="font-size:12px;">${p.banking?.accountHolder||"-"}</td>
+      <td style="font-size:12px;">****${String(p.banking?.accountNumber||"").slice(-4)}</td>
+      <td style="font-size:12px;">${p.banking?.branchCode||"-"}</td>
+      <td><span class="tag tag-${p.status==="pending"?"pending":p.status==="completed"?"completed":"failed"}">${p.status}</span></td>
+      <td style="display:flex;gap:6px;">
+        ${p.status==="pending"?`<button class="btn btn-sm btn-success" onclick="markPaid('${p.id}')">✅ Paid</button><button class="btn btn-sm btn-danger" onclick="markFailed('${p.id}')">❌ Failed</button>`:""}
+      </td>
+    </tr>`).join("")}</tbody>`;
+}
+window.markPaid=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp()});
+  await logAction("Payout completed","payout",`Paid R${p?.amount||"?"} to ${p?.sellerName||id}`);
+  await loadAll();renderPayouts();toast("Payout marked as completed","success");
+};
+window.markFailed=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  await updateDoc(doc(db,"payouts",id),{status:"failed",failedAt:serverTimestamp()});
+  await logAction("Payout failed","payout",`Marked payout to ${p?.sellerName||id} as failed`);
+  await loadAll();renderPayouts();toast("Marked as failed","warning");
+};
+window.exportPayouts=function(){
+  const rows=[["Seller","Amount","Bank","Account Holder","Account Number","Branch Code","Status"],...D.payouts.map(p=>[p.sellerName,p.amount,p.banking?.bankName,p.banking?.accountHolder,p.banking?.accountNumber,p.banking?.branchCode,p.status])];
+  dlCSV(rows,"bookworm_payouts.csv");
+};
+
+function renderDisputes(){
+  const disputes=D.disputes;
+  document.getElementById("disputeCount").textContent=`${disputes.filter(d=>d.status==="open").length} open`;
+  document.getElementById("disputesTable").innerHTML=`
+    <thead><tr><th>User</th><th>Book</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${disputes.length===0?`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">No disputes yet.</td></tr>`:
+    disputes.map(d=>{const tx=D.transactions.find(t=>t.id===d.txId);return`<tr>
+      <td style="font-weight:800;">${d.userName||"-"}</td>
+      <td style="font-size:12px;max-width:120px;">${tx?.bookTitle||"-"}</td>
+      <td style="font-size:12px;max-width:200px;">${d.description||"-"}</td>
+      <td><span class="tag tag-${d.status==="open"?"open":"resolved"}">${d.status}</span></td>
+      <td style="display:flex;gap:6px;">
+        ${d.status==="open"?`
+          <button class="btn btn-sm btn-success" onclick="resolveDispute('${d.id}','${d.txId}','seller')">Seller Wins</button>
+          <button class="btn btn-sm btn-info" onclick="resolveDispute('${d.id}','${d.txId}','buyer')">Buyer Wins</button>
+        `:`<span style="font-size:12px;color:var(--gray-400);">Resolved ✅</span>`}
+      </td>
+    </tr>`;}).join("")}</tbody>`;
+}
+window.resolveDispute=async function(did,tid,winner){
+  const outcome=winner==="seller"?"completed":"refunded";
+  await admRpc("admin_resolve_dispute",{p_dispute:did,p_winner:winner});
+  await logAction("Resolved dispute","dispute",`Dispute ${did} resolved — ${winner} wins`);
+  await loadAll();renderDisputes();renderDashboard();
+  toast(`Dispute resolved — ${winner} wins`,"success");
+};
+
+async function loadSupportChats(){
+  const snap=await getDocs(query(collection(db,"chats"),where("isSupport","==",true)));
+  const list=document.getElementById("supportList");
+  if(snap.empty){list.innerHTML=`<div class="empty-state"><p>No support chats yet.</p></div>`;return;}
+  list.innerHTML=snap.docs.map(d=>{
+    const c=d.data();const uid=c.participants?.find(p=>p!=="support");
+    const name=c.participantNames?.[uid]||"Student";
+    return`<div class="cli" onclick="openSupport('${d.id}','${name}')">
+      <div class="cavatar">🎓</div>
+      <div><div style="font-weight:800;font-size:13px;">${name}</div><div style="font-size:11px;color:var(--gray-400);">${c.lastMessage||"No messages yet"}</div></div>
+    </div>`;}).join("");
+}
+window.openSupport=function(chatId,name){
+  supChatId=chatId;if(unsubSup)unsubSup();
+  document.getElementById("supportChat").innerHTML=`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--gray-200);font-weight:900;font-size:14px;">${name}</div>
+    <div class="chat-msgs-p" id="supMsgs"></div>
+    <div class="chat-input-r">
+      <input id="supInput" placeholder="Reply to ${name}..." onkeypress="if(event.key==='Enter')sendSupport()"/>
+      <button class="btn btn-primary btn-sm" onclick="sendSupport()">Send</button>
+    </div>`;
+  unsubSup=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
+    const c=document.getElementById("supMsgs");if(!c)return;
+    c.innerHTML=snap.docs.map(d=>{const m=d.data();const sent=m.senderId==="support_reply";
+      return`<div style="display:flex;flex-direction:column;align-items:${sent?"flex-end":"flex-start"}">
+        <div class="cmsg ${sent?"sent":"received"}">${m.text}</div>
+        <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"now"}</div>
+      </div>`;}).join("");c.scrollTop=c.scrollHeight;
+  });
+};
+window.sendSupport=async function(){
+  const input=document.getElementById("supInput");
+  const text=input.value.trim();if(!text||!supChatId)return;
+  input.value="";
+  await addDoc(collection(db,"chats",supChatId,"messages"),{text,senderId:"support_reply",senderName:"BookWorm Support",createdAt:serverTimestamp()});
+  await updateDoc(doc(db,"chats",supChatId),{lastMessage:text,updatedAt:serverTimestamp()});
+};
+
+async function loadAllChats(){
+  const snap=await getDocs(query(collection(db,"chats"),orderBy("updatedAt","desc")));
+  const list=document.getElementById("allChatList");
+  const nonSupport=snap.docs.filter(d=>!d.data().isSupport);
+  if(nonSupport.length===0){list.innerHTML=`<div class="empty-state"><p>No chats yet.</p></div>`;return;}
+  list.innerHTML=nonSupport.map(d=>{
+    const c=d.data();const names=Object.values(c.participantNames||{}).join(" & ");
+    return`<div class="cli" onclick="viewChat('${d.id}','${names.replace(/'/g,"\\'")}')">
+      <div class="cavatar">💬</div>
+      <div><div style="font-weight:800;font-size:12px;">${names}</div><div style="font-size:11px;color:var(--gray-400);">${c.bookTitle||""} — ${c.lastMessage||""}</div></div>
+    </div>`;}).join("");
+}
+window.viewChat=function(chatId,names){
+  if(unsubView)unsubView();
+  document.getElementById("allChatView").innerHTML=`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--gray-200);font-weight:900;font-size:14px;">${names}</div>
+    <div class="chat-msgs-p" id="viewMsgs"></div>
+    <div style="padding:10px 16px;border-top:1px solid var(--gray-200);font-size:11px;color:var(--gray-400);font-weight:700;">👁️ View-only mode. Admin replies in Support chats only.</div>`;
+  unsubView=onSnapshot(query(collection(db,"chats",chatId,"messages"),orderBy("createdAt")),snap=>{
+    const c=document.getElementById("viewMsgs");if(!c)return;
+    c.innerHTML=snap.docs.map(d=>{const m=d.data();
+      return`<div style="display:flex;flex-direction:column;align-items:flex-start;margin-bottom:4px;">
+        <div style="font-size:10px;color:var(--gray-400);margin-bottom:2px;">${m.senderName||"User"}</div>
+        <div class="cmsg received">${m.text}</div>
+      </div>`;}).join("");c.scrollTop=c.scrollHeight;
+  });
+};
+
+function renderDigital(){
+  const books=D.books.filter(b=>b.bookType==="digital");
+  document.getElementById("digitalTable").innerHTML=`
+    <thead><tr><th>Title</th><th>Seller</th><th>Licence Ref</th><th>Price/yr</th><th>Status</th><th></th></tr></thead>
+    <tbody>${books.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No digital books yet.</td></tr>`:
+    books.map(b=>`<tr>
+      <td style="font-weight:800;">${b.title}</td>
+      <td style="font-size:12px;">${b.sellerName||"-"}</td>
+      <td style="font-size:12px;">${b.licenceRef||"-"}</td>
+      <td style="font-weight:900;">R${b.subPrice||0}/yr</td>
+      <td><span class="tag tag-${b.status}">${b.status}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="delBook('${b.id}')">Remove</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+
+function renderPromotions(){
+  const rev=D.promotions.reduce((s,p)=>s+(p.price||0),0);
+  const active=D.promotions.filter(p=>new Date((p.expiresAt?.seconds||0)*1000)>new Date());
+  document.getElementById("promoStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Promo Revenue</div><div class="val">R${rev}</div></div>
+    <div class="stat-card blue"><div class="lbl">Active Promotions</div><div class="val">${active.length}</div></div>
+    <div class="stat-card"><div class="lbl">Total Promotions</div><div class="val">${D.promotions.length}</div></div>`;
+  document.getElementById("promoTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Seller</th><th>Plan</th><th>Price Paid</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${D.promotions.map(p=>{
+      const exp=new Date((p.expiresAt?.seconds||0)*1000);const isA=exp>new Date();
+      const book=D.books.find(b=>b.id===p.bookId);
+      const seller=D.users.find(u=>u.uid===p.sellerId);
+      const isFeatured=book?.featured===true;
+      return`<tr>
+        <td style="font-weight:800;">${book?.title||"-"}</td>
+        <td style="font-size:12px;">${seller?.name||"-"}</td>
+        <td>${p.days} days</td>
+        <td style="font-weight:900;">R${p.price||0}</td>
+        <td style="font-size:12px;">${exp.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag ${isA?"tag-active":"tag-sold"}">${isA?"Active":"Expired"}</span></td>
+        <td style="display:flex;gap:6px;">
+          ${p.bookId?`<button class="btn btn-sm ${isFeatured?"btn-warning":"btn-success"}" onclick="toggleFeature('${p.bookId}',${isFeatured})">${isFeatured?"⬇ Unfeature":"⭐ Feature"}</button>`:""}
+          ${isA?`<button class="btn btn-sm btn-danger" onclick="expirePromo('${p.id}','${p.bookId}')">Expire</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.toggleFeature=async function(bookId,currentlyFeatured){
+  try{
+    {const bk=D.books.find(x=>x.id===bookId);await admRpc("admin_set_book",{p_book:bookId,p_status:bk?.status||"available",p_featured:!currentlyFeatured});}
+    await logAction("Promotion","promotions",`${currentlyFeatured?"Unfeatured":"Featured"} book ${bookId} manually`);
+    toast(currentlyFeatured?"Book unfeatured":"Book featured ⭐","success");
+    await loadAll();renderPromotions();
+  }catch(e){toast("Failed to update feature status","error");console.error(e);}
+};
+window.expirePromo=async function(promoId,bookId){
+  if(!confirm("Expire this promotion and unfeature the book?"))return;
+  try{
+    await updateDoc(doc(db,"promotions",promoId),{status:"expired",expiredAt:serverTimestamp()});
+    if(bookId){const bk=D.books.find(x=>x.id===bookId);await admRpc("admin_set_book",{p_book:bookId,p_status:bk?.status||"available",p_featured:false});}
+    await logAction("Promotion","promotions",`Manually expired promo ${promoId}`);
+    toast("Promotion expired","warning");
+    await loadAll();renderPromotions();
+  }catch(e){toast("Failed to expire promotion","error");console.error(e);}
+};
+
+function renderWanted(){
+  document.getElementById("wantedTable").innerHTML=`
+    <thead><tr><th>Book Title</th><th>Edition</th><th>Student</th><th>Institution</th><th>Budget</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${D.wanted.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No wanted listings yet.</td></tr>`:
+    D.wanted.map(w=>`<tr>
+      <td style="font-weight:800;">${w.title||"-"}</td>
+      <td style="font-size:12px;">${w.edition||"-"}</td>
+      <td style="font-size:12px;">${w.posterName||"-"}</td>
+      <td style="font-size:12px;">${w.university||"-"}</td>
+      <td>${w.budget?`R${w.budget}`:"-"}</td>
+      <td style="font-size:12px;max-width:150px;">${w.notes||"-"}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="delWanted('${w.id}')">Remove</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+window.delWanted=async function(id){await deleteDoc(doc(db,"wanted",id));D.wanted=D.wanted.filter(w=>w.id!==id);renderWanted();toast("Removed","success");};
+
+function setDefaultDates(){
+  const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);
+  document.getElementById("reportFrom").value=first.toISOString().split("T")[0];
+  document.getElementById("reportTo").value=now.toISOString().split("T")[0];
+}
+window.generateReport=function(){
+  const from=new Date(document.getElementById("reportFrom").value);
+  const to=new Date(document.getElementById("reportTo").value);to.setHours(23,59,59);
+  const txs=D.transactions.filter(t=>{const d=ts(t.createdAt);return d>=from&&d<=to;});
+  const done=txs.filter(t=>t.status==="completed");
+  const comm=done.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const dRev=done.reduce((s,t)=>s+(t.deliveryFee||0),0);
+  const promos=D.promotions.filter(p=>{const d=ts(p.createdAt);return d>=from&&d<=to;});
+  const pRev=promos.reduce((s,p)=>s+(p.price||0),0);
+  document.getElementById("reportStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Total Revenue</div><div class="val">R${(comm+dRev+pRev).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="lbl">Commission</div><div class="val">R${comm.toFixed(0)}</div></div>
+    <div class="stat-card blue"><div class="lbl">Delivery Revenue</div><div class="val">R${dRev.toFixed(0)}</div></div>
+    <div class="stat-card orange"><div class="lbl">Promo Revenue</div><div class="val">R${pRev.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="lbl">Total Transactions</div><div class="val">${txs.length}</div></div>
+    <div class="stat-card green"><div class="lbl">Completed</div><div class="val">${done.length}</div></div>`;
+  document.getElementById("reportTable").innerHTML=`
+    <thead><tr><th>Date</th><th>Book</th><th>Buyer</th><th>Book Amount</th><th>Delivery Fee</th><th>Commission</th><th>Status</th></tr></thead>
+    <tbody>${txs.map(t=>{const d=ts(t.createdAt);return`<tr>
+      <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-weight:900;">R${t.amount||0}</td>
+      <td style="font-size:12px;">R${t.deliveryFee||0}</td>
+      <td style="font-size:12px;">R${((t.amount||0)*(commissionRate/100)).toFixed(2)}</td>
+      <td><span class="tag tag-${t.status}">${t.status}</span></td>
+    </tr>`;}).join("")}</tbody>`;
+  window._repData=txs;
+};
+window.exportReport=function(){
+  if(!window._repData)return toast("Please generate a report first","warning");
+  const rows=[["Date","Book","Buyer","Book Amount","Delivery Fee","Commission","Status"],...window._repData.map(t=>{const d=ts(t.createdAt);return[d.toLocaleDateString("en-ZA"),t.bookTitle,t.buyerName,t.amount,t.deliveryFee||0,((t.amount||0)*(commissionRate/100)).toFixed(2),t.status];})];
+  dlCSV(rows,"bookworm_report.csv");
+};
+
+async function loadSettings(){
+  try{
+    const s=await getDoc(doc(db,"settings","commission"));
+    if(s.exists()){commissionRate=s.data().rate||5;deliveryFee=s.data().deliveryFee||79;document.getElementById("setCommission").value=commissionRate;document.getElementById("setDeliveryFee").value=deliveryFee;}
+    const p=await getDoc(doc(db,"settings","promo"));
+    if(p.exists()){document.getElementById("setPromo7").value=p.data().plan7||29;document.getElementById("setPromo14").value=p.data().plan14||49;document.getElementById("setPromo30").value=p.data().plan30||79;}
+    const d=await getDoc(doc(db,"settings","delivery"));
+    if(d.exists()){if(d.data().courier===false)document.getElementById("togCourier").classList.remove("on");if(d.data().meetup===false)document.getElementById("togMeetup").classList.remove("on");if(d.data().bookshop===true)document.getElementById("togBookshop").classList.add("on");}
+    const partners=await getDocs(collection(db,"bookshopPartners"));
+    if(!partners.empty)document.getElementById("bookshopPartners").innerHTML=partners.docs.map(p=>{const d=p.data();return`<div style="padding:8px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px;font-size:12px;"><strong>${d.name}</strong><br/>${d.address}, ${d.province}<br/>${d.phone||""}</div>`;}).join("");
+  }catch(e){console.error(e);}
+}
+window.saveFeesSettings=async function(){
+  const r=parseFloat(document.getElementById("setCommission").value);
+  const f=parseFloat(document.getElementById("setDeliveryFee").value);
+  if(isNaN(r)||r<0||r>30)return toast("Commission must be 0–30%","error");
+  if(isNaN(f)||f<0)return toast("Invalid delivery fee","error");
+  await setDoc(doc(db,"settings","commission"),{rate:r,deliveryFee:f,updatedAt:serverTimestamp()});
+  commissionRate=r;deliveryFee=f;
+  toast(`Saved — Commission: ${r}% | Delivery: R${f}`,"success");
+};
+window.saveDeliverySettings=async function(){
+  await setDoc(doc(db,"settings","delivery"),{courier:document.getElementById("togCourier").classList.contains("on"),meetup:document.getElementById("togMeetup").classList.contains("on"),bookshop:document.getElementById("togBookshop").classList.contains("on"),updatedAt:serverTimestamp()});
+  toast("Delivery settings saved","success");
+};
+window.savePromoSettings=async function(){
+  await setDoc(doc(db,"settings","promo"),{plan7:parseFloat(document.getElementById("setPromo7").value)||29,plan14:parseFloat(document.getElementById("setPromo14").value)||49,plan30:parseFloat(document.getElementById("setPromo30").value)||79,updatedAt:serverTimestamp()});
+  toast("Promotion pricing saved","success");
+};
+window.saveNotifSettings=async function(){
+  await setDoc(doc(db,"settings","notifications"),{emailListing:document.getElementById("togEmailListing").classList.contains("on"),emailTx:document.getElementById("togEmailTx").classList.contains("on"),emailDispute:document.getElementById("togEmailDispute").classList.contains("on"),updatedAt:serverTimestamp()});
+  toast("Notification settings saved","success");
+};
+window.savePartner=async function(){
+  const n=document.getElementById("partnerName").value.trim();
+  const a=document.getElementById("partnerAddress").value.trim();
+  if(!n||!a)return toast("Please fill in name and address","error");
+  await addDoc(collection(db,"bookshopPartners"),{name:n,address:a,phone:document.getElementById("partnerPhone").value.trim(),province:document.getElementById("partnerProvince").value,createdAt:serverTimestamp()});
+  closeModal("partnerModal");toast("Bookshop partner added","success");loadSettings();
+};
+window.exportAllData=function(){
+  const rows=[["Type","Name","Email/Seller","Amount","Status"],...D.users.map(u=>["User",u.name,u.email,"-",u.accountType]),...D.books.map(b=>["Book",b.title,b.sellerName,b.price||b.subPrice,b.status]),...D.transactions.map(t=>["Transaction",t.bookTitle,t.buyerName,t.amount,t.status]),...D.payouts.map(p=>["Payout",p.sellerName,"-",p.amount,p.status])];
+  dlCSV(rows,"bookworm_full_export.csv");
+};
+
+function dlCSV(rows,fn){
+  const csv=rows.map(r=>r.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=fn;a.click();
+}
+
+// ─── AMBASSADOR LOGIC ─────────────────────────────────────────────────────────
+let ambassadors=[];
+let ambTab="active";
+let currentAmbassadorId=null;
+
+window.setAmbTab=function(tab,el){
+  ambTab=tab;
+  document.querySelectorAll("#page-ambassadors .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderAmbassadors();
+};
+
+async function loadAmbassadors(){
+  try{
+    const snap=await getDocs(collection(db,"ambassadors"));
+    ambassadors=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAmbassadorStats();
+    renderAmbassadors();
+  }catch(e){console.error(e);}
+}
+
+function renderAmbassadorStats(){
+  const active=ambassadors.filter(a=>a.status==="active").length;
+  const probation=ambassadors.filter(a=>a.status==="probation").length;
+  const totalEarned=ambassadors.reduce((s,a)=>s+(a.totalEarned||0),0);
+  const institutions=new Set(ambassadors.map(a=>a.university)).size;
+  document.getElementById("ambassadorStats").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Active</div><div class="val">${active}</div></div>
+    <div class="stat-card orange"><div class="lbl">Probation</div><div class="val">${probation}</div></div>
+    <div class="stat-card blue"><div class="lbl">Institutions</div><div class="val">${institutions}</div></div>
+    <div class="stat-card"><div class="lbl">Total Paid Out</div><div class="val">R${totalEarned.toFixed(0)}</div></div>`;
+}
+
+function renderAmbassadors(){
+  const list=ambTab==="all"?ambassadors:ambassadors.filter(a=>a.status===ambTab);
+  document.getElementById("ambassadorsTable").innerHTML=`
+    <thead><tr><th>Name</th><th>Institution</th><th>WhatsApp</th><th>Commission</th><th>Earned</th><th>Contract Ends</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${list.length===0?`<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-400);">No ambassadors yet. Add your first one!</td></tr>`:
+    list.map(a=>{
+      const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+      const daysLeft=Math.floor((end-new Date())/(864e5));
+      const cc=daysLeft<30?"var(--error)":daysLeft<60?"var(--warning)":"var(--success)";
+      return`<tr>
+        <td style="font-weight:800;">${a.name}</td>
+        <td style="font-size:12px;">${a.university}</td>
+        <td style="font-size:12px;">${a.whatsapp||"-"}</td>
+        <td style="font-weight:900;">${a.commissionRate||1}%</td>
+        <td style="font-weight:900;color:var(--success);">R${(a.totalEarned||0).toFixed(2)}</td>
+        <td style="font-size:12px;color:${cc};">${daysLeft>0?`${daysLeft}d left`:"Expired"}</td>
+        <td><span class="tag ${a.status==="active"?"tag-active":a.status==="terminated"?"tag-cancelled":"tag-pending"}">${a.status==="active"?"🟢 Active":a.status==="terminated"?"🔴 Ended":"🟡 Probation"}</span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-info" onclick="viewAmbassador('${a.id}')">View</button>
+          <button class="btn btn-sm btn-primary" onclick="openMessageAmb('${a.id}','${a.name.replace(/'/g,"\\'")}')">📩</button>
+          ${a.status!=="terminated"?`<button class="btn btn-sm btn-danger" onclick="terminateAmbassador('${a.id}','${a.name.replace(/'/g,"\\'")}')">End</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.saveAmbassador=async function(){
+  const name=document.getElementById("ambName").value.trim();
+  const email=document.getElementById("ambEmail").value.trim();
+  const whatsapp=document.getElementById("ambWhatsapp").value.trim();
+  const studentNum=document.getElementById("ambStudentNum").value.trim();
+  const university=document.getElementById("ambUniversity").value;
+  const commissionRate=parseFloat(document.getElementById("ambCommission").value)||1;
+  const startDate=document.getElementById("ambStartDate").value;
+  const endDate=document.getElementById("ambEndDate").value;
+  const status=document.getElementById("ambStatus").value;
+  const notes=document.getElementById("ambNotes").value.trim();
+  if(!name||!email||!university||!startDate||!endDate)return toast("Please fill in all required fields","error");
+  try{
+    await addDoc(collection(db,"ambassadors"),{
+      name,email,whatsapp,studentNumber:studentNum,university,
+      commissionRate,startDate:new Date(startDate),endDate:new Date(endDate),
+      status,notes,totalEarned:0,createdAt:serverTimestamp()
+    });
+    closeModal("addAmbassadorModal");
+    ["ambName","ambEmail","ambWhatsapp","ambStudentNum","ambNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    toast(`${name} added as ambassador!`,"success");
+    await loadAmbassadors();
+  }catch(e){toast("Failed to save ambassador","error");console.error(e);}
+};
+
+window.viewAmbassador=async function(id){
+  const a=ambassadors.find(x=>x.id===id);if(!a)return;
+  currentAmbassadorId=id;
+  // Calc uni revenue
+  const uniTx=D.transactions.filter(t=>t.status==="completed").filter(t=>{
+    const buyer=D.users.find(u=>u.uid===t.buyerId);
+    const seller=D.users.find(u=>u.uid===t.sellerId);
+    return buyer?.university===a.university||seller?.university===a.university;
+  });
+  const uniRevenue=uniTx.reduce((s,t)=>s+(t.amount||0)*(commissionRate/100),0);
+  const ambEarnings=Math.round(uniRevenue*(a.commissionRate/100)*100)/100;
+  const uniUsers=D.users.filter(u=>u.university===a.university).length;
+  const start=a.startDate?.toDate?a.startDate.toDate():new Date((a.startDate?.seconds||0)*1000);
+  const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+  document.getElementById("viewAmbName").textContent=a.name;
+  document.getElementById("viewAmbContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Institution:</strong> ${a.university}</div>
+      <div><strong>Email:</strong> ${a.email}</div>
+      <div><strong>WhatsApp:</strong> ${a.whatsapp||"-"}</div>
+      <div><strong>Student Number:</strong> ${a.studentNumber||"-"}</div>
+      <div><strong>Commission Rate:</strong> ${a.commissionRate}% of BookWorm's earnings at their university</div>
+      <div><strong>Status:</strong> <span class="tag ${a.status==="active"?"tag-active":"tag-pending"}">${a.status}</span></div>
+      <div><strong>Contract:</strong> ${start.toLocaleDateString("en-ZA")} → ${end.toLocaleDateString("en-ZA")}</div>
+      ${a.notes?`<div><strong>Notes:</strong> ${a.notes}</div>`:""}
+      <div style="background:var(--gray-100);border-radius:10px;padding:14px;margin-top:4px;">
+        <div style="font-weight:900;font-size:13px;margin-bottom:10px;">📊 ${a.university} Stats</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;">${uniUsers}</div><div style="font-size:10px;color:var(--gray-400);">Registered Users</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;">${uniTx.length}</div><div style="font-size:10px;color:var(--gray-400);">Completed Sales</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--success);">R${uniRevenue.toFixed(0)}</div><div style="font-size:10px;color:var(--gray-400);">BookWorm Revenue</div></div>
+          <div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:900;color:var(--info);">R${ambEarnings.toFixed(2)}</div><div style="font-size:10px;color:var(--gray-400);">Ambassador Earned</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-primary btn-sm btn-full" onclick="openMessageAmb('${a.id}','${a.name.replace(/'/g,"\\'")}');closeModal('viewAmbassadorModal')">📩 Send Message</button>
+        ${ambEarnings>0?`<button class="btn btn-success btn-sm btn-full" onclick="markAmbPaid('${a.id}',${ambEarnings})">💰 Pay R${ambEarnings.toFixed(2)}</button>`:""}
+      </div>
+      ${a.status==="probation"?`<button class="btn btn-success btn-full btn-sm" onclick="promoteAmbassador('${a.id}','${a.name.replace(/'/g,"\\'")}')">✅ Activate (End Probation)</button>`:""}
+    </div>`;
+  document.getElementById("viewAmbassadorModal").classList.add("active");
+};
+
+window.openMessageAmb=function(id,name){
+  currentAmbassadorId=id;
+  document.getElementById("messageAmbTarget").textContent=`To: ${name}`;
+  document.getElementById("ambMessageText").value="";
+  document.getElementById("messageAmbModal").classList.add("active");
+};
+
+window.sendAmbassadorMessage=async function(){
+  const text=document.getElementById("ambMessageText").value.trim();
+  if(!text)return toast("Please type a message","error");
+  const a=ambassadors.find(x=>x.id===currentAmbassadorId);if(!a)return;
+  try{
+    const ur=await sb.from("profile_private").select("user_id").eq("email",a.email).maybeSingle();
+    if(ur.data){
+      const uid=ur.data.user_id;
+      const chatId=await admRpc("admin_get_support_chat",{p_user:uid});
+      await sb.from("messages").insert({chat_id:chatId,sender_id:auth.currentUser.id,text});
+      await admRpc("admin_notify",{p_user:uid,p_type:"admin_message",p_title:"📢 Message from BookWorm Team",p_message:text,p_data:{}});
+    }
+    closeModal("messageAmbModal");
+    toast("Message sent!","success");
+  }catch(e){toast("Failed to send message","error");console.error(e);}
+};
+
+window.promoteAmbassador=async function(id,name){
+  if(!confirm(`Activate ${name} as full ambassador?`))return;
+  await updateDoc(doc(db,"ambassadors",id),{status:"active",activatedAt:serverTimestamp()});
+  toast(`${name} is now active!`,"success");
+  closeModal("viewAmbassadorModal");
+  await loadAmbassadors();
+};
+
+window.terminateAmbassador=async function(id,name){
+  if(!confirm(`End contract with ${name}?`))return;
+  await updateDoc(doc(db,"ambassadors",id),{status:"terminated",terminatedAt:serverTimestamp()});
+  toast(`${name}'s contract ended`,"warning");
+  await loadAmbassadors();
+};
+
+window.markAmbPaid=async function(id,amount){
+  if(!confirm(`Mark R${amount} as paid?`))return;
+  const a=ambassadors.find(x=>x.id===id);if(!a)return;
+  await updateDoc(doc(db,"ambassadors",id),{totalEarned:(a.totalEarned||0)+parseFloat(amount),lastPaidAt:serverTimestamp()});
+  await addDoc(collection(db,"ambassadorPayments"),{ambassadorId:id,ambassadorName:a.name,university:a.university,amount:parseFloat(amount),paidAt:serverTimestamp()});
+  closeModal("viewAmbassadorModal");
+  toast(`R${amount} marked paid to ${a.name}`,"success");
+  await loadAmbassadors();
+};
+
+window.exportAmbassadors=function(){
+  const rows=[["Name","Email","WhatsApp","Institution","Commission %","Status","Contract End","Total Earned"],...ambassadors.map(a=>{
+    const end=a.endDate?.toDate?a.endDate.toDate():new Date((a.endDate?.seconds||0)*1000);
+    return[a.name,a.email,a.whatsapp||"",a.university,a.commissionRate,a.status,end.toLocaleDateString("en-ZA"),a.totalEarned||0];
+  })];
+  dlCSV(rows,"bookworm_ambassadors.csv");
+};
+
+// ─── AI SUPPORT LOGIC ─────────────────────────────────────────────────────────
+let faqs=[];
+let escalationKeywords=["refund","fraud","scam","stolen","police","lawyer","legal","hacked","abuse","threat","report"];
+
+async function loadAISupport(){
+  try{
+    const snap=await getDocs(collection(db,"faqs"));
+    faqs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderFAQs();
+    const settings=await getDoc(doc(db,"settings","aiSupport"));
+    if(settings.exists()){
+      const sd=settings.data();
+      if(sd.keywords)escalationKeywords=sd.keywords;
+      if(sd.enabled===false)document.getElementById("togAISupport").classList.remove("on");
+      if(sd.autoRespond===false)document.getElementById("togAutoRespond").classList.remove("on");
+      if(sd.liveAgent===false)document.getElementById("togLiveAgent").classList.remove("on");
+    }
+    renderKeywords();
+    const supportChats=await getDocs(query(collection(db,"chats"),where("isSupport","==",true)));
+    document.getElementById("supportStats").innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <div><strong>Total Support Chats:</strong> ${supportChats.size}</div>
+        <div><strong>FAQ Entries:</strong> ${faqs.length}</div>
+        <div><strong>Escalation Keywords:</strong> ${escalationKeywords.length}</div>
+        <div style="margin-top:8px;font-size:11px;color:var(--gray-400);">AI responds instantly to common questions. Escalation keywords alert your internal team.</div>
+      </div>`;
+  }catch(e){console.error(e);}
+}
+
+function renderFAQs(){
+  document.getElementById("faqTable").innerHTML=`
+    <thead><tr><th>Question / Trigger</th><th>AI Response Preview</th><th>Category</th><th></th></tr></thead>
+    <tbody>${faqs.length===0?`<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--gray-400);">No FAQs yet. Add responses to train the AI.</td></tr>`:
+    faqs.map(f=>`<tr>
+      <td style="font-weight:800;max-width:200px;">${f.question}</td>
+      <td style="font-size:12px;max-width:250px;color:var(--gray-500);">${(f.answer||"").substring(0,80)}...</td>
+      <td><span class="tag tag-active">${f.category||"general"}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteFAQ('${f.id}')">Delete</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+
+window.saveFAQ=async function(){
+  const question=document.getElementById("faqQuestion").value.trim();
+  const answer=document.getElementById("faqAnswer").value.trim();
+  const category=document.getElementById("faqCategory").value;
+  if(!question||!answer)return toast("Please fill in question and answer","error");
+  try{
+    await addDoc(collection(db,"faqs"),{question,answer,category,createdAt:serverTimestamp()});
+    closeModal("addFAQModal");
+    document.getElementById("faqQuestion").value="";
+    document.getElementById("faqAnswer").value="";
+    toast("FAQ added to AI knowledge base!","success");
+    await loadAISupport();
+  }catch(e){toast("Failed to save FAQ","error");}
+};
+
+window.deleteFAQ=async function(id){
+  if(!confirm("Delete this FAQ?"))return;
+  await deleteDoc(doc(db,"faqs",id));
+  faqs=faqs.filter(f=>f.id!==id);
+  renderFAQs();toast("FAQ deleted","success");
+};
+
+function renderKeywords(){
+  const container=document.getElementById("escalationKeywords");
+  if(!container)return;
+  container.innerHTML=escalationKeywords.map((k,i)=>`
+    <div style="display:flex;align-items:center;gap:4px;background:var(--tint);color:var(--error);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:800;">
+      ${k} <span style="cursor:pointer;margin-left:4px;" onclick="removeKeyword(${i})">✕</span>
+    </div>`).join("");
+}
+
+window.addKeyword=async function(){
+  const kw=document.getElementById("newKeyword").value.trim().toLowerCase();
+  if(!kw)return;
+  if(escalationKeywords.includes(kw))return toast("Already in list","warning");
+  escalationKeywords.push(kw);
+  document.getElementById("newKeyword").value="";
+  renderKeywords();
+  await setDoc(doc(db,"settings","aiSupport"),{keywords:escalationKeywords,updatedAt:serverTimestamp()},{merge:true});
+  toast("Keyword added","success");
+};
+
+window.removeKeyword=async function(i){
+  escalationKeywords.splice(i,1);
+  renderKeywords();
+  await setDoc(doc(db,"settings","aiSupport"),{keywords:escalationKeywords,updatedAt:serverTimestamp()},{merge:true});
+};
+
+window.saveAISettings=async function(){
+  await setDoc(doc(db,"settings","aiSupport"),{
+    enabled:document.getElementById("togAISupport").classList.contains("on"),
+    autoRespond:document.getElementById("togAutoRespond").classList.contains("on"),
+    liveAgent:document.getElementById("togLiveAgent").classList.contains("on"),
+    keywords:escalationKeywords,updatedAt:serverTimestamp()
+  });
+  toast("AI support settings saved","success");
+};
+
+// ─── APP FEEDBACK ─────────────────────────────────────────────────────────────
+async function loadAppFeedback(){
+  try{
+    const snap=await getDocs(query(collection(db,"appFeedback"),orderBy("createdAt","desc")));
+    const feedback=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const avg=feedback.length?feedback.reduce((s,f)=>s+(f.rating||0),0)/feedback.length:0;
+    document.getElementById("feedbackStats").innerHTML=`
+      <div class="stat-card green"><div class="lbl">Average Rating</div><div class="val">${avg.toFixed(1)} ⭐</div></div>
+      <div class="stat-card"><div class="lbl">Total Responses</div><div class="val">${feedback.length}</div></div>
+      <div class="stat-card blue"><div class="lbl">5-Star</div><div class="val">${feedback.filter(f=>f.rating===5).length}</div></div>
+      <div class="stat-card red"><div class="lbl">1-Star</div><div class="val">${feedback.filter(f=>f.rating===1).length}</div><div class="sub">Needs attention</div></div>`;
+    document.getElementById("feedbackTable").innerHTML=`
+      <thead><tr><th>User</th><th>Institution</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+      <tbody>${feedback.length===0?`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">No feedback yet.</td></tr>`:
+      feedback.map(f=>{const d=f.createdAt?.toDate?f.createdAt.toDate():new Date((f.createdAt?.seconds||0)*1000);
+        return`<tr>
+          <td style="font-weight:800;">${f.userName||"-"}</td>
+          <td style="font-size:12px;">${f.university||"-"}</td>
+          <td>${"★".repeat(f.rating||0)}${"☆".repeat(5-(f.rating||0))}</td>
+          <td style="font-size:12px;max-width:250px;">${f.comment||"-"}</td>
+          <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);}
+}
+
+// ─── TEAM MEMBERS ─────────────────────────────────────────────────────────────
+async function loadTeamMembers(){
+  try{
+    const snap=await getDocs(collection(db,"teamMembers"));
+    teamMembers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const active=teamMembers.filter(t=>t.active!==false);
+    document.getElementById("teamCount").textContent=`${active.length} active staff`;
+    document.getElementById("teamStats").innerHTML=`
+      <div class="stat-card blue"><div class="lbl">Total Staff</div><div class="val">${active.length}</div></div>
+      <div class="stat-card"><div class="lbl">Support Agents</div><div class="val">${active.filter(t=>t.role==="support").length}</div></div>
+      <div class="stat-card green"><div class="lbl">Finance</div><div class="val">${active.filter(t=>t.role==="finance").length}</div></div>
+      <div class="stat-card orange"><div class="lbl">Operations</div><div class="val">${active.filter(t=>t.role==="operations"||t.role==="listings").length}</div></div>`;
+    const roleLabels={support:"🛟 Support",listings:"📚 Listings",finance:"💰 Finance",operations:"⚙️ Operations",admin:"👑 Admin"};
+    document.getElementById("teamTable").innerHTML=`
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Notes</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${teamMembers.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No team members yet. Add your first staff member.</td></tr>`:
+      teamMembers.map(t=>{
+        const d=t.createdAt?.toDate?t.createdAt.toDate():new Date((t.createdAt?.seconds||0)*1000);
+        const isActive=t.active!==false;
+        return`<tr>
+          <td style="font-weight:800;">${t.name}</td>
+          <td style="font-size:12px;">${t.email}</td>
+          <td><span class="tag tag-active">${roleLabels[t.role]||t.role}</span></td>
+          <td style="font-size:12px;color:var(--gray-400);">${t.notes||"-"}</td>
+          <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+          <td><span class="tag ${isActive?"tag-active":"tag-cancelled"}">${isActive?"Active":"Deactivated"}</span></td>
+          <td style="display:flex;gap:6px;">
+            ${isActive?`<button class="btn btn-sm btn-danger" onclick="deactivateTeamMember('${t.id}','${t.name.replace(/'/g,"\\'")}')">Deactivate</button>`:`<button class="btn btn-sm btn-success" onclick="reactivateTeamMember('${t.id}','${t.name.replace(/'/g,"\\'")}')">Reactivate</button>`}
+          </td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);toast("Failed to load team","error");}
+}
+
+window.addTeamMember=async function(){
+  const name=document.getElementById("tmName").value.trim();
+  const email=document.getElementById("tmEmail").value.trim();
+  const role=document.getElementById("tmRole").value;
+  const password=document.getElementById("tmPassword").value;
+  const notes=document.getElementById("tmNotes").value.trim();
+  if(!name||!email||!password)return toast("Please fill in name, email and password","error");
+  if(password.length<8)return toast("Password must be at least 8 characters","error");
+  
+  const existing=teamMembers.find(t=>t.email===email&&t.active!==false);
+  if(existing)return toast("This email is already an active team member","error");
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const res=await fetch("/api/admin-create-user",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({name,email,password,role,notes})});
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok){const er=new Error(j.error||"Failed to create account");er.code=j.code;throw er;}
+    await logAction("Added team member","team",`Added ${name} (${role}) — ${email}`);
+    closeModal("addTeamModal");
+    ["tmName","tmEmail","tmPassword","tmNotes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    toast(`${name} added and account created successfully! ✅`,"success");
+    await loadTeamMembers();
+  }catch(e){
+    if(e.code==="auth/email-already-in-use"||/already/i.test(e.message||"")){
+      toast("A Firebase Auth account already exists for this email. Ask them to log in directly.","error");
+    }else{
+      toast("Failed to add team member: "+e.message,"error");
+    }
+    console.error(e);
+  }
+};
+
+window.deactivateTeamMember=async function(id,name){
+  if(!confirm(`Deactivate ${name}? They will no longer be able to access the portal.`))return;
+  {const tm=teamMembers.find(x=>x.id===id);await admRpc("admin_set_team_member",{p_user:id,p_role:tm?.role||"support",p_active:false});}
+  await logAction("Deactivated team member","team",`Deactivated ${name}`);
+  toast(`${name} deactivated`,"warning");
+  await loadTeamMembers();
+};
+
+window.reactivateTeamMember=async function(id,name){
+  if(!confirm(`Reactivate ${name}?`))return;
+  {const tm=teamMembers.find(x=>x.id===id);await admRpc("admin_set_team_member",{p_user:id,p_role:tm?.role||"support",p_active:true});}
+  await logAction("Reactivated team member","team",`Reactivated ${name}`);
+  toast(`${name} reactivated`,"success");
+  await loadTeamMembers();
+};
+
+// ─── ESCALATION DASHBOARD ──────────────────────────────────────────────────────
+async function checkEscalationBadge(){
+  try{
+    const snap=await getDocs(query(collection(db,"escalations"),where("status","==","open")));
+    const badge=document.getElementById("escalationBadge");
+    if(snap.size>0){badge.textContent=snap.size;badge.style.display="inline";}
+    else{badge.style.display="none";}
+  }catch(e){}
+}
+
+window.setEscTab=function(tab,el){
+  escTab=tab;
+  document.querySelectorAll("#page-escalation .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderEscalations();
+};
+
+async function loadEscalations(){
+  try{
+    const snap=await getDocs(query(collection(db,"escalations"),orderBy("createdAt","desc")));
+    escalationsData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const open=escalationsData.filter(e=>e.status==="open").length;
+    const inProg=escalationsData.filter(e=>e.status==="in_progress").length;
+    const resolved=escalationsData.filter(e=>e.status==="resolved").length;
+    document.getElementById("escalationStats").innerHTML=`
+      <div class="stat-card red"><div class="lbl">Open</div><div class="val">${open}</div><div class="sub">Needs attention</div></div>
+      <div class="stat-card orange"><div class="lbl">In Progress</div><div class="val">${inProg}</div></div>
+      <div class="stat-card green"><div class="lbl">Resolved</div><div class="val">${resolved}</div></div>
+      <div class="stat-card"><div class="lbl">Total</div><div class="val">${escalationsData.length}</div></div>`;
+    renderEscalations();
+    await checkEscalationBadge();
+  }catch(e){console.error(e);}
+}
+
+function renderEscalations(){
+  const filtered=escTab==="all"?escalationsData:escalationsData.filter(e=>e.status===escTab);
+  document.getElementById("escCount").textContent=`${filtered.length} chats`;
+  document.getElementById("escalationTable").innerHTML=`
+    <thead><tr><th>User</th><th>Trigger Keyword</th><th>Chat Preview</th><th>Flagged</th><th>Status</th><th>Assigned To</th><th>Actions</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No ${escTab==="all"?"":escTab} escalations.</td></tr>`:
+    filtered.map(e=>{
+      const d=e.createdAt?.toDate?e.createdAt.toDate():new Date((e.createdAt?.seconds||0)*1000);
+      return`<tr>
+        <td style="font-weight:800;">${e.userName||"-"}</td>
+        <td><span class="tag tag-open">${e.triggerKeyword||"-"}</span></td>
+        <td style="font-size:12px;max-width:200px;color:var(--gray-500);">${(e.messagePreview||"").substring(0,80)}${(e.messagePreview||"").length>80?"...":""}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag tag-${e.status==="open"?"open":e.status==="in_progress"?"pending":"resolved"}">${e.status==="open"?"🔴 Open":e.status==="in_progress"?"🟡 In Progress":"✅ Resolved"}</span></td>
+        <td style="font-size:12px;">${e.assignedTo||"<span style='color:var(--gray-400);'>Unassigned</span>"}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-info" onclick="viewEscalation('${e.id}')">View</button>
+          ${e.status==="open"?`<button class="btn btn-sm btn-warning" onclick="claimEscalation('${e.id}')">Claim</button>`:""}
+          ${e.status!=="resolved"?`<button class="btn btn-sm btn-success" onclick="resolveEscalation('${e.id}')">Resolve</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.viewEscalation=async function(id){
+  const e=escalationsData.find(x=>x.id===id);if(!e)return;
+  document.getElementById("escModalTitle").textContent=`🚨 Escalation — ${e.userName||"User"}`;
+  document.getElementById("escModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>User:</strong> ${e.userName||"-"}</div>
+      <div><strong>Trigger Keyword:</strong> <span class="tag tag-open">${e.triggerKeyword||"-"}</span></div>
+      <div><strong>Status:</strong> <span class="tag tag-${e.status==="open"?"open":e.status==="in_progress"?"pending":"resolved"}">${e.status}</span></div>
+      <div><strong>Assigned To:</strong> ${e.assignedTo||"Unassigned"}</div>
+      ${e.messagePreview?`<div style="background:var(--gray-100);border-radius:8px;padding:12px;"><strong>Message that triggered escalation:</strong><br/><span style="font-style:italic;color:var(--gray-500);">"${e.messagePreview}"</span></div>`:""}
+      ${e.notes?`<div><strong>Notes:</strong> ${e.notes}</div>`:""}
+      <div class="form-group" style="margin-top:8px;"><label>Add Note</label><textarea class="form-control" id="escNote" placeholder="Add a note about this escalation..." style="min-height:80px;"></textarea></div>
+      <div style="display:flex;gap:8px;">
+        ${e.status!=="in_progress"?`<button class="btn btn-warning btn-sm" onclick="claimEscalation('${e.id}');closeModal('escalationModal')">Claim</button>`:""}
+        ${e.status!=="resolved"?`<button class="btn btn-success btn-sm" onclick="resolveEscalation('${e.id}');closeModal('escalationModal')">✅ Resolve</button>`:""}
+        <button class="btn btn-secondary btn-sm" onclick="saveEscNote('${e.id}')">Save Note</button>
+      </div>
+    </div>`;
+  document.getElementById("escalationModal").classList.add("active");
+};
+
+window.claimEscalation=async function(id){
+  await updateDoc(doc(db,"escalations",id),{status:"in_progress",assignedTo:currentUserName,claimedAt:serverTimestamp()});
+  await logAction("Claimed escalation","escalation",`${currentUserName} claimed escalation ${id}`);
+  toast("Escalation claimed","success");
+  await loadEscalations();
+};
+
+window.resolveEscalation=async function(id){
+  const note=document.getElementById("escNote")?.value||"";
+  await updateDoc(doc(db,"escalations",id),{status:"resolved",resolvedBy:currentUserName,resolvedAt:serverTimestamp(),...(note?{resolutionNote:note}:{})});
+  await logAction("Resolved escalation","escalation",`${currentUserName} resolved escalation ${id}`);
+  toast("Escalation resolved","success");
+  await loadEscalations();
+  await checkEscalationBadge();
+};
+
+window.saveEscNote=async function(id){
+  const note=document.getElementById("escNote")?.value?.trim();
+  if(!note)return toast("Please write a note first","warning");
+  await updateDoc(doc(db,"escalations",id),{notes:note,noteBy:currentUserName,noteAt:serverTimestamp()});
+  toast("Note saved","success");
+};
+
+// ─── AUDIT LOG ────────────────────────────────────────────────────────────────
+async function loadAuditLog(){
+  try{
+    const snap=await getDocs(query(collection(db,"auditLog"),orderBy("timestamp","desc")));
+    auditLogData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAuditLog();
+  }catch(e){console.error(e);}
+}
+
+function renderAuditLog(){
+  const filter=document.getElementById("auditFilter")?.value||"all";
+  const filtered=filter==="all"?auditLogData:auditLogData.filter(a=>a.category===filter);
+  document.getElementById("auditCount").textContent=`${filtered.length} entries`;
+  const catColors={login:"tag-active",listing:"tag-pending",transaction:"tag-sold",dispute:"tag-disputed",payout:"tag-completed",user:"tag-open",team:"tag-featured",escalation:"tag-open",settings:"tag-cancelled"};
+  document.getElementById("auditTable").innerHTML=`
+    <thead><tr><th>Date & Time</th><th>Staff Member</th><th>Role</th><th>Category</th><th>Action</th><th>Detail</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No audit entries yet.</td></tr>`:
+    filtered.map(a=>{
+      const d=a.timestamp?.toDate?a.timestamp.toDate():new Date((a.timestamp?.seconds||0)*1000);
+      return`<tr>
+        <td style="font-size:12px;white-space:nowrap;">${d.toLocaleDateString("en-ZA")} ${d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</td>
+        <td style="font-weight:800;">${a.performedBy||"-"}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${a.role||"-"}</td>
+        <td><span class="tag ${catColors[a.category]||"tag-cancelled"}">${a.category||"-"}</span></td>
+        <td style="font-size:12px;font-weight:700;">${a.action||"-"}</td>
+        <td style="font-size:12px;color:var(--gray-500);max-width:250px;">${a.detail||"-"}</td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.exportAuditLog=function(){
+  const rows=[["Date","Time","Staff Member","Role","Category","Action","Detail"],...auditLogData.map(a=>{
+    const d=a.timestamp?.toDate?a.timestamp.toDate():new Date((a.timestamp?.seconds||0)*1000);
+    return[d.toLocaleDateString("en-ZA"),d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),a.performedBy,a.role,a.category,a.action,a.detail];
+  })];
+  dlCSV(rows,"bookworm_audit_log.csv");
+};
+
+// ─── USER TAB + VERIFY ────────────────────────────────────────────────────────
+window.setUserTab=function(tab,el){userTab=tab;document.querySelectorAll("#page-users .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderUsers();};
+window.verifyUser=async function(id,name){
+  if(!confirm(`Mark ${name} as ID-verified?`))return;
+  await admRpc("admin_set_verified",{p_user:id,p_val:true});
+  await logAction("Verified user ID","user",`Verified ID for ${name}`);
+  toast(`${name} verified`,"success");
+  await loadAll();renderUsers();
+};
+
+// ─── BULK LISTING ACTIONS ─────────────────────────────────────────────────────
+window.bulkNudgeStale=async function(){
+  const now=new Date(),d90=new Date(now-90*864e5);
+  const stale=D.books.filter(b=>b.status==="available"&&ts(b.createdAt)<d90);
+  if(!stale.length)return toast("No stale listings found","warning");
+  if(!confirm(`Nudge ${stale.length} sellers with stale listings?`))return;
+  let count=0;
+  for(const b of stale){
+    await addDoc(collection(db,"notifications"),{userId:b.sellerId,type:"stale_listing",bookId:b.id,message:"Your listing has been on BookWorm for 90+ days. Consider adjusting your price or updating your photos to attract buyers.",createdAt:serverTimestamp(),read:false});
+    count++;
+  }
+  await logAction("Bulk nudge","listing",`Nudged ${count} sellers with stale listings`);
+  toast(`${count} sellers nudged`,"success");
+};
+
+window.bulkRemoveSold=async function(){
+  const now=new Date(),d90=new Date(now-90*864e5);
+  const old=D.books.filter(b=>b.status==="sold"&&ts(b.createdAt)<d90);
+  if(!old.length)return toast("No old sold listings to remove","warning");
+  if(!confirm(`Remove ${old.length} sold listings older than 90 days?`))return;
+  for(const b of old)await admRpc("admin_set_book",{p_book:b.id,p_status:"removed"});
+  await logAction("Bulk remove sold","listing",`Removed ${old.length} sold listings 90d+`);
+  await loadAll();renderListings();toast(`${old.length} listings removed`,"success");
+};
+
+// ─── BULK COMMUNICATIONS ──────────────────────────────────────────────────────
+window.openBulkComms=function(){
+  document.getElementById("bulkCommsModal").classList.add("active");
+  updateBulkPreview();
+};
+window.updateBulkPreview=function(){
+  const target=document.getElementById("bulkTarget")?.value||"all";
+  const labels={all:"All users",sellers:"Sellers with active listings",buyers:"Users who've bought",unverified:"Unverified users",suspended:"Suspended users"};
+  document.getElementById("bulkPreview").textContent=`Recipients: ${labels[target]||target}`;
+};
+window.sendBulkMessage=async function(){
+  const title=document.getElementById("bulkTitle").value.trim();
+  const msg=document.getElementById("bulkMessage").value.trim();
+  const target=document.getElementById("bulkTarget").value;
+  if(!title||!msg)return toast("Please fill in title and message","error");
+  let recipients=D.users;
+  if(target==="sellers")recipients=D.users.filter(u=>D.books.some(b=>b.sellerId===u.id||b.sellerId===u.uid));
+  else if(target==="buyers")recipients=D.users.filter(u=>D.transactions.some(t=>t.buyerId===u.id||t.buyerId===u.uid));
+  else if(target==="unverified")recipients=D.users.filter(u=>!u.idVerified);
+  else if(target==="suspended")recipients=D.users.filter(u=>u.suspended);
+  if(!recipients.length)return toast("No recipients found for this target","warning");
+  if(!confirm(`Send to ${recipients.length} users?`))return;
+  let sent=0;
+  for(const u of recipients){
+    const uid=u.uid||u.id;
+    await addDoc(collection(db,"notifications"),{userId:uid,type:"broadcast",title,message:msg,read:false,createdAt:serverTimestamp()});
+    sent++;
+  }
+  await logAction("Bulk message sent","user",`Sent "${title}" to ${sent} ${target} users`);
+  closeModal("bulkCommsModal");
+  toast(`Message sent to ${sent} users`,"success");
+};
+
+// ─── REFUNDS ──────────────────────────────────────────────────────────────────
+window.renderRefunds=function(){
+  const refunds=D.transactions.filter(t=>t.status==="refunded"||t.refundRequested);
+  document.getElementById("payoutsTable").innerHTML=`
+    <thead><tr><th>Book</th><th>Buyer</th><th>Amount</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${refunds.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No refunds on record.</td></tr>`:
+    refunds.map(t=>`<tr>
+      <td style="font-weight:800;">${t.bookTitle||"-"}</td>
+      <td style="font-size:12px;">${t.buyerName||"-"}</td>
+      <td style="font-weight:900;color:var(--error);">R${t.amount||0}</td>
+      <td style="font-size:12px;">${t.refundReason||"Not specified"}</td>
+      <td><span class="tag tag-${t.status==="refunded"?"completed":"pending"}">${t.status==="refunded"?"Refunded":"Pending"}</span></td>
+      <td>${t.status!=="refunded"?`<button class="btn btn-sm btn-success" onclick="processRefund('${t.id}')">Process Refund</button>`:"<span style='font-size:11px;color:var(--gray-400);'>Done</span>"}</td>
+    </tr>`).join("")}</tbody>`;
+};
+window.processRefund=async function(id){
+  if(!confirm("Process this refund?"))return;
+  await admRpc("admin_cancel_transaction",{p_tx:id});
+  {const t=D.transactions.find(x=>x.id===id);if(t?.refundRequestId)await sb.from("refund_requests").update({status:"refunded"}).eq("id",t.refundRequestId);}
+  await logAction("Processed refund","payout",`Refund processed for transaction ${id}`);
+  toast("Refund processed","success");
+  await loadAll();renderPayouts();
+};
+
+// Override setPTab to handle refunds tab
+const _origSetPTab=window.setPTab;
+window.setPTab=function(tab,el){
+  poTab=tab;
+  document.querySelectorAll("#page-payouts .tab-item").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  if(tab==="refunds"){renderRefunds();}else{renderPayouts();}
+};
+
+// Payout approval for large amounts
+window.markPaid=async function(id){
+  const p=D.payouts.find(x=>x.id===id);
+  if((p?.amount||0)>500&&currentUserRole!=="admin"){
+    toast("Payouts over R500 require admin approval","error");
+    {const ad=await sb.from("profiles").select("id").eq("role","admin");for(const a of(ad.data||[]))await admRpc("admin_notify",{p_user:a.id,p_type:"payout_approval",p_title:"Payout approval needed",p_message:`Payout of R${p.amount} to ${p.sellerName} requires your approval.`,p_data:{payoutId:id}});}
+    await updateDoc(doc(db,"payouts",id),{pendingApproval:true,requestedBy:currentUserName,requestedAt:serverTimestamp()});
+    toast("Approval request sent to admin","warning");
+    return;
+  }
+  await updateDoc(doc(db,"payouts",id),{status:"completed",paidAt:serverTimestamp(),approvedBy:currentUserName});
+  await logAction("Payout completed","payout",`Paid R${p?.amount||"?"} to ${p?.sellerName||id}`);
+  await loadAll();renderPayouts();toast("Payout marked as completed","success");
+};
+
+// ─── FLAGGED CONTENT ──────────────────────────────────────────────────────────
+window.setFlagTab=function(tab,el){flagTab=tab;document.querySelectorAll("#page-flagged .tab-item").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderFlagged();};
+
+async function loadFlagged(){
+  try{
+    const snap=await getDocs(query(collection(db,"flaggedContent"),orderBy("createdAt","desc")));
+    flaggedData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const open=flaggedData.filter(f=>f.status==="open").length;
+    const badge=document.getElementById("flaggedBadge");
+    if(open>0){badge.textContent=open;badge.style.display="inline";}else{badge.style.display="none";}
+    document.getElementById("flaggedStats").innerHTML=`
+      <div class="stat-card red"><div class="lbl">Pending Review</div><div class="val">${open}</div></div>
+      <div class="stat-card green"><div class="lbl">Reviewed</div><div class="val">${flaggedData.filter(f=>f.status==="reviewed").length}</div></div>
+      <div class="stat-card"><div class="lbl">Total Flags</div><div class="val">${flaggedData.length}</div></div>`;
+    renderFlagged();
+  }catch(e){console.error(e);}
+}
+
+function renderFlagged(){
+  const filtered=flagTab==="all"?flaggedData:flaggedData.filter(f=>f.status===flagTab);
+  document.getElementById("flaggedCount").textContent=`${filtered.length} items`;
+  document.getElementById("flaggedTable").innerHTML=`
+    <thead><tr><th>Type</th><th>Item</th><th>Reported By</th><th>Reason</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400);">No ${flagTab==="all"?"":flagTab} flagged items.</td></tr>`:
+    filtered.map(f=>{
+      const d=f.createdAt?.toDate?f.createdAt.toDate():new Date((f.createdAt?.seconds||0)*1000);
+      return`<tr>
+        <td><span class="tag tag-pending">${f.type||"listing"}</span></td>
+        <td style="font-weight:800;max-width:140px;">${f.itemTitle||f.itemId||"-"}</td>
+        <td style="font-size:12px;">${f.reportedByName||"-"}</td>
+        <td style="font-size:12px;max-width:160px;">${f.reason||"-"}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td><span class="tag tag-${f.status==="open"?"open":"resolved"}">${f.status==="open"?"🔴 Pending":"✅ Reviewed"}</span></td>
+        <td style="display:flex;gap:4px;">
+          <button class="btn btn-sm btn-info" onclick="reviewFlagged('${f.id}')">Review</button>
+          ${f.status==="open"?`<button class="btn btn-sm btn-success" onclick="dismissFlag('${f.id}')">Dismiss</button>`:""}
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.reviewFlagged=function(id){
+  const f=flaggedData.find(x=>x.id===id);if(!f)return;
+  const book=D.books.find(b=>b.id===f.itemId);
+  document.getElementById("flaggedModalContent").innerHTML=`
+    <div style="font-size:13px;display:flex;flex-direction:column;gap:10px;">
+      <div><strong>Type:</strong> ${f.type||"listing"}</div>
+      <div><strong>Item:</strong> ${f.itemTitle||f.itemId}</div>
+      <div><strong>Reported By:</strong> ${f.reportedByName||"-"}</div>
+      <div><strong>Reason:</strong> ${f.reason||"-"}</div>
+      ${book?`<div style="background:var(--gray-100);border-radius:8px;padding:10px;"><strong>Book:</strong> ${book.title}<br/><strong>Seller:</strong> ${book.sellerName}<br/><strong>Price:</strong> R${book.price||0}<br/><strong>Status:</strong> ${book.status}</div>`:""}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        ${book?`<button class="btn btn-sm btn-danger" onclick="delBook('${f.itemId}');markFlagReviewed('${f.id}');closeModal('flaggedModal')">Remove Listing</button>`:""}
+        <button class="btn btn-sm btn-success" onclick="dismissFlag('${f.id}');closeModal('flaggedModal')">Dismiss Flag</button>
+      </div>
+    </div>`;
+  document.getElementById("flaggedModal").classList.add("active");
+};
+
+window.dismissFlag=async function(id){
+  await updateDoc(doc(db,"flaggedContent",id),{status:"reviewed",reviewedBy:currentUserName,reviewedAt:serverTimestamp(),action:"dismissed"});
+  await logAction("Dismissed flag","listing",`Dismissed flagged item ${id}`);
+  toast("Flag dismissed","success");
+  await loadFlagged();
+};
+window.markFlagReviewed=async function(id){
+  await updateDoc(doc(db,"flaggedContent",id),{status:"reviewed",reviewedBy:currentUserName,reviewedAt:serverTimestamp(),action:"removed"});
+};
+
+// ─── PLATFORM HEALTH ──────────────────────────────────────────────────────────
+async function loadPlatformHealth(){
+  try{
+    const now=new Date();
+    const users=D.users;const books=D.books;const txs=D.transactions;
+
+    // Health stats
+    const activeListings=books.filter(b=>b.status==="available").length;
+    const convRate=books.length?((txs.filter(t=>t.status==="completed").length/books.length)*100).toFixed(1):0;
+    const avgTxVal=txs.length?(txs.reduce((s,t)=>s+(t.amount||0),0)/txs.length).toFixed(0):0;
+    const d30=new Date(now-30*864e5);
+    const newUsersMonth=users.filter(u=>ts(u.createdAt)>d30).length;
+    document.getElementById("healthStats").innerHTML=`
+      <div class="stat-card blue"><div class="lbl">New Users (30d)</div><div class="val">${newUsersMonth}</div></div>
+      <div class="stat-card green"><div class="lbl">Conversion Rate</div><div class="val">${convRate}%</div><div class="sub">Listings → Sales</div></div>
+      <div class="stat-card"><div class="lbl">Avg Transaction</div><div class="val">R${avgTxVal}</div></div>
+      <div class="stat-card orange"><div class="lbl">Active Listings</div><div class="val">${activeListings}</div></div>`;
+
+    // Growth chart (last 6 months)
+    const months=[];
+    for(let i=5;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const end=new Date(now.getFullYear(),now.getMonth()-i+1,0);
+      const label=d.toLocaleDateString("en-ZA",{month:"short"});
+      const newU=users.filter(u=>{const t=ts(u.createdAt);return t>=d&&t<=end;}).length;
+      const newB=books.filter(b=>{const t=ts(b.createdAt);return t>=d&&t<=end;}).length;
+      months.push({label,users:newU,listings:newB});
+    }
+    document.getElementById("growthChart").innerHTML=`
+      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:20px;">
+        ${months.map(m=>{
+          const maxU=Math.max(...months.map(x=>x.users),1);
+          const maxB=Math.max(...months.map(x=>x.listings),1);
+          return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="display:flex;gap:2px;align-items:flex-end;height:90px;">
+              <div title="Users: ${m.users}" style="width:14px;background:var(--info);border-radius:3px 3px 0 0;height:${Math.max((m.users/maxU)*80,2)}px;"></div>
+              <div title="Listings: ${m.listings}" style="width:14px;background:var(--warning);border-radius:3px 3px 0 0;height:${Math.max((m.listings/maxB)*80,2)}px;"></div>
+            </div>
+            <div style="font-size:10px;font-weight:800;color:var(--gray-400);">${m.label}</div>
+          </div>`;}).join("")}
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;font-weight:800;">
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--info);border-radius:2px;margin-right:4px;"></span>Users</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:var(--warning);border-radius:2px;margin-right:4px;"></span>Listings</span>
+      </div>`;
+
+    // Activity heatmap by hour
+    const hourCounts=Array(24).fill(0);
+    txs.forEach(t=>{const d=ts(t.createdAt);if(d)hourCounts[d.getHours()]++;});
+    const maxH=Math.max(...hourCounts,1);
+    document.getElementById("activityHeatmap").innerHTML=`
+      <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+        ${hourCounts.map((c,h)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div title="${h}:00 — ${c} txns" style="width:100%;background:${c===0?"var(--gray-200)":c===maxH?"var(--success)":"var(--info)"};border-radius:2px 2px 0 0;height:${Math.max((c/maxH)*70,2)}px;opacity:${0.4+(c/maxH)*0.6};"></div>
+          ${h%4===0?`<div style="font-size:8px;color:var(--gray-400);">${h}h</div>`:"<div style='height:12px'></div>"}
+        </div>`).join("")}
+      </div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:8px;font-weight:700;">Peak activity shown in green. Based on all transactions.</div>`;
+
+    // Dropout funnel
+    const d90=new Date(now-90*864e5);
+    const dropout=books.filter(b=>b.status==="available"&&ts(b.createdAt)<d90&&(b.viewCount||0)>0);
+    document.getElementById("dropoutCount").textContent=`${dropout.length} listings`;
+    document.getElementById("dropoutTable").innerHTML=`
+      <thead><tr><th>Title</th><th>Seller</th><th>Price</th><th>Views</th><th>Days Listed</th><th>Actions</th></tr></thead>
+      <tbody>${dropout.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No dropout listings found.</td></tr>`:
+      dropout.slice(0,20).map(b=>`<tr>
+        <td style="font-weight:800;">${b.title}</td>
+        <td style="font-size:12px;">${b.sellerName||"-"}</td>
+        <td style="font-weight:900;">R${b.price||0}</td>
+        <td style="font-weight:800;color:var(--info);">${b.viewCount||0} views</td>
+        <td style="font-size:12px;color:var(--error);">${daysAgo(b.createdAt)}d</td>
+        <td><button class="btn btn-sm btn-warning" onclick="nudgeSeller('${b.id}','${b.sellerId}')">📩 Nudge</button></td>
+      </tr>`).join("")}</tbody>`;
+
+    // Seller performance
+    const sellerMap={};
+    txs.forEach(t=>{
+      const sid=t.sellerId;if(!sid)return;
+      if(!sellerMap[sid])sellerMap[sid]={name:t.sellerName||"-",total:0,completed:0,disputed:0,revenue:0};
+      sellerMap[sid].total++;
+      if(t.status==="completed"){sellerMap[sid].completed++;sellerMap[sid].revenue+=(t.amount||0);}
+      if(t.status==="disputed")sellerMap[sid].disputed++;
+    });
+    const sellers=Object.values(sellerMap).sort((a,b)=>b.revenue-a.revenue).slice(0,15);
+    document.getElementById("sellerPerfTable").innerHTML=`
+      <thead><tr><th>Seller</th><th>Total Sales</th><th>Completed</th><th>Disputed</th><th>Revenue</th><th>Completion Rate</th></tr></thead>
+      <tbody>${sellers.length===0?`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-400);">No seller data yet.</td></tr>`:
+      sellers.map(s=>{
+        const rate=s.total?(s.completed/s.total*100).toFixed(0):0;
+        const rateColor=rate>=80?"var(--success)":rate>=50?"var(--warning)":"var(--error)";
+        return`<tr>
+          <td style="font-weight:800;">${s.name}</td>
+          <td>${s.total}</td>
+          <td style="color:var(--success);font-weight:800;">${s.completed}</td>
+          <td style="color:${s.disputed>0?"var(--error)":"var(--gray-400)"};">${s.disputed}</td>
+          <td style="font-weight:900;">R${s.revenue.toFixed(0)}</td>
+          <td><span style="font-weight:900;color:${rateColor};">${rate}%</span></td>
+        </tr>`;}).join("")}</tbody>`;
+  }catch(e){console.error(e);toast("Failed to load platform health","error");}
+}
+
+// ─── SYSTEM STATUS ────────────────────────────────────────────────────────────
+async function loadSystemStatus(){
+  try{
+    const snap=await getDocs(collection(db,"systemStatus"));
+    systemFeatures=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(systemFeatures.length===0){
+      // Seed default features
+      const defaults=[
+        {name:"User Registration & Login",category:"auth",status:"live",notes:""},
+        {name:"Book Listings (Buy & Sell)",category:"listings",status:"live",notes:""},
+        {name:"Escrow Payment System",category:"payments",status:"live",notes:""},
+        {name:"Pargo Courier Delivery",category:"delivery",status:"live",notes:""},
+        {name:"Meetup Delivery",category:"delivery",status:"live",notes:""},
+        {name:"In-App Chat (Buyer/Seller)",category:"chat",status:"live",notes:""},
+        {name:"Support Chat",category:"chat",status:"live",notes:""},
+        {name:"AI Support Bot",category:"ai",status:"live",notes:""},
+        {name:"Push Notifications",category:"notifications",status:"live",notes:""},
+        {name:"Seller Payouts",category:"payments",status:"live",notes:""},
+        {name:"Digital Book Listings",category:"listings",status:"live",notes:""},
+        {name:"Promotions (Featured Listings)",category:"listings",status:"live",notes:""},
+        {name:"Brand Ambassador Program",category:"other",status:"live",notes:""},
+        {name:"App Feedback System",category:"other",status:"live",notes:""},
+        {name:"ID Verification",category:"auth",status:"coming_soon",notes:"In development"},
+      ];
+      for(const f of defaults){await addDoc(collection(db,"systemStatus"),{...f,updatedAt:serverTimestamp(),updatedBy:"system"});}
+      const snap2=await getDocs(collection(db,"systemStatus"));
+      systemFeatures=snap2.docs.map(d=>({id:d.id,...d.data()}));
+    }
+    renderSystemStatus();
+  }catch(e){console.error(e);}
+}
+
+function renderSystemStatus(){
+  const live=systemFeatures.filter(f=>f.status==="live").length;
+  const issues=systemFeatures.filter(f=>f.status==="issue").length;
+  const down=systemFeatures.filter(f=>f.status==="down").length;
+  const maint=systemFeatures.filter(f=>f.status==="maintenance").length;
+  document.getElementById("statusSummary").innerHTML=`
+    <div class="stat-card green"><div class="lbl">Operational</div><div class="val">${live}</div></div>
+    <div class="stat-card orange"><div class="lbl">Issues</div><div class="val">${issues}</div></div>
+    <div class="stat-card red"><div class="lbl">Down</div><div class="val">${down}</div></div>
+    <div class="stat-card"><div class="lbl">Maintenance</div><div class="val">${maint}</div></div>`;
+  const statusMeta={live:{label:"✅ Live",cls:"tag-active"},issue:{label:"⚠️ Issue",cls:"tag-pending"},down:{label:"🔴 Down",cls:"tag-open"},maintenance:{label:"🔧 Maintenance",cls:"tag-sold"},coming_soon:{label:"🔜 Coming Soon",cls:"tag-cancelled"}};
+  document.getElementById("statusTable").innerHTML=`
+    <thead><tr><th>Feature</th><th>Category</th><th>Status</th><th>Notes</th><th>Last Updated</th><th>Actions</th></tr></thead>
+    <tbody>${systemFeatures.map(f=>{
+      const d=f.updatedAt?.toDate?f.updatedAt.toDate():new Date((f.updatedAt?.seconds||0)*1000);
+      const sm=statusMeta[f.status]||statusMeta.live;
+      return`<tr>
+        <td style="font-weight:800;">${f.name}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${f.category}</td>
+        <td><span class="tag ${sm.cls}">${sm.label}</span></td>
+        <td style="font-size:12px;color:var(--gray-500);">${f.notes||"-"}</td>
+        <td style="font-size:12px;">${d.toLocaleDateString("en-ZA")}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <select class="form-control" style="width:130px;padding:4px 8px;font-size:11px;" onchange="updateFeatureStatus('${f.id}',this.value)">
+            <option value="live"${f.status==="live"?" selected":""}>✅ Live</option>
+            <option value="issue"${f.status==="issue"?" selected":""}>⚠️ Issue</option>
+            <option value="down"${f.status==="down"?" selected":""}>🔴 Down</option>
+            <option value="maintenance"${f.status==="maintenance"?" selected":""}>🔧 Maintenance</option>
+            <option value="coming_soon"${f.status==="coming_soon"?" selected":""}>🔜 Coming Soon</option>
+          </select>
+        </td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+window.updateFeatureStatus=async function(id,status){
+  await updateDoc(doc(db,"systemStatus",id),{status,updatedAt:serverTimestamp(),updatedBy:currentUserName});
+  await logAction("Updated system status","settings",`Feature ${id} set to ${status}`);
+  const f=systemFeatures.find(x=>x.id===id);
+  if(f)f.status=status;
+  renderSystemStatus();
+  toast("Status updated","success");
+};
+
+window.saveFeatureStatus=async function(){
+  const name=document.getElementById("featName").value.trim();
+  const category=document.getElementById("featCategory").value;
+  const status=document.getElementById("featStatus").value;
+  const notes=document.getElementById("featNotes").value.trim();
+  if(!name)return toast("Please enter a feature name","error");
+  await addDoc(collection(db,"systemStatus"),{name,category,status,notes,updatedAt:serverTimestamp(),updatedBy:currentUserName});
+  await logAction("Added feature to status","settings",`Added "${name}" with status ${status}`);
+  closeModal("addFeatureModal");
+  document.getElementById("featName").value="";document.getElementById("featNotes").value="";
+  toast("Feature added","success");
+  await loadSystemStatus();
+};
+
+// ─── STATUS MONITOR (inline view) ─────────────────────────────────────────────
+let monitorTimer=null;
+async function loadStatusMonitor(){
+  try{
+    const snap=await getDocs(collection(db,"systemStatus"));
+    const features=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const live=features.filter(f=>f.status==="live").length;
+    const issues=features.filter(f=>f.status==="issue").length;
+    const down=features.filter(f=>f.status==="down").length;
+    const maint=features.filter(f=>f.status==="maintenance").length;
+    const banner=document.getElementById("monitorBanner");
+    if(banner){
+      if(down>0){banner.style.cssText="background:var(--tint);color:var(--error);padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`🔴 ${down} feature${down>1?"s":""} currently down`;}
+      else if(issues>0){banner.style.cssText="background:var(--tint);color:var(--warning);padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`⚠️ ${issues} feature${issues>1?"s":""} experiencing issues`;}
+      else{banner.style.cssText="background:var(--tint);color:var(--success);padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent="✅ All systems operational";}
+    }
+    const ms=document.getElementById("monitorSummary");
+    if(ms)ms.innerHTML=`
+      <div class="stat-card green"><div class="lbl">Operational</div><div class="val">${live}</div></div>
+      <div class="stat-card orange"><div class="lbl">Issues</div><div class="val">${issues}</div></div>
+      <div class="stat-card red"><div class="lbl">Down</div><div class="val">${down}</div></div>
+      <div class="stat-card"><div class="lbl">Maintenance</div><div class="val">${maint}</div></div>`;
+    const catLabels={auth:"🔐 Authentication",payments:"💳 Payments & Escrow",listings:"📚 Listings",delivery:"🚚 Delivery",chat:"💬 Chat & Support",ai:"🤖 AI Features",notifications:"🔔 Notifications",other:"⚙️ Other"};
+    const statusMeta={live:{label:"✅ Operational",cls:"mb-live"},issue:{label:"⚠️ Degraded",cls:"mb-issue"},down:{label:"🔴 Outage",cls:"mb-down"},maintenance:{label:"🔧 Maintenance",cls:"mb-maintenance"},coming_soon:{label:"🔜 Coming Soon",cls:"mb-coming_soon"}};
+    const cats={};features.forEach(f=>{const c=f.category||"other";if(!cats[c])cats[c]=[];cats[c].push(f);});
+    const catOrder=["auth","payments","listings","delivery","chat","ai","notifications","other"];
+    let html="";
+    catOrder.forEach(cat=>{
+      if(!cats[cat]?.length)return;
+      html+=`<div class="monitor-category"><div class="monitor-cat-title">${catLabels[cat]||cat}</div>`;
+      cats[cat].forEach(f=>{
+        const sm=statusMeta[f.status]||statusMeta.live;
+        html+=`<div class="monitor-row"><div><div class="feat-name">${f.name}</div>${f.notes?`<div class="feat-notes">${f.notes}</div>`:""}</div><span class="monitor-badge ${sm.cls}">${sm.label}</span></div>`;
+      });
+      html+="</div>";
+    });
+    const mf=document.getElementById("monitorFeatures");
+    if(mf)mf.innerHTML=html||"<p style='text-align:center;color:var(--gray-400);padding:32px;'>No features configured. Go to System Status to add them.</p>";
+    const mt=document.getElementById("monitorTimestamp");
+    if(mt)mt.textContent=`Last refreshed: ${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"})} · Auto-refreshes every 60s`;
+    if(monitorTimer)clearTimeout(monitorTimer);
+    if(document.getElementById("page-statuspreview")?.classList.contains("active")){monitorTimer=setTimeout(loadStatusMonitor,60000);}
+  }catch(e){
+    const banner=document.getElementById("monitorBanner");
+    if(banner){banner.style.cssText="background:var(--tint);color:var(--error);padding:14px 20px;border-radius:10px;font-weight:800;font-size:14px;margin-bottom:20px;text-align:center;";banner.textContent=`⚠️ Error: ${e.message||e.code||"Unknown error"}`;}
+    const mf=document.getElementById("monitorFeatures");
+    if(mf)mf.innerHTML=`<div style="padding:24px;color:var(--error);font-size:13px;font-weight:700;">
+      <p>Error code: <strong>${e.code||"none"}</strong></p>
+      <p style="margin-top:8px;">Message: ${e.message||"Unknown"}</p>
+      <p style="margin-top:12px;color:var(--gray-400);font-weight:600;">If this says "permission-denied", go to Firebase Console → Firestore → Rules and ensure admin reads are allowed.<br/>If it says "not-found", visit <strong>System Status</strong> first to seed the collection.</p>
+    </div>`;
+    console.error("Monitor error full:",e);
+  }
+}
+window.loadStatusMonitor=loadStatusMonitor;
+
+window.closeModal=function(id){document.getElementById(id)?.classList.remove("active");};
+window.toast=function(msg,type=""){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className="toast";},3200);};
+</script>
+</body>
+</html>
